@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
     inputs:
       build_type:
-        description: 'Select Build Type'
+        description: 'Select Build Type (debug / release / both)'
         required: true
         default: 'debug'
         type: choice
@@ -30,89 +30,88 @@ jobs:
   build:
     name: Build Android APK
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 30
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout Code
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
-      - name: Set up JDK 17
+      - name: Set up Java 17 (Temurin)
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: 'gradle'
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Setup Gradle
+      - name: Accept Android SDK Licenses
+        run: |
+          yes | sdkmanager --licenses 2>/dev/null || true
+
+      - name: Set up Gradle 8.11.1
         uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+          cache-disabled: false
 
       - name: Prepare Keystore & Environment Files
         run: |
-          echo "Preparing build environment..."
-          # Decode debug keystore if base64 file exists
+          echo "Setting up environment and keystores..."
+          # 1. Decode debug.keystore if base64 exists or generate fallback
           if [ -f "debug.keystore.base64" ]; then
-            echo "Decoding debug.keystore from base64..."
-            base64 -d debug.keystore.base64 > debug.keystore
+            echo "Decoding debug.keystore.base64..."
+            base64 -d debug.keystore.base64 > debug.keystore || true
           fi
           
-          # Create .env from .env.example if missing
-          if [ ! -f ".env" ]; then
-            echo "Creating .env configuration..."
-            cp .env.example .env
+          if [ ! -s "debug.keystore" ]; then
+            echo "Generating fallback debug.keystore..."
+            keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
           fi
 
-      - name: Grant Execute Permission to Gradle Wrapper
-        run: |
-          if [ -f "./gradlew" ]; then
-            chmod +x ./gradlew
+          # 2. Setup .env
+          if [ ! -f ".env" ]; then
+            if [ -f ".env.example" ]; then
+              cp .env.example .env
+            else
+              touch .env
+            fi
           fi
 
       - name: Build Debug APK
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.build_type == 'debug' || inputs.build_type == 'both' }}
         run: |
-          echo "Building Debug APK directly..."
-          if [ -f "./gradlew" ]; then
-            ./gradlew assembleDebug -x test --stacktrace --no-daemon
-          else
-            gradle assembleDebug -x test --stacktrace --no-daemon
-          fi
+          echo "Building Debug APK..."
+          gradle :app:assembleDebug -x test -x testDebugUnitTest -x lint --stacktrace --no-daemon
 
       - name: Build Release APK
         if: ${{ (github.event_name == 'workflow_dispatch' && (inputs.build_type == 'release' || inputs.build_type == 'both')) || startsWith(github.ref, 'refs/tags/v') }}
         run: |
-          echo "Building Release APK..."
-          if [ -f "./gradlew" ]; then
-            ./gradlew assembleRelease -x test --stacktrace --no-daemon || ./gradlew assembleDebug -x test --stacktrace --no-daemon
-          else
-            gradle assembleRelease -x test --stacktrace --no-daemon || gradle assembleDebug -x test --stacktrace --no-daemon
-          fi
+          echo "Building Release APK (falls back to Debug if signing keys not provided)..."
+          gradle :app:assembleRelease -x test -x testDebugUnitTest -x lint --stacktrace --no-daemon || gradle :app:assembleDebug -x test -x testDebugUnitTest -x lint --stacktrace --no-daemon
 
-      - name: Locate and Organize APK Outputs
+      - name: Collect Generated APKs
         run: |
           mkdir -p build-artifacts
-          echo "Finding all generated APK files..."
-          find app/build/outputs/apk/ -name "*.apk" -type f -exec cp {} build-artifacts/ \; || true
+          echo "Listing all generated APK files:"
+          find app/build/outputs/apk/ -type f -name "*.apk" -exec cp {} build-artifacts/ \; || true
           ls -la build-artifacts/
 
-      - name: Upload APK Artifact
+      - name: Upload APK as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: TempMail-APK
           path: build-artifacts/*.apk
+          if-no-files-found: warn
           retention-days: 14
 
-      - name: Create GitHub Release on Tag
+      - name: Publish GitHub Release (on Tag)
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           files: build-artifacts/*.apk
           generate_release_notes: true
-          draft: false
-          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
