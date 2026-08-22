@@ -1,0 +1,6 @@
+{
+  "name": "Temp Mail Pro",
+  "description": "Professional temporary email management system powered by Mail.tm API with instant inbox, lifetime saved accounts vault, and developer support.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
