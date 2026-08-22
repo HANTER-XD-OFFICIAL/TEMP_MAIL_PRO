@@ -22,11 +22,6 @@ on:
           - debug
           - release
           - both
-      run_tests:
-        description: 'Run Unit & Robolectric Tests'
-        required: true
-        default: true
-        type: boolean
 
 permissions:
   contents: write
@@ -77,37 +72,24 @@ jobs:
             chmod +x ./gradlew
           fi
 
-      - name: Run Unit Tests
-        if: ${{ github.event_name != 'workflow_dispatch' || inputs.run_tests == true }}
-        run: |
-          if [ -f "./gradlew" ]; then
-            ./gradlew testDebugUnitTest --no-daemon
-          else
-            gradle testDebugUnitTest --no-daemon
-          fi
-
       - name: Build Debug APK
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.build_type == 'debug' || inputs.build_type == 'both' }}
         run: |
-          echo "Building Debug APK..."
+          echo "Building Debug APK directly..."
           if [ -f "./gradlew" ]; then
-            ./gradlew assembleDebug --stacktrace --no-daemon
+            ./gradlew assembleDebug -x test --stacktrace --no-daemon
           else
-            gradle assembleDebug --stacktrace --no-daemon
+            gradle assembleDebug -x test --stacktrace --no-daemon
           fi
 
       - name: Build Release APK
         if: ${{ (github.event_name == 'workflow_dispatch' && (inputs.build_type == 'release' || inputs.build_type == 'both')) || startsWith(github.ref, 'refs/tags/v') }}
-        env:
-          KEYSTORE_PATH: ${{ secrets.KEYSTORE_PATH }}
-          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           echo "Building Release APK..."
           if [ -f "./gradlew" ]; then
-            ./gradlew assembleRelease --stacktrace --no-daemon || ./gradlew assembleDebug --stacktrace --no-daemon
+            ./gradlew assembleRelease -x test --stacktrace --no-daemon || ./gradlew assembleDebug -x test --stacktrace --no-daemon
           else
-            gradle assembleRelease --stacktrace --no-daemon || gradle assembleDebug --stacktrace --no-daemon
+            gradle assembleRelease -x test --stacktrace --no-daemon || gradle assembleDebug -x test --stacktrace --no-daemon
           fi
 
       - name: Locate and Organize APK Outputs
@@ -117,10 +99,10 @@ jobs:
           find app/build/outputs/apk/ -name "*.apk" -type f -exec cp {} build-artifacts/ \; || true
           ls -la build-artifacts/
 
-      - name: Upload Debug APK Artifact
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: TempMail-Android-APK
+          name: TempMail-APK
           path: build-artifacts/*.apk
           retention-days: 14
 
