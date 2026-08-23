@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Autorenew
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.HourglassTop
 import androidx.compose.material.icons.filled.Key
+import androidx.compose.material.icons.filled.Login
 import androidx.compose.material.icons.filled.MoreTime
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.RestartAlt
@@ -86,6 +87,7 @@ fun EmailHeaderCard(
     onOpenCreateDialog: () -> Unit,
     onOpenVaultSheet: () -> Unit,
     onOpenCredentialsDialog: () -> Unit,
+    onOpenLoginDialog: () -> Unit = {},
     onExtendTime: (Int) -> Unit = {},
     onResetTime: () -> Unit = {},
     modifier: Modifier = Modifier
@@ -198,6 +200,21 @@ fun EmailHeaderCard(
                                     fontWeight = FontWeight.Medium
                                 )
                             }
+                        }
+
+                        // Login / Bind Account button
+                        IconButton(
+                            onClick = onOpenLoginDialog,
+                            modifier = Modifier
+                                .size(34.dp)
+                                .testTag("open_login_card_btn")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Login,
+                                contentDescription = "Login / Bind Account",
+                                tint = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.size(18.dp)
+                            )
                         }
 
                         // Credentials Vault details button

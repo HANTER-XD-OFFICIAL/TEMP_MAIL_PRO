@@ -280,6 +280,7 @@ fun HomeScreen(
                     onOpenCreateDialog = { showCreateDialog = true },
                     onOpenVaultSheet = { showVaultSheet = true },
                     onOpenCredentialsDialog = { showCredentialsDialog = true },
+                    onOpenLoginDialog = { showLoginDialog = true },
                     onExtendTime = { minutes -> viewModel.extendActiveMailboxTime(minutes) },
                     onResetTime = { viewModel.resetActiveMailboxTime(10) }
                 )

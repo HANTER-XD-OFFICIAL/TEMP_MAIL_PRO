@@ -154,13 +154,13 @@ class TempMailRepository(
         password: String,
         label: String = ""
     ): Result<SavedAccountEntity> = withContext(Dispatchers.IO) {
-        val cleanUsername = username.trim().lowercase(Locale.ROOT).replace("[^a-z0-9._-]".toRegex(), "")
+        val cleanUsername = username.trim().lowercase(Locale.ROOT).replace("[^a-z0-9]".toRegex(), "")
         if (cleanUsername.length < 3) {
-            return@withContext Result.failure(IllegalArgumentException("Username must be at least 3 characters"))
+            return@withContext Result.failure(IllegalArgumentException("Username must have at least 3 alphanumeric characters (a-z, 0-9)"))
         }
-        val cleanPassword = password.trim()
+        var cleanPassword = password.trim()
         if (cleanPassword.length < 6) {
-            return@withContext Result.failure(IllegalArgumentException("Password must be at least 6 characters"))
+            cleanPassword += generateSecurePassword().take(8)
         }
 
         val fullAddress = "$cleanUsername@${domain.trim().lowercase(Locale.ROOT)}"
@@ -729,19 +729,26 @@ class TempMailRepository(
     }
 
     private fun generateFriendlyHandle(): String {
-        val adjectives = listOf("quick", "cyber", "nova", "pixel", "shadow", "apex", "swift", "hyper", "pulse", "echo", "frost", "vortex", "storm", "titan", "smart", "alpha")
-        val nouns = listOf("box", "mail", "drop", "inbox", "spark", "shield", "core", "wave", "cloud", "vault", "link", "gate", "zone", "flow")
-        val randomAdj = adjectives[secureRandom.nextInt(adjectives.size)]
-        val randomNoun = nouns[secureRandom.nextInt(nouns.size)]
-        val randomNum = secureRandom.nextInt(9000) + 1000
-        return "$randomAdj.$randomNoun$randomNum"
+        val chars = "abcdefghijklmnopqrstuvwxyz0123456789"
+        val sb = StringBuilder()
+        repeat(8) {
+            sb.append(chars[secureRandom.nextInt(chars.length)])
+        }
+        return sb.toString()
     }
 
     private fun generateSecurePassword(): String {
-        val chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$"
+        val upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        val lower = "abcdefghijklmnopqrstuvwxyz"
+        val digits = "0123456789"
+        val all = upper + lower + digits
         val sb = StringBuilder()
-        repeat(12) {
-            sb.append(chars[secureRandom.nextInt(chars.length)])
+        // Ensure at least one upper, one lower, one digit
+        sb.append(upper[secureRandom.nextInt(upper.length)])
+        sb.append(lower[secureRandom.nextInt(lower.length)])
+        sb.append(digits[secureRandom.nextInt(digits.length)])
+        repeat(7) {
+            sb.append(all[secureRandom.nextInt(all.length)])
         }
         return sb.toString()
     }
