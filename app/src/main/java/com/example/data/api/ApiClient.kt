@@ -41,6 +41,32 @@ object ApiClient {
         createService(SECONDARY_BASE_URL)
     }
 
+    const val SEC_MAIL_PRIMARY_URL = "https://www.1secmail.com/api/v1/"
+    const val SEC_MAIL_NET_URL = "https://www.1secmail.net/api/v1/"
+    const val SEC_MAIL_ORG_URL = "https://www.1secmail.org/api/v1/"
+
+    val secMailService: SecMailApi by lazy {
+        createSecMailService(SEC_MAIL_PRIMARY_URL)
+    }
+
+    val secMailNetService: SecMailApi by lazy {
+        createSecMailService(SEC_MAIL_NET_URL)
+    }
+
+    val secMailOrgService: SecMailApi by lazy {
+        createSecMailService(SEC_MAIL_ORG_URL)
+    }
+
+    fun createSecMailService(baseUrl: String): SecMailApi {
+        val url = if (baseUrl.endsWith("/")) baseUrl else "$baseUrl/"
+        return Retrofit.Builder()
+            .baseUrl(url)
+            .client(okHttpClient)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+            .create(SecMailApi::class.java)
+    }
+
     fun createService(baseUrl: String): MailTmApi {
         val url = if (baseUrl.endsWith("/")) baseUrl else "$baseUrl/"
         return Retrofit.Builder()

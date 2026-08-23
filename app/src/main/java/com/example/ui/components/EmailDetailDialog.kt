@@ -368,10 +368,16 @@ fun EmailDetailDialog(
 
 private fun formatFullDate(dateStr: String): String {
     return try {
-        val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US).apply {
-            timeZone = TimeZone.getTimeZone("UTC")
-        }
         val cleanStr = if (dateStr.length >= 19) dateStr.substring(0, 19) else dateStr
+        val parser = if (cleanStr.contains("T")) {
+            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US).apply {
+                timeZone = TimeZone.getTimeZone("UTC")
+            }
+        } else {
+            SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).apply {
+                timeZone = TimeZone.getTimeZone("UTC")
+            }
+        }
         val date = parser.parse(cleanStr) ?: Date()
         val format = SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
         format.format(date)

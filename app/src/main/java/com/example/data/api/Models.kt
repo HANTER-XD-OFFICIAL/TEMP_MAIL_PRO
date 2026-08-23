@@ -107,3 +107,31 @@ data class MessageDetailResponse(
     @Json(name = "html") val html: List<String>? = null,
     @Json(name = "attachments") val attachments: List<AttachmentItem>? = null
 )
+
+@JsonClass(generateAdapter = true)
+data class SecMailMessageHeader(
+    @Json(name = "id") val id: Long = 0,
+    @Json(name = "from") val from: String = "",
+    @Json(name = "subject") val subject: String = "",
+    @Json(name = "date") val date: String = ""
+)
+
+@JsonClass(generateAdapter = true)
+data class SecMailAttachment(
+    @Json(name = "filename") val filename: String = "",
+    @Json(name = "contentType") val contentType: String = "",
+    @Json(name = "size") val size: Long = 0
+)
+
+@JsonClass(generateAdapter = true)
+data class SecMailMessageDetail(
+    @Json(name = "id") val id: Long = 0,
+    @Json(name = "from") val from: String = "",
+    @Json(name = "subject") val subject: String = "",
+    @Json(name = "date") val date: String = "",
+    @Json(name = "attachments") val attachments: List<SecMailAttachment> = emptyList(),
+    @Json(name = "body") val body: String? = null,
+    @Json(name = "textBody") val textBody: String? = null,
+    @Json(name = "htmlBody") val htmlBody: String? = null
+)
+

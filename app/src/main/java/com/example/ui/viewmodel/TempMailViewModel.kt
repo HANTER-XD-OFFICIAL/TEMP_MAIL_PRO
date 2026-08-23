@@ -129,7 +129,7 @@ class TempMailViewModel(application: Application) : AndroidViewModel(application
     private fun restartTickerAndSyncLoop() {
         autoRefreshJob?.cancel()
         autoRefreshJob = viewModelScope.launch {
-            var syncSecCount = 10
+            var syncSecCount = 6
             while (isActive) {
                 val current = activeAccount.value
                 if (current != null) {
@@ -144,7 +144,7 @@ class TempMailViewModel(application: Application) : AndroidViewModel(application
 
                 syncSecCount--
                 if (syncSecCount <= 0) {
-                    syncSecCount = 10
+                    syncSecCount = 6
                     _autoRefreshSeconds.value = 0
                     if (activeAccount.value != null && !_isLoadingMessages.value) {
                         refreshInbox(silent = true)
@@ -317,7 +317,7 @@ class TempMailViewModel(application: Application) : AndroidViewModel(application
                 return@launch
             }
 
-            val result = repository.fetchMessageDetail(token, messageId)
+            val result = repository.fetchMessageDetail(token, messageId, current.address)
             _isLoadingDetail.value = false
 
             result.onSuccess { detail ->

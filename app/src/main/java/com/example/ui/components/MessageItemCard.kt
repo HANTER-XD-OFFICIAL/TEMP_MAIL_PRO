@@ -216,14 +216,19 @@ fun MessageItemCard(
 
 private fun formatMessageTimestamp(dateStr: String): String {
     return try {
-        // Mail.tm returns ISO 8601 strings like "2023-08-22T07:14:44.000Z"
-        val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US).apply {
-            timeZone = TimeZone.getTimeZone("UTC")
-        }
         val cleanStr = if (dateStr.length >= 19) dateStr.substring(0, 19) else dateStr
+        val parser = if (cleanStr.contains("T")) {
+            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US).apply {
+                timeZone = TimeZone.getTimeZone("UTC")
+            }
+        } else {
+            SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).apply {
+                timeZone = TimeZone.getTimeZone("UTC")
+            }
+        }
         val date = parser.parse(cleanStr) ?: Date()
         val now = System.currentTimeMillis()
-        val diff = now - date.time
+        val diff = maxOf(0L, now - date.time)
 
         when {
             diff < 60_000 -> "Just now"
