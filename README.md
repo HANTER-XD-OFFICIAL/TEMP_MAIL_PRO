@@ -9,6 +9,7 @@
   [![Kotlin](https://img.shields.io/badge/Language-Kotlin%20100%25-7F52FF.svg?style=for-the-badge&logo=kotlin)](https://kotlinlang.org)
   [![Jetpack Compose](https://img.shields.io/badge/UI-Jetpack%20Compose%20M3-4285F4.svg?style=for-the-badge&logo=jetpackcompose)](https://developer.android.com/jetpack/compose)
   [![Telegram Bot](https://img.shields.io/badge/Telegram%20Bot-%40TEMPMAIL8234__bot-229ED9.svg?style=for-the-badge&logo=telegram)](https://t.me/TEMPMAIL8234_bot)
+  [![Download Android APK](https://img.shields.io/badge/Download-Android%20APK-2ea44f?style=for-the-badge&logo=android&logoColor=white)](https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO/releases/tag/TempMailProV1.0)
   
   <br/>
 
@@ -100,7 +101,7 @@ Whether registering on untrusted platforms, testing SaaS pipelines, bypassing re
 
 Direct APK download is available on GitHub Releases:
 
-👉 **[Download Temp Mail Pro APK v1.0](https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO/releases/tag/TempMailProV1.0)**
+ [![Download Android APK](https://img.shields.io/badge/Download-Android%20APK-2ea44f?style=for-the-badge&logo=android&logoColor=white)](https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO/releases/tag/TempMailProV1.0)
 
 ---
 
