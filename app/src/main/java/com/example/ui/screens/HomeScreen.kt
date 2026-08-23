@@ -157,7 +157,7 @@ fun HomeScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Image(
-                            painter = painterResource(id = R.drawable.img_app_icon_1787512971860),
+                            painter = painterResource(id = R.drawable.app_logo_tempmailpro_1787514649787),
                             contentDescription = "Temp Mail Pro Logo",
                             modifier = Modifier
                                 .size(34.dp)

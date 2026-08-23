@@ -71,7 +71,7 @@ fun CreateAccountDialog(
 ) {
     var selectedTab by remember { mutableIntStateOf(0) } // 0: Fast Random, 1: Custom Handle
     var selectedDomain by remember(availableDomains) {
-        mutableStateOf(availableDomains.firstOrNull()?.domain ?: "bugfoo.com")
+        mutableStateOf(availableDomains.firstOrNull()?.domain ?: "emalupe.com")
     }
     var domainExpanded by remember { mutableStateOf(false) }
     var customUsername by remember { mutableStateOf("") }

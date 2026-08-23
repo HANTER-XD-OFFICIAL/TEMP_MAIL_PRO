@@ -3,6 +3,6 @@
     <item
         android:width="66dp"
         android:height="66dp"
-        android:drawable="@drawable/img_app_icon_1787512971860"
+        android:drawable="@drawable/app_logo_tempmailpro_1787514649787"
         android:gravity="center" />
 </layer-list>

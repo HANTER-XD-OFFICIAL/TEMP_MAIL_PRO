@@ -30,28 +30,21 @@ class TempMailRepository(
 
     private val secureRandom = SecureRandom()
 
-    // Backup domains in case network is completely blocked
-    private val fallbackDomains = listOf(
-        "emalupe.com",
-        "txcct.com",
-        "omdiya.com",
-        "guerrillamail.com",
-        "sharklasers.com",
-        "1secmail.com",
-        "1secmail.net",
-        "1secmail.org"
-    )
+    // Primary and exclusive domain requested by user
+    private val fallbackDomains = listOf("emalupe.com")
 
     suspend fun getAvailableDomains(): Result<List<DomainItem>> = withContext(Dispatchers.IO) {
         val resultDomains = mutableListOf<DomainItem>()
 
-        // 1. Fetch live domains directly from Mail.tm API (Primary)
+        // 1. Fetch live domains directly from Mail.tm API and filter for emalupe.com
         val mailServices = listOf(ApiClient.mailTmService, ApiClient.mailGwService)
         for (api in mailServices) {
             try {
                 val resp = api.getDomains()
                 if (resp.isSuccessful && resp.body() != null) {
-                    val activeList = resp.body()!!.member.filter { it.isActive }
+                    val activeList = resp.body()!!.member.filter {
+                        it.isActive && it.domain.equals("emalupe.com", ignoreCase = true)
+                    }
                     activeList.forEach { d ->
                         if (resultDomains.none { it.domain.equals(d.domain, ignoreCase = true) }) {
                             resultDomains.add(d)
@@ -64,52 +57,17 @@ class TempMailRepository(
             }
         }
 
-        // 2. Fetch from Guerrilla / 1SecMail as additional mirrors
+        // Guarantee emalupe.com as the exclusive domain
         if (resultDomains.isEmpty()) {
-            val secMailServices: List<SecMailApi> = listOf(
-                ApiClient.secMailService,
-                ApiClient.secMailNetService,
-                ApiClient.secMailOrgService
-            )
-
-            for (api in secMailServices) {
-                try {
-                    val resp = api.getDomainList()
-                    if (resp.isSuccessful && !resp.body().isNullOrEmpty()) {
-                        resp.body()!!.forEach { d ->
-                            if (resultDomains.none { it.domain.equals(d, ignoreCase = true) }) {
-                                resultDomains.add(
-                                    DomainItem(
-                                        id = d,
-                                        domain = d,
-                                        isActive = true,
-                                        isPrivate = false,
-                                        createdAt = "2026-01-01T00:00:00.000Z"
-                                    )
-                                )
-                            }
-                        }
-                        if (resultDomains.isNotEmpty()) break
-                    }
-                } catch (e: Exception) {
-                    Log.w("TempMailRepo", "SecMail getDomainList error", e)
-                }
-            }
-        }
-
-        // 3. Guarantee known fallback domains if offline
-        fallbackDomains.forEach { d ->
-            if (resultDomains.none { it.domain.equals(d, ignoreCase = true) }) {
-                resultDomains.add(
-                    DomainItem(
-                        id = d,
-                        domain = d,
-                        isActive = true,
-                        isPrivate = false,
-                        createdAt = "2026-01-01T00:00:00.000Z"
-                    )
+            resultDomains.add(
+                DomainItem(
+                    id = "emalupe.com",
+                    domain = "emalupe.com",
+                    isActive = true,
+                    isPrivate = false,
+                    createdAt = "2026-01-01T00:00:00.000Z"
                 )
-            }
+            )
         }
 
         Result.success(resultDomains)
@@ -120,18 +78,8 @@ class TempMailRepository(
         label: String = ""
     ): Result<SavedAccountEntity> = withContext(Dispatchers.IO) {
         try {
-            // Determine domain
-            val domain = if (!customDomain.isNullOrBlank()) {
-                customDomain.trim().lowercase(Locale.ROOT)
-            } else {
-                val domainsResult = getAvailableDomains()
-                val list = domainsResult.getOrNull()
-                if (!list.isNullOrEmpty()) {
-                    list.random().domain
-                } else {
-                    "emalupe.com"
-                }
-            }
+            // Strictly use emalupe.com as the sole verified domain
+            val domain = "emalupe.com"
 
             val randomPrefix = generateFriendlyHandle()
             val generatedAddress = "$randomPrefix@$domain".lowercase(Locale.ROOT)
