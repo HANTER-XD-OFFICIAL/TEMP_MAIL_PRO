@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.MarkEmailRead
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.outlined.MarkEmailUnread
 import androidx.compose.material3.Badge
@@ -85,6 +86,7 @@ import com.example.ui.components.LanguageSelectionDialog
 import com.example.ui.components.LoginAccountDialog
 import com.example.ui.components.MessageItemCard
 import com.example.ui.components.SavedAccountsSheet
+import com.example.ui.components.TelegramBotWelcomeDialog
 import com.example.ui.viewmodel.TempMailViewModel
 import com.example.util.AppLanguage
 import com.example.util.AppStrings
@@ -114,6 +116,7 @@ fun HomeScreen(
     val isExpired by viewModel.isMailboxExpired.collectAsStateWithLifecycle()
 
     // Dialog & Sheet States
+    var showTelegramWelcomeDialog by remember { mutableStateOf(true) }
     var showLanguageDialog by remember { mutableStateOf(false) }
     var showDeveloperDialog by remember { mutableStateOf(false) }
     var showCreateDialog by remember { mutableStateOf(false) }
@@ -213,6 +216,18 @@ fun HomeScreen(
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
+                    }
+
+                    // Telegram Bot Quick Button
+                    IconButton(
+                        onClick = { showTelegramWelcomeDialog = true },
+                        modifier = Modifier.testTag("telegram_bot_top_btn")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Send,
+                            contentDescription = "Telegram Bot",
+                            tint = androidx.compose.ui.graphics.Color(0xFF229ED9)
+                        )
                     }
 
                     // Developer Support Action Button
@@ -461,6 +476,14 @@ fun HomeScreen(
                 }
             }
         }
+    }
+
+    // Telegram Bot Welcome Dialog (Auto-pops on start & on tap)
+    if (showTelegramWelcomeDialog) {
+        TelegramBotWelcomeDialog(
+            botUsername = "TEMPMAIL8234_bot",
+            onDismiss = { showTelegramWelcomeDialog = false }
+        )
     }
 
     // Language Selection Dialog
