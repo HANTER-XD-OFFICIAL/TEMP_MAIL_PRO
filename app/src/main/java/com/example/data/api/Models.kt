@@ -135,3 +135,46 @@ data class SecMailMessageDetail(
     @Json(name = "htmlBody") val htmlBody: String? = null
 )
 
+@JsonClass(generateAdapter = true)
+data class GuerrillaAddressResponse(
+    @Json(name = "email_addr") val emailAddr: String = "",
+    @Json(name = "email_timestamp") val emailTimestamp: Long = 0,
+    @Json(name = "alias") val alias: String = "",
+    @Json(name = "sid_token") val sidToken: String = ""
+)
+
+@JsonClass(generateAdapter = true)
+data class GuerrillaMailItem(
+    @Json(name = "mail_id") val mailId: String = "",
+    @Json(name = "mail_from") val mailFrom: String = "",
+    @Json(name = "mail_subject") val mailSubject: String = "",
+    @Json(name = "mail_excerpt") val mailExcerpt: String = "",
+    @Json(name = "mail_timestamp") val mailTimestamp: String = "",
+    @Json(name = "mail_read") val mailRead: String = "0",
+    @Json(name = "mail_date") val mailDate: String = "",
+    @Json(name = "att") val att: String = "0",
+    @Json(name = "mail_size") val mailSize: String = "0"
+)
+
+@JsonClass(generateAdapter = true)
+data class GuerrillaCheckEmailResponse(
+    @Json(name = "list") val list: List<GuerrillaMailItem> = emptyList(),
+    @Json(name = "count") val count: String = "0",
+    @Json(name = "email") val email: String = "",
+    @Json(name = "alias") val alias: String = "",
+    @Json(name = "sid_token") val sidToken: String = ""
+)
+
+@JsonClass(generateAdapter = true)
+data class GuerrillaFetchEmailResponse(
+    @Json(name = "mail_id") val mailId: String = "",
+    @Json(name = "mail_from") val mailFrom: String = "",
+    @Json(name = "mail_recipient") val mailRecipient: String = "",
+    @Json(name = "mail_subject") val mailSubject: String = "",
+    @Json(name = "mail_excerpt") val mailExcerpt: String = "",
+    @Json(name = "mail_body") val mailBody: String = "",
+    @Json(name = "mail_timestamp") val mailTimestamp: String = "",
+    @Json(name = "mail_date") val mailDate: String = ""
+)
+
+

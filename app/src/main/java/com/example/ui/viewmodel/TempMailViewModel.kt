@@ -202,13 +202,24 @@ class TempMailViewModel(application: Application) : AndroidViewModel(application
         val current = activeAccount.value ?: return
         viewModelScope.launch {
             if (!silent) _isLoadingMessages.value = true
-            val token = repository.ensureValidToken(current) ?: "local_${System.currentTimeMillis()}"
+            val token = repository.ensureValidToken(current) ?: "grr_${System.currentTimeMillis()}"
 
+            val previousCount = _messages.value.size
             val result = repository.fetchMessages(token, current.address)
             if (!silent) _isLoadingMessages.value = false
 
             result.onSuccess { list ->
                 _messages.value = list
+                if (!silent) {
+                    val newCount = list.size
+                    if (newCount > previousCount) {
+                        showNotification("📬 Received ${newCount - previousCount} new email(s)!")
+                    } else if (newCount > 0) {
+                        showNotification("🔄 Inbox refreshed: $newCount message(s) present")
+                    } else {
+                        showNotification("🔄 Inbox is up-to-date (0 new messages)")
+                    }
+                }
             }.onFailure { e ->
                 if (!silent) {
                     showNotification("Inbox sync failed: ${e.localizedMessage ?: "Network error"}", isError = true)

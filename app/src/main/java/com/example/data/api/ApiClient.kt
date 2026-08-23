@@ -67,6 +67,22 @@ object ApiClient {
             .create(SecMailApi::class.java)
     }
 
+    const val GUERRILLA_MAIL_URL = "https://api.guerrillamail.com/"
+
+    val guerrillaMailService: GuerrillaMailApi by lazy {
+        createGuerrillaMailService(GUERRILLA_MAIL_URL)
+    }
+
+    fun createGuerrillaMailService(baseUrl: String): GuerrillaMailApi {
+        val url = if (baseUrl.endsWith("/")) baseUrl else "$baseUrl/"
+        return Retrofit.Builder()
+            .baseUrl(url)
+            .client(okHttpClient)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+            .create(GuerrillaMailApi::class.java)
+    }
+
     fun createService(baseUrl: String): MailTmApi {
         val url = if (baseUrl.endsWith("/")) baseUrl else "$baseUrl/"
         return Retrofit.Builder()

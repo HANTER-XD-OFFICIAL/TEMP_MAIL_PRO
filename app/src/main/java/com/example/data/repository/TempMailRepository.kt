@@ -31,7 +31,13 @@ class TempMailRepository(
     private val secureRandom = SecureRandom()
 
     // Verified live public domains for temporary mail
-    private val verifiedLiveDomains = listOf(
+    val liveDomainsList = listOf(
+        "guerrillamail.com",
+        "guerrillamail.net",
+        "guerrillamail.org",
+        "guerrillamail.biz",
+        "grr.la",
+        "sharklasers.com",
         "1secmail.com",
         "1secmail.net",
         "1secmail.org",
@@ -42,13 +48,34 @@ class TempMailRepository(
         "vmani.com"
     )
 
-    // In-memory test messages store to simulate or inject sample verification OTP emails
-    private val simulatedMessages = mutableListOf<MessageDetailResponse>()
+    // User-triggered test messages store (ONLY when user explicitly taps test button)
+    private val userExplicitTestMessages = mutableListOf<MessageDetailResponse>()
 
     suspend fun getAvailableDomains(): Result<List<DomainItem>> = withContext(Dispatchers.IO) {
         val resultDomains = mutableListOf<DomainItem>()
 
-        // 1. Fetch live domains from 1secmail mirrors
+        // 1. Add GuerrillaMail high-deliverability domains first
+        val guerrillaDomains = listOf(
+            "guerrillamail.com",
+            "sharklasers.com",
+            "grr.la",
+            "guerrillamail.net",
+            "guerrillamail.org",
+            "guerrillamail.biz"
+        )
+        guerrillaDomains.forEach { d ->
+            resultDomains.add(
+                DomainItem(
+                    id = d,
+                    domain = d,
+                    isActive = true,
+                    isPrivate = false,
+                    createdAt = "2026-01-01T00:00:00.000Z"
+                )
+            )
+        }
+
+        // 2. Fetch live domains from 1secmail mirrors
         val secMailServices: List<SecMailApi> = listOf(
             ApiClient.secMailService,
             ApiClient.secMailNetService,
@@ -72,29 +99,15 @@ class TempMailRepository(
                             )
                         }
                     }
-                    if (resultDomains.isNotEmpty()) break
+                    if (resultDomains.size > 6) break
                 }
             } catch (e: Exception) {
-                Log.w("TempMailRepo", "SecMail getDomainList mirror failed, trying next...", e)
+                Log.w("TempMailRepo", "SecMail getDomainList mirror failed", e)
             }
         }
 
-        // 2. Fetch live domains from Mail.tm / Mail.gw
-        try {
-            val mailTmResp = ApiClient.mailTmService.getDomains()
-            if (mailTmResp.isSuccessful && mailTmResp.body() != null) {
-                mailTmResp.body()!!.member.filter { it.isActive }.forEach { d ->
-                    if (resultDomains.none { it.domain.equals(d.domain, ignoreCase = true) }) {
-                        resultDomains.add(d)
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            Log.w("TempMailRepo", "Mail.tm getDomains failed", e)
-        }
-
-        // 3. Ensure verified standard domains are always included
-        verifiedLiveDomains.forEach { d ->
+        // 3. Add any other verified live domains
+        liveDomainsList.forEach { d ->
             if (resultDomains.none { it.domain.equals(d, ignoreCase = true) }) {
                 resultDomains.add(
                     DomainItem(
@@ -116,18 +129,59 @@ class TempMailRepository(
         label: String = ""
     ): Result<SavedAccountEntity> = withContext(Dispatchers.IO) {
         try {
-            val domain = if (!customDomain.isNullOrBlank()) {
-                customDomain
-            } else {
-                val domainsResult = getAvailableDomains()
-                val list = domainsResult.getOrNull()
-                if (!list.isNullOrEmpty()) {
-                    list.random().domain
-                } else {
-                    verifiedLiveDomains.random()
+            // Try GuerrillaMail live session first for 100% deliverability from Gmail
+            val requestedDomain = customDomain?.trim()?.lowercase(Locale.ROOT)
+            val isGuerrillaDomain = requestedDomain == null || isGuerrillaDomain(requestedDomain)
+
+            if (isGuerrillaDomain) {
+                try {
+                    val response = ApiClient.guerrillaMailService.getEmailAddress()
+                    if (response.isSuccessful && response.body() != null) {
+                        val body = response.body()!!
+                        var address = body.emailAddr.lowercase(Locale.ROOT)
+                        val sidToken = body.sidToken
+
+                        // If user wanted a specific guerrilla domain (e.g. sharklasers.com or guerrillamail.com)
+                        if (!requestedDomain.isNullOrBlank() && requestedDomain != address.substringAfter("@")) {
+                            val userPrefix = address.substringBefore("@")
+                            try {
+                                val setResp = ApiClient.guerrillaMailService.setEmailUser(
+                                    emailUser = userPrefix,
+                                    site = requestedDomain,
+                                    sidToken = sidToken
+                                )
+                                if (setResp.isSuccessful && setResp.body() != null) {
+                                    address = setResp.body()!!.emailAddr.lowercase(Locale.ROOT)
+                                }
+                            } catch (e: Exception) {
+                                Log.w("TempMailRepo", "Set email user failed, using default", e)
+                            }
+                        }
+
+                        val entity = SavedAccountEntity(
+                            address = address,
+                            password = generateSecurePassword(),
+                            token = "grr_$sidToken",
+                            accountId = "grr_${address.substringBefore("@")}",
+                            label = label.ifBlank { "Live Guerrilla Mailbox" },
+                            createdAt = System.currentTimeMillis(),
+                            lastUsedAt = System.currentTimeMillis(),
+                            expiresAt = System.currentTimeMillis() + (10 * 60 * 1000L),
+                            isActive = true,
+                            serverUrl = ApiClient.GUERRILLA_MAIL_URL
+                        )
+
+                        accountDao.clearAllActiveFlags()
+                        accountDao.insertAccount(entity)
+                        return@withContext Result.success(entity)
+                    }
+                } catch (e: Exception) {
+                    Log.w("TempMailRepo", "GuerrillaMail getEmailAddress failed, fallback to 1secmail", e)
                 }
             }
 
+            // Fallback: 1SecMail or other live domains
+            val domain = requestedDomain ?: liveDomainsList.random()
             val randomPrefix = generateFriendlyHandle()
             val generatedAddress = "$randomPrefix@$domain".lowercase(Locale.ROOT)
             val generatedPassword = generateSecurePassword()
@@ -158,7 +212,49 @@ class TempMailRepository(
             return@withContext Result.failure(IllegalArgumentException("Password must be at least 6 characters"))
         }
 
-        val fullAddress = "$cleanUsername@$domain"
+        val cleanDomain = domain.trim().lowercase(Locale.ROOT)
+
+        // If Guerrilla domain, set custom username via API
+        if (isGuerrillaDomain(cleanDomain)) {
+            try {
+                val initResp = ApiClient.guerrillaMailService.getEmailAddress()
+                val sidToken = if (initResp.isSuccessful && initResp.body() != null) {
+                    initResp.body()!!.sidToken
+                } else null
+
+                val setResp = ApiClient.guerrillaMailService.setEmailUser(
+                    emailUser = cleanUsername,
+                    site = cleanDomain,
+                    sidToken = sidToken
+                )
+
+                if (setResp.isSuccessful && setResp.body() != null) {
+                    val fullAddress = setResp.body()!!.emailAddr.lowercase(Locale.ROOT)
+                    val activeSid = setResp.body()!!.sidToken.ifBlank { sidToken ?: "" }
+
+                    val entity = SavedAccountEntity(
+                        address = fullAddress,
+                        password = cleanPassword,
+                        token = "grr_$activeSid",
+                        accountId = "grr_$cleanUsername",
+                        label = label.ifBlank { "Custom Mailbox" },
+                        createdAt = System.currentTimeMillis(),
+                        lastUsedAt = System.currentTimeMillis(),
+                        expiresAt = System.currentTimeMillis() + (10 * 60 * 1000L),
+                        isActive = true,
+                        serverUrl = ApiClient.GUERRILLA_MAIL_URL
+                    )
+
+                    accountDao.clearAllActiveFlags()
+                    accountDao.insertAccount(entity)
+                    return@withContext Result.success(entity)
+                }
+            } catch (e: Exception) {
+                Log.w("TempMailRepo", "GuerrillaMail custom user failed", e)
+            }
+        }
+
+        val fullAddress = "$cleanUsername@$cleanDomain"
         createAndRegisterAccount(
             address = fullAddress,
             password = cleanPassword,
@@ -174,7 +270,7 @@ class TempMailRepository(
         val cleanAddress = address.trim().lowercase(Locale.ROOT)
         val domain = cleanAddress.substringAfter("@", "")
 
-        // If it's a 1secmail-compatible domain, create instantaneous zero-friction live account
+        // If it's a 1secmail-compatible domain
         if (isSecMailDomain(domain)) {
             val entity = SavedAccountEntity(
                 address = cleanAddress,
@@ -190,11 +286,10 @@ class TempMailRepository(
             )
             accountDao.clearAllActiveFlags()
             accountDao.insertAccount(entity)
-            injectWelcomeMessage(cleanAddress)
             return Result.success(entity)
         }
 
-        // Otherwise try registering on Mail.tm / Mail.gw
+        // Try registering on Mail.tm / Mail.gw
         val mailTmServices = listOf(ApiClient.mailTmService, ApiClient.mailGwService)
         for (api in mailTmServices) {
             try {
@@ -223,7 +318,6 @@ class TempMailRepository(
 
                     accountDao.clearAllActiveFlags()
                     accountDao.insertAccount(entity)
-                    injectWelcomeMessage(cleanAddress)
                     return Result.success(entity)
                 }
             } catch (e: Exception) {
@@ -231,7 +325,7 @@ class TempMailRepository(
             }
         }
 
-        // Fallback: Bind to live 1secmail engine so the user ALWAYS gets real incoming emails
+        // Fallback: Bind to live 1secmail engine
         val fallbackEntity = SavedAccountEntity(
             address = cleanAddress,
             password = password,
@@ -246,7 +340,6 @@ class TempMailRepository(
         )
         accountDao.clearAllActiveFlags()
         accountDao.insertAccount(fallbackEntity)
-        injectWelcomeMessage(cleanAddress)
 
         return Result.success(fallbackEntity)
     }
@@ -259,6 +352,34 @@ class TempMailRepository(
         val cleanAddress = address.trim().lowercase(Locale.ROOT)
         val cleanPassword = password.trim()
         val domain = cleanAddress.substringAfter("@", "")
+        val userPrefix = cleanAddress.substringBefore("@")
+
+        if (isGuerrillaDomain(domain)) {
+            try {
+                val initResp = ApiClient.guerrillaMailService.getEmailAddress()
+                val sidToken = if (initResp.isSuccessful && initResp.body() != null) initResp.body()!!.sidToken else null
+                val setResp = ApiClient.guerrillaMailService.setEmailUser(emailUser = userPrefix, site = domain, sidToken = sidToken)
+                val activeSid = if (setResp.isSuccessful && setResp.body() != null) setResp.body()!!.sidToken else (sidToken ?: "")
+
+                val entity = SavedAccountEntity(
+                    address = cleanAddress,
+                    password = cleanPassword,
+                    token = "grr_$activeSid",
+                    accountId = "grr_$userPrefix",
+                    label = label.ifBlank { "Imported Mailbox" },
+                    createdAt = System.currentTimeMillis(),
+                    lastUsedAt = System.currentTimeMillis(),
+                    expiresAt = System.currentTimeMillis() + (10 * 60 * 1000L),
+                    isActive = true,
+                    serverUrl = ApiClient.GUERRILLA_MAIL_URL
+                )
+                accountDao.clearAllActiveFlags()
+                accountDao.insertAccount(entity)
+                return@withContext Result.success(entity)
+            } catch (e: Exception) {
+                Log.w("TempMailRepo", "Login guerrilla error", e)
+            }
+        }
 
         if (isSecMailDomain(domain)) {
             val entity = SavedAccountEntity(
@@ -333,6 +454,9 @@ class TempMailRepository(
     }
 
     suspend fun ensureValidToken(account: SavedAccountEntity): String? = withContext(Dispatchers.IO) {
+        if (account.token?.startsWith("grr_") == true) {
+            return@withContext account.token
+        }
         if (account.token?.startsWith("secmail_") == true) {
             return@withContext account.token
         }
@@ -384,7 +508,7 @@ class TempMailRepository(
     suspend fun deleteSavedAccount(address: String, deleteFromServer: Boolean = false) = withContext(Dispatchers.IO) {
         try {
             val existing = accountDao.getAccountByAddress(address)
-            if (existing != null && deleteFromServer && !existing.token.isNullOrBlank() && !existing.accountId.isNullOrBlank() && !existing.token.startsWith("secmail_")) {
+            if (existing != null && deleteFromServer && !existing.token.isNullOrBlank() && !existing.accountId.isNullOrBlank() && !existing.token.startsWith("secmail_") && !existing.token.startsWith("grr_")) {
                 try {
                     ApiClient.mailTmService.deleteAccount("Bearer ${existing.token}", existing.accountId)
                 } catch (ignored: Exception) {}
@@ -401,47 +525,83 @@ class TempMailRepository(
         val login = cleanAddress.substringBefore("@")
         val domain = cleanAddress.substringAfter("@")
 
-        // 1. Fetch from 1secmail API (and mirrors)
-        val secMailApis = listOf(
-            ApiClient.secMailService,
-            ApiClient.secMailNetService,
-            ApiClient.secMailOrgService
-        )
-
-        for (api in secMailApis) {
+        // 1. If GuerrillaMail account (or token starts with grr_)
+        if (token.startsWith("grr_") || isGuerrillaDomain(domain)) {
+            val sidToken = token.removePrefix("grr_").ifBlank { null }
             try {
-                val response = api.getMessages(login = login, domain = domain)
-                if (response.isSuccessful && response.body() != null) {
-                    response.body()!!.forEach { item ->
+                val checkResp = ApiClient.guerrillaMailService.checkEmail(seq = 0, sidToken = sidToken)
+                if (checkResp.isSuccessful && checkResp.body() != null) {
+                    val body = checkResp.body()!!
+                    body.list.forEach { item ->
                         remoteList.add(
                             MessageHeaderItem(
-                                id = "sec_${item.id}",
-                                accountId = "acc_$login",
-                                msgid = "<sec-${item.id}@$domain>",
+                                id = "grr_${item.mailId}",
+                                accountId = "grr_$login",
+                                msgid = "<grr-${item.mailId}@$domain>",
                                 from = EmailParticipant(
-                                    address = item.from,
-                                    name = item.from.substringBefore("@")
+                                    address = item.mailFrom,
+                                    name = item.mailFrom.substringBefore("@")
                                 ),
                                 to = listOf(EmailParticipant(address = cleanAddress, name = "You")),
-                                subject = item.subject.ifBlank { "(No Subject)" },
-                                intro = item.subject,
-                                seen = false,
+                                subject = item.mailSubject.ifBlank { "(No Subject)" },
+                                intro = item.mailExcerpt.ifBlank { item.mailSubject },
+                                seen = item.mailRead == "1",
                                 isDeleted = false,
-                                hasAttachments = false,
-                                size = 1024,
-                                createdAt = item.date
+                                hasAttachments = item.att != "0",
+                                size = item.mailSize.toLongOrNull() ?: 1024L,
+                                createdAt = item.mailDate.ifBlank { item.mailTimestamp }
                             )
                         )
                     }
-                    if (remoteList.isNotEmpty()) break
                 }
             } catch (e: Exception) {
-                Log.w("TempMailRepo", "SecMail fetchMessages mirror error", e)
+                Log.w("TempMailRepo", "GuerrillaMail checkEmail error", e)
             }
         }
 
-        // 2. Fetch from Mail.tm / Mail.gw if authenticated JWT token is present
-        if (!token.startsWith("secmail_") && !token.startsWith("local_")) {
+        // 2. Fetch from 1secmail API (and mirrors)
+        if (isSecMailDomain(domain) || remoteList.isEmpty()) {
+            val secMailApis = listOf(
+                ApiClient.secMailService,
+                ApiClient.secMailNetService,
+                ApiClient.secMailOrgService
+            )
+
+            for (api in secMailApis) {
+                try {
+                    val response = api.getMessages(login = login, domain = domain)
+                    if (response.isSuccessful && response.body() != null) {
+                        response.body()!!.forEach { item ->
+                            remoteList.add(
+                                MessageHeaderItem(
+                                    id = "sec_${item.id}",
+                                    accountId = "acc_$login",
+                                    msgid = "<sec-${item.id}@$domain>",
+                                    from = EmailParticipant(
+                                        address = item.from,
+                                        name = item.from.substringBefore("@")
+                                    ),
+                                    to = listOf(EmailParticipant(address = cleanAddress, name = "You")),
+                                    subject = item.subject.ifBlank { "(No Subject)" },
+                                    intro = item.subject,
+                                    seen = false,
+                                    isDeleted = false,
+                                    hasAttachments = false,
+                                    size = 1024,
+                                    createdAt = item.date
+                                )
+                            )
+                        }
+                        if (remoteList.isNotEmpty()) break
+                    }
+                } catch (e: Exception) {
+                    Log.w("TempMailRepo", "SecMail fetchMessages mirror error", e)
+                }
+            }
+        }
+
+        // 3. Fetch from Mail.tm / Mail.gw if authenticated JWT token is present
+        if (!token.startsWith("secmail_") && !token.startsWith("grr_") && !token.startsWith("local_")) {
             val services = listOf(ApiClient.mailTmService, ApiClient.mailGwService)
             for (api in services) {
                 try {
@@ -456,8 +616,8 @@ class TempMailRepository(
             }
         }
 
-        // 3. Add simulated/injected local messages for this address
-        val localForAddress = simulatedMessages.filter { msg ->
+        // 4. Add explicitly triggered user test messages (if any)
+        val userTestForAddress = userExplicitTestMessages.filter { msg ->
             msg.to.any { it.address.equals(cleanAddress, ignoreCase = true) }
         }.map { detail ->
             MessageHeaderItem(
@@ -476,7 +636,7 @@ class TempMailRepository(
             )
         }
 
-        val combined = (localForAddress + remoteList).distinctBy { it.id }.sortedByDescending { it.createdAt }
+        val combined = (userTestForAddress + remoteList).distinctBy { it.id }.sortedByDescending { it.createdAt }
         Result.success(combined)
     }
 
@@ -485,12 +645,12 @@ class TempMailRepository(
         messageId: String,
         activeAddress: String = ""
     ): Result<MessageDetailResponse> = withContext(Dispatchers.IO) {
-        // 1. Check simulated messages first
-        val localFound = simulatedMessages.find { it.id == messageId }
-        if (localFound != null) {
-            val updated = localFound.copy(seen = true)
-            simulatedMessages.removeIf { it.id == messageId }
-            simulatedMessages.add(0, updated)
+        // 1. Check user test messages
+        val testFound = userExplicitTestMessages.find { it.id == messageId }
+        if (testFound != null) {
+            val updated = testFound.copy(seen = true)
+            userExplicitTestMessages.removeIf { it.id == messageId }
+            userExplicitTestMessages.add(0, updated)
             return@withContext Result.success(updated)
         }
 
@@ -498,7 +658,45 @@ class TempMailRepository(
         val login = cleanAddress.substringBefore("@")
         val domain = cleanAddress.substringAfter("@")
 
-        // 2. If it's a 1secmail message (or ID starts with sec_)
+        // 2. If GuerrillaMail message (id starts with grr_)
+        if (messageId.startsWith("grr_")) {
+            val rawId = messageId.removePrefix("grr_")
+            val sidToken = token.removePrefix("grr_").ifBlank { null }
+            try {
+                val fetchResp = ApiClient.guerrillaMailService.fetchEmail(emailId = rawId, sidToken = sidToken)
+                if (fetchResp.isSuccessful && fetchResp.body() != null) {
+                    val b = fetchResp.body()!!
+                    val rawBody = b.mailBody
+                    val isHtml = rawBody.contains("<div") || rawBody.contains("<p") || rawBody.contains("<html") || rawBody.contains("<br") || rawBody.contains("<table")
+
+                    val detail = MessageDetailResponse(
+                        id = messageId,
+                        accountId = "grr_$login",
+                        msgid = "<grr-$rawId@$domain>",
+                        from = EmailParticipant(
+                            address = b.mailFrom,
+                            name = b.mailFrom.substringBefore("@")
+                        ),
+                        to = listOf(EmailParticipant(address = b.mailRecipient.ifBlank { cleanAddress }, name = "You")),
+                        subject = b.mailSubject.ifBlank { "(No Subject)" },
+                        intro = b.mailExcerpt.ifBlank { b.mailSubject },
+                        seen = true,
+                        isDeleted = false,
+                        hasAttachments = false,
+                        size = rawBody.length.toLong(),
+                        createdAt = b.mailDate.ifBlank { b.mailTimestamp },
+                        text = if (isHtml) null else rawBody,
+                        html = if (isHtml) listOf(rawBody) else null,
+                        attachments = emptyList()
+                    )
+                    return@withContext Result.success(detail)
+                }
+            } catch (e: Exception) {
+                Log.w("TempMailRepo", "GuerrillaMail fetchEmail error", e)
+            }
+        }
+
+        // 3. If 1secmail message (id starts with sec_)
         if (messageId.startsWith("sec_")) {
             val rawSecId = messageId.removePrefix("sec_")
             val secMailApis = listOf(
@@ -549,8 +747,8 @@ class TempMailRepository(
             }
         }
 
-        // 3. Fetch from Mail.tm / Mail.gw
-        if (!token.startsWith("secmail_") && !token.startsWith("local_")) {
+        // 4. Fetch from Mail.tm / Mail.gw
+        if (!token.startsWith("secmail_") && !token.startsWith("grr_") && !token.startsWith("local_")) {
             val services = listOf(ApiClient.mailTmService, ApiClient.mailGwService)
             for (api in services) {
                 try {
@@ -568,8 +766,8 @@ class TempMailRepository(
     }
 
     suspend fun deleteMessage(token: String, messageId: String): Result<Unit> = withContext(Dispatchers.IO) {
-        simulatedMessages.removeIf { it.id == messageId }
-        if (!token.startsWith("secmail_") && !token.startsWith("local_")) {
+        userExplicitTestMessages.removeIf { it.id == messageId }
+        if (!token.startsWith("secmail_") && !token.startsWith("grr_") && !token.startsWith("local_")) {
             try {
                 ApiClient.mailTmService.deleteMessage("Bearer $token", messageId)
             } catch (ignored: Exception) {}
@@ -577,66 +775,19 @@ class TempMailRepository(
         Result.success(Unit)
     }
 
+    private fun isGuerrillaDomain(domain: String): Boolean {
+        val d = domain.lowercase(Locale.ROOT)
+        return d.contains("guerrillamail") || d == "grr.la" || d == "sharklasers.com" || d == "pokemail.net" || d == "spam4.me"
+    }
+
     private fun isSecMailDomain(domain: String): Boolean {
         val d = domain.lowercase(Locale.ROOT)
-        return verifiedLiveDomains.any { it.equals(d, ignoreCase = true) } ||
-                d.contains("1secmail") ||
+        return d.contains("1secmail") ||
                 d == "esiix.com" ||
                 d == "wwjmp.com" ||
                 d == "icznn.com" ||
                 d == "ezztt.com" ||
                 d == "vmani.com"
-    }
-
-    fun injectWelcomeMessage(recipientAddress: String) {
-        val nowIso = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).apply {
-            timeZone = TimeZone.getTimeZone("UTC")
-        }.format(Date())
-
-        val welcomeMsg = MessageDetailResponse(
-            id = "welcome_${System.currentTimeMillis()}",
-            accountId = "acc_${System.currentTimeMillis()}",
-            msgid = "<welcome@tempmail.pro>",
-            from = EmailParticipant(name = "Temp Mail Pro Support", address = "support@tempmail.pro"),
-            to = listOf(EmailParticipant(name = "You", address = recipientAddress)),
-            subject = "🎉 Welcome to Temp Mail Pro - Live Inbox is Ready!",
-            intro = "Your temporary mailbox is active and ready to receive real verification codes, OTPs, and emails from Gmail instantly.",
-            seen = false,
-            isDeleted = false,
-            hasAttachments = false,
-            size = 1420,
-            createdAt = nowIso,
-            text = """
-                Welcome to Temp Mail Pro!
-                
-                Your disposable mailbox is live: $recipientAddress
-                
-                • You can send any real email from your personal Gmail/Yahoo to this address.
-                • It will appear here within 5-10 seconds!
-                • Use this address on Facebook, Discord, Google, Instagram, or any website requiring verification codes / OTP.
-                • Tap "Send Test Verification / OTP" below anytime to test simulated OTP codes immediately.
-                
-                Best regards,
-                Temp Mail Pro Team
-            """.trimIndent(),
-            html = listOf("""
-                <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6; padding: 16px;">
-                    <h2 style="color: #00D2FF;">🎉 Welcome to Temp Mail Pro!</h2>
-                    <p>Your secure temporary mailbox is ready: <strong>$recipientAddress</strong></p>
-                    <div style="background: #f0f7ff; padding: 12px; border-left: 4px solid #00D2FF; margin: 16px 0;">
-                        <p style="margin: 0; font-weight: bold; color: #0284c7;">How to receive emails:</p>
-                        <ol style="margin: 8px 0; padding-left: 20px;">
-                            <li>Copy your email address at the top.</li>
-                            <li>Send an email from your personal Gmail or paste it into any website registration form.</li>
-                            <li>Your incoming message or OTP code will appear in this inbox automatically!</li>
-                        </ol>
-                    </div>
-                </div>
-            """.trimIndent()),
-            attachments = emptyList()
-        )
-
-        simulatedMessages.add(0, welcomeMsg)
     }
 
     fun injectSampleVerificationEmail(recipientAddress: String, serviceType: String): MessageDetailResponse {
@@ -703,7 +854,7 @@ class TempMailRepository(
             attachments = emptyList()
         )
 
-        simulatedMessages.add(0, sampleMsg)
+        userExplicitTestMessages.add(0, sampleMsg)
         return sampleMsg
     }
 
