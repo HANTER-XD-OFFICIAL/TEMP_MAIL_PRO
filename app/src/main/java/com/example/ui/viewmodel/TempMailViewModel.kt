@@ -202,7 +202,7 @@ class TempMailViewModel(application: Application) : AndroidViewModel(application
         val current = activeAccount.value ?: return
         viewModelScope.launch {
             if (!silent) _isLoadingMessages.value = true
-            val token = repository.ensureValidToken(current) ?: "grr_${System.currentTimeMillis()}"
+            val token = repository.ensureValidToken(current) ?: ""
 
             val previousCount = _messages.value.size
             val result = repository.fetchMessages(token, current.address)
@@ -226,17 +226,6 @@ class TempMailViewModel(application: Application) : AndroidViewModel(application
                 }
             }
         }
-    }
-
-    fun sendSampleTestEmail(serviceType: String) {
-        val current = activeAccount.value
-        if (current == null) {
-            showNotification("Please create or select an email account first.", isError = true)
-            return
-        }
-        val sample = repository.injectSampleVerificationEmail(current.address, serviceType)
-        refreshInbox(silent = true)
-        showNotification("📥 New ${serviceType.replaceFirstChar { it.uppercase() }} test verification email arrived in your inbox!")
     }
 
     fun generateQuickRandomAccount(domain: String? = null, label: String = "") {

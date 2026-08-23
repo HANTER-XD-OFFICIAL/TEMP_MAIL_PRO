@@ -24,12 +24,23 @@ object ApiClient {
         }
     }
 
+    private val headersInterceptor by lazy {
+        okhttp3.Interceptor { chain ->
+            val request = chain.request().newBuilder()
+                .header("Accept", "application/json, application/ld+json")
+                .header("User-Agent", "Mozilla/5.0 (Linux; Android 14; Mobile) TempMailPro/1.0")
+                .build()
+            chain.proceed(request)
+        }
+    }
+
     private val okHttpClient: OkHttpClient by lazy {
         OkHttpClient.Builder()
+            .addInterceptor(headersInterceptor)
             .addInterceptor(loggingInterceptor)
-            .connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(15, TimeUnit.SECONDS)
-            .writeTimeout(15, TimeUnit.SECONDS)
+            .connectTimeout(20, TimeUnit.SECONDS)
+            .readTimeout(20, TimeUnit.SECONDS)
+            .writeTimeout(20, TimeUnit.SECONDS)
             .build()
     }
 

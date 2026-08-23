@@ -456,9 +456,6 @@ fun HomeScreen(
                             activeAccount?.let {
                                 viewModel.copyToClipboard(context, it.address, strings.addressCopied)
                             }
-                        },
-                        onSendTestOtp = { service ->
-                            viewModel.sendSampleTestEmail(service)
                         }
                     )
                 }
@@ -555,8 +552,7 @@ private fun EmptyInboxCard(
     activeAddress: String?,
     strings: AppStrings,
     onRefresh: () -> Unit,
-    onCopyAddress: () -> Unit,
-    onSendTestOtp: (String) -> Unit
+    onCopyAddress: () -> Unit
 ) {
     Surface(
         shape = RoundedCornerShape(24.dp),

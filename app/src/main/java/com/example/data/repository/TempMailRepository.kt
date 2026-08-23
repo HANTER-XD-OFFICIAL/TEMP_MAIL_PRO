@@ -30,84 +30,75 @@ class TempMailRepository(
 
     private val secureRandom = SecureRandom()
 
-    // Verified live public domains for temporary mail
-    val liveDomainsList = listOf(
+    // Backup domains in case network is completely blocked
+    private val fallbackDomains = listOf(
+        "emalupe.com",
+        "txcct.com",
+        "omdiya.com",
         "guerrillamail.com",
-        "guerrillamail.net",
-        "guerrillamail.org",
-        "guerrillamail.biz",
-        "grr.la",
         "sharklasers.com",
         "1secmail.com",
         "1secmail.net",
-        "1secmail.org",
-        "esiix.com",
-        "wwjmp.com",
-        "icznn.com",
-        "ezztt.com",
-        "vmani.com"
+        "1secmail.org"
     )
-
-    // User-triggered test messages store (ONLY when user explicitly taps test button)
-    private val userExplicitTestMessages = mutableListOf<MessageDetailResponse>()
 
     suspend fun getAvailableDomains(): Result<List<DomainItem>> = withContext(Dispatchers.IO) {
         val resultDomains = mutableListOf<DomainItem>()
 
-        // 1. Add GuerrillaMail high-deliverability domains first
-        val guerrillaDomains = listOf(
-            "guerrillamail.com",
-            "sharklasers.com",
-            "grr.la",
-            "guerrillamail.net",
-            "guerrillamail.org",
-            "guerrillamail.biz"
-        )
-        guerrillaDomains.forEach { d ->
-            resultDomains.add(
-                DomainItem(
-                    id = d,
-                    domain = d,
-                    isActive = true,
-                    isPrivate = false,
-                    createdAt = "2026-01-01T00:00:00.000Z"
-                )
-            )
-        }
-
-        // 2. Fetch live domains from 1secmail mirrors
-        val secMailServices: List<SecMailApi> = listOf(
-            ApiClient.secMailService,
-            ApiClient.secMailNetService,
-            ApiClient.secMailOrgService
-        )
-
-        for (api in secMailServices) {
+        // 1. Fetch live domains directly from Mail.tm API (Primary)
+        val mailServices = listOf(ApiClient.mailTmService, ApiClient.mailGwService)
+        for (api in mailServices) {
             try {
-                val resp = api.getDomainList()
-                if (resp.isSuccessful && !resp.body().isNullOrEmpty()) {
-                    resp.body()!!.forEach { d ->
-                        if (resultDomains.none { it.domain.equals(d, ignoreCase = true) }) {
-                            resultDomains.add(
-                                DomainItem(
-                                    id = d,
-                                    domain = d,
-                                    isActive = true,
-                                    isPrivate = false,
-                                    createdAt = "2026-01-01T00:00:00.000Z"
-                                )
-                            )
+                val resp = api.getDomains()
+                if (resp.isSuccessful && resp.body() != null) {
+                    val activeList = resp.body()!!.member.filter { it.isActive }
+                    activeList.forEach { d ->
+                        if (resultDomains.none { it.domain.equals(d.domain, ignoreCase = true) }) {
+                            resultDomains.add(d)
                         }
                     }
-                    if (resultDomains.size > 6) break
+                    if (resultDomains.isNotEmpty()) break
                 }
             } catch (e: Exception) {
-                Log.w("TempMailRepo", "SecMail getDomainList mirror failed", e)
+                Log.w("TempMailRepo", "Mail.tm getDomains error", e)
             }
         }
 
-        // 3. Add any other verified live domains
-        liveDomainsList.forEach { d ->
+        // 2. Fetch from Guerrilla / 1SecMail as additional mirrors
+        if (resultDomains.isEmpty()) {
+            val secMailServices: List<SecMailApi> = listOf(
+                ApiClient.secMailService,
+                ApiClient.secMailNetService,
+                ApiClient.secMailOrgService
+            )
+
+            for (api in secMailServices) {
+                try {
+                    val resp = api.getDomainList()
+                    if (resp.isSuccessful && !resp.body().isNullOrEmpty()) {
+                        resp.body()!!.forEach { d ->
+                            if (resultDomains.none { it.domain.equals(d, ignoreCase = true) }) {
+                                resultDomains.add(
+                                    DomainItem(
+                                        id = d,
+                                        domain = d,
+                                        isActive = true,
+                                        isPrivate = false,
+                                        createdAt = "2026-01-01T00:00:00.000Z"
+                                    )
+                                )
+                            }
+                        }
+                        if (resultDomains.isNotEmpty()) break
+                    }
+                } catch (e: Exception) {
+                    Log.w("TempMailRepo", "SecMail getDomainList error", e)
+                }
+            }
+        }
+
+        // 3. Guarantee known fallback domains if offline
+        fallbackDomains.forEach { d ->
             if (resultDomains.none { it.domain.equals(d, ignoreCase = true) }) {
                 resultDomains.add(
                     DomainItem(
@@ -129,59 +120,19 @@ class TempMailRepository(
         label: String = ""
     ): Result<SavedAccountEntity> = withContext(Dispatchers.IO) {
         try {
-            // Try GuerrillaMail live session first for 100% deliverability from Gmail
-            val requestedDomain = customDomain?.trim()?.lowercase(Locale.ROOT)
-            val isGuerrillaDomain = requestedDomain == null || isGuerrillaDomain(requestedDomain)
-
-            if (isGuerrillaDomain) {
-                try {
-                    val response = ApiClient.guerrillaMailService.getEmailAddress()
-                    if (response.isSuccessful && response.body() != null) {
-                        val body = response.body()!!
-                        var address = body.emailAddr.lowercase(Locale.ROOT)
-                        val sidToken = body.sidToken
-
-                        // If user wanted a specific guerrilla domain (e.g. sharklasers.com or guerrillamail.com)
-                        if (!requestedDomain.isNullOrBlank() && requestedDomain != address.substringAfter("@")) {
-                            val userPrefix = address.substringBefore("@")
-                            try {
-                                val setResp = ApiClient.guerrillaMailService.setEmailUser(
-                                    emailUser = userPrefix,
-                                    site = requestedDomain,
-                                    sidToken = sidToken
-                                )
-                                if (setResp.isSuccessful && setResp.body() != null) {
-                                    address = setResp.body()!!.emailAddr.lowercase(Locale.ROOT)
-                                }
-                            } catch (e: Exception) {
-                                Log.w("TempMailRepo", "Set email user failed, using default", e)
-                            }
-                        }
-
-                        val entity = SavedAccountEntity(
-                            address = address,
-                            password = generateSecurePassword(),
-                            token = "grr_$sidToken",
-                            accountId = "grr_${address.substringBefore("@")}",
-                            label = label.ifBlank { "Live Guerrilla Mailbox" },
-                            createdAt = System.currentTimeMillis(),
-                            lastUsedAt = System.currentTimeMillis(),
-                            expiresAt = System.currentTimeMillis() + (10 * 60 * 1000L),
-                            isActive = true,
-                            serverUrl = ApiClient.GUERRILLA_MAIL_URL
-                        )
-
-                        accountDao.clearAllActiveFlags()
-                        accountDao.insertAccount(entity)
-                        return@withContext Result.success(entity)
-                    }
-                } catch (e: Exception) {
-                    Log.w("TempMailRepo", "GuerrillaMail getEmailAddress failed, fallback to 1secmail", e)
+            // Determine domain
+            val domain = if (!customDomain.isNullOrBlank()) {
+                customDomain.trim().lowercase(Locale.ROOT)
+            } else {
+                val domainsResult = getAvailableDomains()
+                val list = domainsResult.getOrNull()
+                if (!list.isNullOrEmpty()) {
+                    list.random().domain
+                } else {
+                    "emalupe.com"
                 }
             }
 
-            // Fallback: 1SecMail or other live domains
-            val domain = requestedDomain ?: liveDomainsList.random()
             val randomPrefix = generateFriendlyHandle()
             val generatedAddress = "$randomPrefix@$domain".lowercase(Locale.ROOT)
             val generatedPassword = generateSecurePassword()
@@ -189,7 +140,7 @@ class TempMailRepository(
             createAndRegisterAccount(
                 address = generatedAddress,
                 password = generatedPassword,
-                label = label.ifBlank { "Live Temp Mail" }
+                label = label.ifBlank { "Mail.tm Live Mailbox" }
             )
         } catch (e: Exception) {
             Log.e("TempMailRepo", "createRandomAccount error", e)
@@ -212,49 +163,7 @@ class TempMailRepository(
             return@withContext Result.failure(IllegalArgumentException("Password must be at least 6 characters"))
         }
 
-        val cleanDomain = domain.trim().lowercase(Locale.ROOT)
-
-        // If Guerrilla domain, set custom username via API
-        if (isGuerrillaDomain(cleanDomain)) {
-            try {
-                val initResp = ApiClient.guerrillaMailService.getEmailAddress()
-                val sidToken = if (initResp.isSuccessful && initResp.body() != null) {
-                    initResp.body()!!.sidToken
-                } else null
-
-                val setResp = ApiClient.guerrillaMailService.setEmailUser(
-                    emailUser = cleanUsername,
-                    site = cleanDomain,
-                    sidToken = sidToken
-                )
-
-                if (setResp.isSuccessful && setResp.body() != null) {
-                    val fullAddress = setResp.body()!!.emailAddr.lowercase(Locale.ROOT)
-                    val activeSid = setResp.body()!!.sidToken.ifBlank { sidToken ?: "" }
-
-                    val entity = SavedAccountEntity(
-                        address = fullAddress,
-                        password = cleanPassword,
-                        token = "grr_$activeSid",
-                        accountId = "grr_$cleanUsername",
-                        label = label.ifBlank { "Custom Mailbox" },
-                        createdAt = System.currentTimeMillis(),
-                        lastUsedAt = System.currentTimeMillis(),
-                        expiresAt = System.currentTimeMillis() + (10 * 60 * 1000L),
-                        isActive = true,
-                        serverUrl = ApiClient.GUERRILLA_MAIL_URL
-                    )
-
-                    accountDao.clearAllActiveFlags()
-                    accountDao.insertAccount(entity)
-                    return@withContext Result.success(entity)
-                }
-            } catch (e: Exception) {
-                Log.w("TempMailRepo", "GuerrillaMail custom user failed", e)
-            }
-        }
-
-        val fullAddress = "$cleanUsername@$cleanDomain"
+        val fullAddress = "$cleanUsername@${domain.trim().lowercase(Locale.ROOT)}"
         createAndRegisterAccount(
             address = fullAddress,
             password = cleanPassword,
@@ -270,34 +179,17 @@ class TempMailRepository(
         val cleanAddress = address.trim().lowercase(Locale.ROOT)
         val domain = cleanAddress.substringAfter("@", "")
 
-        // If it's a 1secmail-compatible domain
-        if (isSecMailDomain(domain)) {
-            val entity = SavedAccountEntity(
-                address = cleanAddress,
-                password = password,
-                token = "secmail_$cleanAddress",
-                accountId = "sec_${cleanAddress.substringBefore("@")}",
-                label = label,
-                createdAt = System.currentTimeMillis(),
-                lastUsedAt = System.currentTimeMillis(),
-                expiresAt = System.currentTimeMillis() + (10 * 60 * 1000L),
-                isActive = true,
-                serverUrl = ApiClient.SEC_MAIL_PRIMARY_URL
-            )
-            accountDao.clearAllActiveFlags()
-            accountDao.insertAccount(entity)
-            return Result.success(entity)
-        }
-
-        // Try registering on Mail.tm / Mail.gw
+        // 1. Primary: Register and authenticate on Mail.tm / Mail.gw API
         val mailTmServices = listOf(ApiClient.mailTmService, ApiClient.mailGwService)
         for (api in mailTmServices) {
             try {
+                // Register account
                 val createResp = api.createAccount(CreateAccountRequest(address = cleanAddress, password = password))
                 val accountId = if (createResp.isSuccessful && createResp.body() != null) {
                     createResp.body()!!.id
                 } else null
 
+                // Obtain JWT Auth Token
                 val tokenResp = api.getToken(TokenRequest(address = cleanAddress, password = password))
                 if (tokenResp.isSuccessful && tokenResp.body() != null) {
                     val token = tokenResp.body()!!.token
@@ -325,7 +217,36 @@ class TempMailRepository(
             }
         }
 
-        // Fallback: Bind to live 1secmail engine
+        // 2. Secondary: If it's a GuerrillaMail domain, register with Guerrilla
+        if (isGuerrillaDomain(domain)) {
+            try {
+                val userPrefix = cleanAddress.substringBefore("@")
+                val initResp = ApiClient.guerrillaMailService.getEmailAddress()
+                val sidToken = if (initResp.isSuccessful && initResp.body() != null) initResp.body()!!.sidToken else null
+                val setResp = ApiClient.guerrillaMailService.setEmailUser(emailUser = userPrefix, site = domain, sidToken = sidToken)
+                val activeSid = if (setResp.isSuccessful && setResp.body() != null) setResp.body()!!.sidToken else (sidToken ?: "")
+
+                val entity = SavedAccountEntity(
+                    address = cleanAddress,
+                    password = password,
+                    token = "grr_$activeSid",
+                    accountId = "grr_$userPrefix",
+                    label = label,
+                    createdAt = System.currentTimeMillis(),
+                    lastUsedAt = System.currentTimeMillis(),
+                    expiresAt = System.currentTimeMillis() + (10 * 60 * 1000L),
+                    isActive = true,
+                    serverUrl = ApiClient.GUERRILLA_MAIL_URL
+                )
+                accountDao.clearAllActiveFlags()
+                accountDao.insertAccount(entity)
+                return Result.success(entity)
+            } catch (e: Exception) {
+                Log.w("TempMailRepo", "Guerrilla registration failed", e)
+            }
+        }
+
+        // 3. Fallback: If it's a 1secmail-compatible domain
         val fallbackEntity = SavedAccountEntity(
             address = cleanAddress,
             password = password,
@@ -352,9 +273,49 @@ class TempMailRepository(
         val cleanAddress = address.trim().lowercase(Locale.ROOT)
         val cleanPassword = password.trim()
         val domain = cleanAddress.substringAfter("@", "")
-        val userPrefix = cleanAddress.substringBefore("@")
 
+        // Try Mail.tm login
+        val services = listOf(ApiClient.mailTmService, ApiClient.mailGwService)
+        for (api in services) {
+            try {
+                val tokenResp = api.getToken(TokenRequest(address = cleanAddress, password = cleanPassword))
+                if (tokenResp.isSuccessful && tokenResp.body() != null) {
+                    val token = tokenResp.body()!!.token
+                    val accountId = tokenResp.body()!!.id
+
+                    val existing = accountDao.getAccountByAddress(cleanAddress)
+                    val entity = (existing?.copy(
+                        password = cleanPassword,
+                        token = token,
+                        accountId = accountId,
+                        lastUsedAt = System.currentTimeMillis(),
+                        isActive = true,
+                        label = if (label.isNotBlank()) label else existing.label.ifBlank { "Mail.tm Account" }
+                    )) ?: SavedAccountEntity(
+                        address = cleanAddress,
+                        password = cleanPassword,
+                        token = token,
+                        accountId = accountId,
+                        label = label.ifBlank { "Mail.tm Account" },
+                        createdAt = System.currentTimeMillis(),
+                        lastUsedAt = System.currentTimeMillis(),
+                        expiresAt = System.currentTimeMillis() + (10 * 60 * 1000L),
+                        isActive = true,
+                        serverUrl = ApiClient.PRIMARY_BASE_URL
+                    )
+
+                    accountDao.clearAllActiveFlags()
+                    accountDao.insertAccount(entity)
+                    return@withContext Result.success(entity)
+                }
+            } catch (e: Exception) {
+                Log.w("TempMailRepo", "Login attempt failed on Mail.tm service...", e)
+            }
+        }
+
+        // Guerrilla check
         if (isGuerrillaDomain(domain)) {
+            val userPrefix = cleanAddress.substringBefore("@")
             try {
                 val initResp = ApiClient.guerrillaMailService.getEmailAddress()
                 val sidToken = if (initResp.isSuccessful && initResp.body() != null) initResp.body()!!.sidToken else null
@@ -381,62 +342,7 @@ class TempMailRepository(
             }
         }
 
-        if (isSecMailDomain(domain)) {
-            val entity = SavedAccountEntity(
-                address = cleanAddress,
-                password = cleanPassword,
-                token = "secmail_$cleanAddress",
-                accountId = "sec_${cleanAddress.substringBefore("@")}",
-                label = label.ifBlank { "Imported Mailbox" },
-                createdAt = System.currentTimeMillis(),
-                lastUsedAt = System.currentTimeMillis(),
-                expiresAt = System.currentTimeMillis() + (10 * 60 * 1000L),
-                isActive = true,
-                serverUrl = ApiClient.SEC_MAIL_PRIMARY_URL
-            )
-            accountDao.clearAllActiveFlags()
-            accountDao.insertAccount(entity)
-            return@withContext Result.success(entity)
-        }
-
-        val services = listOf(ApiClient.mailTmService, ApiClient.mailGwService)
-        for (api in services) {
-            try {
-                val tokenResp = api.getToken(TokenRequest(address = cleanAddress, password = cleanPassword))
-                if (tokenResp.isSuccessful && tokenResp.body() != null) {
-                    val token = tokenResp.body()!!.token
-                    val accountId = tokenResp.body()!!.id
-
-                    val existing = accountDao.getAccountByAddress(cleanAddress)
-                    val entity = (existing?.copy(
-                        password = cleanPassword,
-                        token = token,
-                        accountId = accountId,
-                        lastUsedAt = System.currentTimeMillis(),
-                        isActive = true,
-                        label = if (label.isNotBlank()) label else existing.label.ifBlank { "Imported Mailbox" }
-                    )) ?: SavedAccountEntity(
-                        address = cleanAddress,
-                        password = cleanPassword,
-                        token = token,
-                        accountId = accountId,
-                        label = label.ifBlank { "Imported Mailbox" },
-                        createdAt = System.currentTimeMillis(),
-                        lastUsedAt = System.currentTimeMillis(),
-                        expiresAt = System.currentTimeMillis() + (10 * 60 * 1000L),
-                        isActive = true
-                    )
-
-                    accountDao.clearAllActiveFlags()
-                    accountDao.insertAccount(entity)
-                    return@withContext Result.success(entity)
-                }
-            } catch (e: Exception) {
-                Log.w("TempMailRepo", "Login attempt failed on Mail.tm service...", e)
-            }
-        }
-
-        // Save as live mailbox
+        // Save fallback
         val entity = SavedAccountEntity(
             address = cleanAddress,
             password = cleanPassword,
@@ -454,28 +360,47 @@ class TempMailRepository(
     }
 
     suspend fun ensureValidToken(account: SavedAccountEntity): String? = withContext(Dispatchers.IO) {
-        if (account.token?.startsWith("grr_") == true) {
+        val cleanAddress = account.address.trim().lowercase(Locale.ROOT)
+        val domain = cleanAddress.substringAfter("@", "")
+
+        if (isGuerrillaDomain(domain) && account.token?.startsWith("grr_") == true) {
             return@withContext account.token
         }
-        if (account.token?.startsWith("secmail_") == true) {
+        if (isSecMailDomain(domain) && account.token?.startsWith("secmail_") == true) {
             return@withContext account.token
         }
-        if (!account.token.isNullOrBlank() && !account.token.startsWith("local_")) {
-            return@withContext account.token
-        }
+
+        // Always check / refresh token with Mail.tm for Mail.tm accounts (or any general account)
         val services = listOf(ApiClient.mailTmService, ApiClient.mailGwService)
         for (api in services) {
             try {
+                // Check if existing token still works
+                if (!account.token.isNullOrBlank() && !account.token.startsWith("secmail_") && !account.token.startsWith("grr_")) {
+                    val meResp = api.getMe("Bearer ${account.token}")
+                    if (meResp.isSuccessful) {
+                        return@withContext account.token
+                    }
+                }
+
+                // If not, fetch a fresh JWT token with password
                 val tokenResp = api.getToken(TokenRequest(address = account.address, password = account.password))
                 if (tokenResp.isSuccessful && tokenResp.body() != null) {
                     val newToken = tokenResp.body()!!.token
-                    accountDao.updateAccount(account.copy(token = newToken, lastUsedAt = System.currentTimeMillis()))
+                    val newId = tokenResp.body()!!.id
+                    accountDao.updateAccount(
+                        account.copy(
+                            token = newToken,
+                            accountId = newId,
+                            lastUsedAt = System.currentTimeMillis()
+                        )
+                    )
                     return@withContext newToken
                 }
             } catch (e: Exception) {
                 Log.w("TempMailRepo", "ensureValidToken retry failed", e)
             }
         }
+
         return@withContext account.token ?: "secmail_${account.address}"
     }
 
@@ -525,9 +450,53 @@ class TempMailRepository(
         val login = cleanAddress.substringBefore("@")
         val domain = cleanAddress.substringAfter("@")
 
-        // 1. If GuerrillaMail account (or token starts with grr_)
-        if (token.startsWith("grr_") || isGuerrillaDomain(domain)) {
-            val sidToken = token.removePrefix("grr_").ifBlank { null }
+        // 1. PRIMARY: Fetch from Mail.tm (https://api.mail.tm/messages)
+        val mailTmServices = listOf(ApiClient.mailTmService, ApiClient.mailGwService)
+        var authToken = token
+        for (api in mailTmServices) {
+            try {
+                // If token is secmail or grr or invalid, try to get real token first
+                if (authToken.startsWith("secmail_") || authToken.startsWith("grr_") || authToken.isBlank()) {
+                    val existingAccount = accountDao.getAccountByAddress(cleanAddress)
+                    if (existingAccount != null) {
+                        val tokenResp = api.getToken(TokenRequest(address = cleanAddress, password = existingAccount.password))
+                        if (tokenResp.isSuccessful && tokenResp.body() != null) {
+                            authToken = tokenResp.body()!!.token
+                            accountDao.updateAccount(existingAccount.copy(token = authToken))
+                        }
+                    }
+                }
+
+                if (!authToken.startsWith("secmail_") && !authToken.startsWith("grr_") && authToken.isNotBlank()) {
+                    val response = api.getMessages("Bearer $authToken")
+                    if (response.isSuccessful && response.body() != null) {
+                        remoteList.addAll(response.body()!!.member)
+                        break
+                    } else if (response.code() == 401) {
+                        // Token expired: Refresh token and retry
+                        val existingAccount = accountDao.getAccountByAddress(cleanAddress)
+                        if (existingAccount != null) {
+                            val tokenResp = api.getToken(TokenRequest(address = cleanAddress, password = existingAccount.password))
+                            if (tokenResp.isSuccessful && tokenResp.body() != null) {
+                                authToken = tokenResp.body()!!.token
+                                accountDao.updateAccount(existingAccount.copy(token = authToken))
+                                val retryResp = api.getMessages("Bearer $authToken")
+                                if (retryResp.isSuccessful && retryResp.body() != null) {
+                                    remoteList.addAll(retryResp.body()!!.member)
+                                    break
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.w("TempMailRepo", "Mail.tm fetchMessages error", e)
+            }
+        }
+
+        // 2. If GuerrillaMail account
+        if (remoteList.isEmpty() && (authToken.startsWith("grr_") || isGuerrillaDomain(domain))) {
+            val sidToken = authToken.removePrefix("grr_").ifBlank { null }
             try {
                 val checkResp = ApiClient.guerrillaMailService.checkEmail(seq = 0, sidToken = sidToken)
                 if (checkResp.isSuccessful && checkResp.body() != null) {
@@ -559,8 +528,8 @@ class TempMailRepository(
             }
         }
 
-        // 2. Fetch from 1secmail API (and mirrors)
-        if (isSecMailDomain(domain) || remoteList.isEmpty()) {
+        // 3. If 1secmail API mirrors
+        if (remoteList.isEmpty() && (isSecMailDomain(domain) || authToken.startsWith("secmail_"))) {
             val secMailApis = listOf(
                 ApiClient.secMailService,
                 ApiClient.secMailNetService,
@@ -595,48 +564,12 @@ class TempMailRepository(
                         if (remoteList.isNotEmpty()) break
                     }
                 } catch (e: Exception) {
-                    Log.w("TempMailRepo", "SecMail fetchMessages mirror error", e)
+                    Log.w("TempMailRepo", "SecMail fetchMessages error", e)
                 }
             }
         }
 
-        // 3. Fetch from Mail.tm / Mail.gw if authenticated JWT token is present
-        if (!token.startsWith("secmail_") && !token.startsWith("grr_") && !token.startsWith("local_")) {
-            val services = listOf(ApiClient.mailTmService, ApiClient.mailGwService)
-            for (api in services) {
-                try {
-                    val response = api.getMessages("Bearer $token")
-                    if (response.isSuccessful && response.body() != null) {
-                        remoteList.addAll(response.body()!!.member)
-                        break
-                    }
-                } catch (e: Exception) {
-                    Log.w("TempMailRepo", "Mail.tm fetchMessages error", e)
-                }
-            }
-        }
-
-        // 4. Add explicitly triggered user test messages (if any)
-        val userTestForAddress = userExplicitTestMessages.filter { msg ->
-            msg.to.any { it.address.equals(cleanAddress, ignoreCase = true) }
-        }.map { detail ->
-            MessageHeaderItem(
-                id = detail.id,
-                accountId = detail.accountId,
-                msgid = detail.msgid,
-                from = detail.from,
-                to = detail.to,
-                subject = detail.subject,
-                intro = detail.intro,
-                seen = detail.seen,
-                isDeleted = detail.isDeleted,
-                hasAttachments = detail.hasAttachments,
-                size = detail.size,
-                createdAt = detail.createdAt
-            )
-        }
-
-        val combined = (userTestForAddress + remoteList).distinctBy { it.id }.sortedByDescending { it.createdAt }
+        val combined = remoteList.distinctBy { it.id }.sortedByDescending { it.createdAt }
         Result.success(combined)
     }
 
@@ -645,20 +578,11 @@ class TempMailRepository(
         messageId: String,
         activeAddress: String = ""
     ): Result<MessageDetailResponse> = withContext(Dispatchers.IO) {
-        // 1. Check user test messages
-        val testFound = userExplicitTestMessages.find { it.id == messageId }
-        if (testFound != null) {
-            val updated = testFound.copy(seen = true)
-            userExplicitTestMessages.removeIf { it.id == messageId }
-            userExplicitTestMessages.add(0, updated)
-            return@withContext Result.success(updated)
-        }
-
         val cleanAddress = activeAddress.trim().lowercase(Locale.ROOT)
         val login = cleanAddress.substringBefore("@")
         val domain = cleanAddress.substringAfter("@")
 
-        // 2. If GuerrillaMail message (id starts with grr_)
+        // 1. If GuerrillaMail message (id starts with grr_)
         if (messageId.startsWith("grr_")) {
             val rawId = messageId.removePrefix("grr_")
             val sidToken = token.removePrefix("grr_").ifBlank { null }
@@ -696,7 +620,7 @@ class TempMailRepository(
             }
         }
 
-        // 3. If 1secmail message (id starts with sec_)
+        // 2. If 1secmail message (id starts with sec_)
         if (messageId.startsWith("sec_")) {
             val rawSecId = messageId.removePrefix("sec_")
             val secMailApis = listOf(
@@ -747,18 +671,33 @@ class TempMailRepository(
             }
         }
 
-        // 4. Fetch from Mail.tm / Mail.gw
-        if (!token.startsWith("secmail_") && !token.startsWith("grr_") && !token.startsWith("local_")) {
-            val services = listOf(ApiClient.mailTmService, ApiClient.mailGwService)
-            for (api in services) {
-                try {
-                    val response = api.getMessageDetail("Bearer $token", messageId)
+        // 3. Primary: Fetch from Mail.tm / Mail.gw API
+        val services = listOf(ApiClient.mailTmService, ApiClient.mailGwService)
+        var authToken = token
+        for (api in services) {
+            try {
+                if (!authToken.startsWith("secmail_") && !authToken.startsWith("grr_") && authToken.isNotBlank()) {
+                    val response = api.getMessageDetail("Bearer $authToken", messageId)
                     if (response.isSuccessful && response.body() != null) {
                         return@withContext Result.success(response.body()!!)
+                    } else if (response.code() == 401) {
+                        // Refresh token
+                        val existingAccount = accountDao.getAccountByAddress(cleanAddress)
+                        if (existingAccount != null) {
+                            val tokenResp = api.getToken(TokenRequest(address = cleanAddress, password = existingAccount.password))
+                            if (tokenResp.isSuccessful && tokenResp.body() != null) {
+                                authToken = tokenResp.body()!!.token
+                                accountDao.updateAccount(existingAccount.copy(token = authToken))
+                                val retryResp = api.getMessageDetail("Bearer $authToken", messageId)
+                                if (retryResp.isSuccessful && retryResp.body() != null) {
+                                    return@withContext Result.success(retryResp.body()!!)
+                                }
+                            }
+                        }
                     }
-                } catch (e: Exception) {
-                    Log.w("TempMailRepo", "Mail.tm fetchMessageDetail error", e)
                 }
+            } catch (e: Exception) {
+                Log.w("TempMailRepo", "Mail.tm fetchMessageDetail error", e)
             }
         }
 
@@ -766,8 +705,7 @@ class TempMailRepository(
     }
 
     suspend fun deleteMessage(token: String, messageId: String): Result<Unit> = withContext(Dispatchers.IO) {
-        userExplicitTestMessages.removeIf { it.id == messageId }
-        if (!token.startsWith("secmail_") && !token.startsWith("grr_") && !token.startsWith("local_")) {
+        if (!token.startsWith("secmail_") && !token.startsWith("grr_")) {
             try {
                 ApiClient.mailTmService.deleteMessage("Bearer $token", messageId)
             } catch (ignored: Exception) {}
@@ -789,76 +727,6 @@ class TempMailRepository(
                 d == "ezztt.com" ||
                 d == "vmani.com"
     }
-
-    fun injectSampleVerificationEmail(recipientAddress: String, serviceType: String): MessageDetailResponse {
-        val nowIso = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).apply {
-            timeZone = TimeZone.getTimeZone("UTC")
-        }.format(Date())
-
-        val otpCode = "${secureRandom.nextInt(900000) + 100000}"
-
-        val (senderName, senderEmail, subject, textBody, htmlBody) = when (serviceType.lowercase(Locale.ROOT)) {
-            "google" -> {
-                Tuple5(
-                    "Google Security",
-                    "noreply@google.com",
-                    "G-$otpCode is your Google verification code",
-                    "Your Google verification code is: $otpCode\n\nDo not share this code with anyone. It expires in 10 minutes.",
-                    "<p>Your <strong>Google</strong> verification code is: <span style='font-size: 24px; font-weight: bold; color: #4285F4; background: #eef3fc; padding: 4px 10px; border-radius: 6px;'>$otpCode</span></p><p>Use this code to verify your account.</p>"
-                )
-            }
-            "discord" -> {
-                Tuple5(
-                    "Discord Support",
-                    "noreply@discord.com",
-                    "Verify your Discord account - Code: $otpCode",
-                    "Welcome to Discord! Your 6-digit confirmation code is: $otpCode\n\nPlease enter this code to complete registration.",
-                    "<p>Welcome to <strong>Discord</strong>! Your verification code is: <span style='font-size: 24px; font-weight: bold; color: #5865F2; background: #ebedff; padding: 4px 10px; border-radius: 6px;'>$otpCode</span></p>"
-                )
-            }
-            "facebook" -> {
-                Tuple5(
-                    "Facebook Security",
-                    "security@facebookmail.com",
-                    "$otpCode is your Facebook confirmation code",
-                    "Hi, someone tried to register or log into Facebook using this email. Your confirmation code is: $otpCode",
-                    "<p>Your <strong>Facebook</strong> confirmation code is: <span style='font-size: 24px; font-weight: bold; color: #1877F2; background: #e7f0fe; padding: 4px 10px; border-radius: 6px;'>$otpCode</span></p>"
-                )
-            }
-            else -> {
-                Tuple5(
-                    "Online Service",
-                    "verify@auth-service.com",
-                    "Your One-Time Passcode (OTP): $otpCode",
-                    "Your one-time passcode for verification is: $otpCode\n\nThis passcode will expire in 5 minutes.",
-                    "<p>Your One-Time Passcode (OTP) is: <span style='font-size: 24px; font-weight: bold; color: #00D2FF; background: #e0f8ff; padding: 4px 10px; border-radius: 6px;'>$otpCode</span></p>"
-                )
-            }
-        }
-
-        val sampleMsg = MessageDetailResponse(
-            id = "otp_${System.currentTimeMillis()}_${secureRandom.nextInt(999)}",
-            accountId = "acc_${System.currentTimeMillis()}",
-            msgid = "<otp-$otpCode@auth.com>",
-            from = EmailParticipant(name = senderName, address = senderEmail),
-            to = listOf(EmailParticipant(name = "User", address = recipientAddress)),
-            subject = subject,
-            intro = textBody.lines().firstOrNull() ?: subject,
-            seen = false,
-            isDeleted = false,
-            hasAttachments = false,
-            size = 980,
-            createdAt = nowIso,
-            text = textBody,
-            html = listOf(htmlBody),
-            attachments = emptyList()
-        )
-
-        userExplicitTestMessages.add(0, sampleMsg)
-        return sampleMsg
-    }
-
-    private data class Tuple5(val a: String, val b: String, val c: String, val d: String, val e: String)
 
     private fun generateFriendlyHandle(): String {
         val adjectives = listOf("quick", "cyber", "nova", "pixel", "shadow", "apex", "swift", "hyper", "pulse", "echo", "frost", "vortex", "storm", "titan", "smart", "alpha")
