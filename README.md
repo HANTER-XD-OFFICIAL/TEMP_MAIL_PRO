@@ -104,16 +104,17 @@ Direct APK download is available on GitHub Releases:
 
 ---
 
-## 👨‍💻 Developer & Support
+## 👨‍💻 Developer & Official Channels
 
-Developed and maintained with passion by **MD RASEL**:
+Connect directly with the official team for updates, support, and community discussions:
 
-- 🌐 **Telegram Channel**: [@HANTER_XD_OFFICIAL](https://t.me/HANTER_XD_OFFICIAL)
-- 🤖 **Telegram Bot**: [@TEMPMAIL8234_bot](https://t.me/TEMPMAIL8234_bot)
-- 💬 **WhatsApp**: [+8801882278234](https://wa.me/8801882278234)
-- 📘 **Facebook**: [MD RASEL](https://www.facebook.com/md.rasel.7.8.2.3.4)
-- ✉️ **Email Support**: `alexraselchodhury@gmail.com`
-- 🐙 **GitHub Repository**: [HANTER-XD-OFFICIAL/TEMP_MAIL_PRO](https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO)
+- 📥 **[Download Latest APK v1.0](https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO/releases/tag/TempMailProV1.0)**
+- 🤖 **[Official Telegram Bot](https://t.me/TEMPMAIL8234_bot)**
+- 📢 **[Official Telegram Channel](https://t.me/HANTER_XD_OFFICIAL)**
+- 💬 **[Developer WhatsApp Support](https://wa.me/8801882278234)**
+- 📘 **[Developer Facebook Profile](https://www.facebook.com/md.rasel.7.8.2.3.4)**
+- ✉️ **[Developer Direct Email](mailto:alexraselchodhury@gmail.com)**
+- 🐙 **[Official GitHub Repository](https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO)**
 
 ---
 
