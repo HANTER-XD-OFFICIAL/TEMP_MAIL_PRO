@@ -13,7 +13,7 @@
   
   <br/>
 
-  ### 📥 [**>>> Download Official Temp Mail Pro APK (v1.0) <<<**](https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO/releases/tag/v2.0TempMailPro)
+  ### 📥 [**>>> Download Official Temp Mail Pro APK (v2.0) <<<**](https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO/releases/tag/v2.0TempMailPro)
 </div>
 
 ---
@@ -119,7 +119,7 @@ Direct APK download is available on GitHub Releases:
 
 Connect directly with the official team for updates, support, and community discussions:
 
-- 📥 **[Download Latest APK v1.0](https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO/releases/tag/v2.0TempMailPro)**
+- 📥 **[Download Latest APK v2.0](https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO/releases/tag/v2.0TempMailPro)**
 - 🤖 **[Official Telegram Bot](https://t.me/TEMPMAIL8234_bot)**
 - 📢 **[Official Telegram Channel](https://t.me/HANTER_XD_OFFICIAL)**
 - 💬 **[Developer WhatsApp Support](https://wa.me/8801882278234)**
