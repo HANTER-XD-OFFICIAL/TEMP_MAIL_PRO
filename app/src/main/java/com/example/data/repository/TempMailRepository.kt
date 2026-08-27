@@ -30,8 +30,18 @@ class TempMailRepository(
 
     private val secureRandom = SecureRandom()
 
-    // Primary and exclusive domain requested by user
-    private val fallbackDomains = listOf("emalupe.com")
+    // Available domains from Mail.tm and GuerrillaMail APIs
+    private val allSupportedDomains = listOf(
+        "emalupe.com",
+        "guerrillamail.com",
+        "sharklasers.com",
+        "guerrillamailblock.com",
+        "guerrillamail.net",
+        "guerrillamail.org",
+        "pokemail.net",
+        "spam4.me",
+        "grr.la"
+    )
 
     suspend fun getAvailableDomains(): Result<List<DomainItem>> = withContext(Dispatchers.IO) {
         val resultDomains = mutableListOf<DomainItem>()
@@ -57,9 +67,10 @@ class TempMailRepository(
             }
         }
 
-        // Guarantee emalupe.com as the exclusive domain
-        if (resultDomains.isEmpty()) {
+        // Guarantee emalupe.com as the primary domain
+        if (resultDomains.none { it.domain.equals("emalupe.com", ignoreCase = true) }) {
             resultDomains.add(
+                0,
                 DomainItem(
                     id = "emalupe.com",
                     domain = "emalupe.com",
@@ -70,6 +81,31 @@ class TempMailRepository(
             )
         }
 
+        // Add GuerrillaMail domains from the HTML API integration
+        val guerrillaDomains = listOf(
+            "guerrillamail.com",
+            "sharklasers.com",
+            "guerrillamailblock.com",
+            "guerrillamail.net",
+            "guerrillamail.org",
+            "pokemail.net",
+            "spam4.me",
+            "grr.la"
+        )
+        guerrillaDomains.forEach { gDomain ->
+            if (resultDomains.none { it.domain.equals(gDomain, ignoreCase = true) }) {
+                resultDomains.add(
+                    DomainItem(
+                        id = gDomain,
+                        domain = gDomain,
+                        isActive = true,
+                        isPrivate = false,
+                        createdAt = "2026-01-01T00:00:00.000Z"
+                    )
+                )
+            }
+        }
+
         Result.success(resultDomains)
     }
 
@@ -78,8 +114,49 @@ class TempMailRepository(
         label: String = ""
     ): Result<SavedAccountEntity> = withContext(Dispatchers.IO) {
         try {
-            // Strictly use emalupe.com as the sole verified domain
-            val domain = "emalupe.com"
+            val domain = customDomain?.lowercase(Locale.ROOT)?.trim() ?: "emalupe.com"
+
+            // Direct GuerrillaMail API generator if Guerrilla domain selected
+            if (isGuerrillaDomain(domain)) {
+                try {
+                    val initResp = ApiClient.guerrillaMailService.getEmailAddress()
+                    if (initResp.isSuccessful && initResp.body() != null) {
+                        val addrResp = initResp.body()!!
+                        val sidToken = addrResp.sidToken
+                        var finalAddress = addrResp.emailAddr
+                        val userPrefix = finalAddress.substringBefore("@")
+
+                        if (!finalAddress.endsWith("@$domain", ignoreCase = true)) {
+                            val setResp = ApiClient.guerrillaMailService.setEmailUser(
+                                emailUser = userPrefix,
+                                site = domain,
+                                sidToken = sidToken
+                            )
+                            if (setResp.isSuccessful && setResp.body() != null) {
+                                finalAddress = setResp.body()!!.emailAddr
+                            }
+                        }
+
+                        val entity = SavedAccountEntity(
+                            address = finalAddress,
+                            password = generateSecurePassword(),
+                            token = "grr_$sidToken",
+                            accountId = "grr_$userPrefix",
+                            label = label.ifBlank { "Guerrilla Instant Mailbox" },
+                            createdAt = System.currentTimeMillis(),
+                            lastUsedAt = System.currentTimeMillis(),
+                            expiresAt = System.currentTimeMillis() + (10 * 60 * 1000L),
+                            isActive = true,
+                            serverUrl = ApiClient.GUERRILLA_MAIL_URL
+                        )
+                        accountDao.clearAllActiveFlags()
+                        accountDao.insertAccount(entity)
+                        return@withContext Result.success(entity)
+                    }
+                } catch (e: Exception) {
+                    Log.w("TempMailRepo", "Guerrilla random generation attempt failed", e)
+                }
+            }
 
             val randomPrefix = generateFriendlyHandle()
             val generatedAddress = "$randomPrefix@$domain".lowercase(Locale.ROOT)
@@ -88,7 +165,7 @@ class TempMailRepository(
             createAndRegisterAccount(
                 address = generatedAddress,
                 password = generatedPassword,
-                label = label.ifBlank { "Mail.tm Live Mailbox" }
+                label = label.ifBlank { "Live Mailbox" }
             )
         } catch (e: Exception) {
             Log.e("TempMailRepo", "createRandomAccount error", e)
@@ -446,7 +523,12 @@ class TempMailRepository(
         if (remoteList.isEmpty() && (authToken.startsWith("grr_") || isGuerrillaDomain(domain))) {
             val sidToken = authToken.removePrefix("grr_").ifBlank { null }
             try {
-                val checkResp = ApiClient.guerrillaMailService.checkEmail(seq = 0, sidToken = sidToken)
+                // Call getEmailList as in the HTML API reference
+                val listResp = ApiClient.guerrillaMailService.getEmailList(offset = 0, sidToken = sidToken)
+                val checkResp = if (listResp.isSuccessful && listResp.body() != null) listResp else {
+                    ApiClient.guerrillaMailService.checkEmail(seq = 0, sidToken = sidToken)
+                }
+
                 if (checkResp.isSuccessful && checkResp.body() != null) {
                     val body = checkResp.body()!!
                     body.list.forEach { item ->
@@ -472,7 +554,7 @@ class TempMailRepository(
                     }
                 }
             } catch (e: Exception) {
-                Log.w("TempMailRepo", "GuerrillaMail checkEmail error", e)
+                Log.w("TempMailRepo", "GuerrillaMail getEmailList error", e)
             }
         }
 

@@ -1,0 +1,59 @@
+================================================================================
+TEMP MAIL PRO - OFFICIAL APP STORE & PLAY STORE LISTING DESCRIPTION
+================================================================================
+
+APP TITLE:
+Temp Mail Pro - Disposable Anonymous Email
+
+SHORT DESCRIPTION (Max 80 Characters for Google Play Store):
+Instant disposable email address. Keep your real inbox safe from spam and leaks!
+
+--------------------------------------------------------------------------------
+FULL DESCRIPTION (For Play Store, App Stores & Websites):
+--------------------------------------------------------------------------------
+
+Forget about spam, promotional newsletters, email hacking, and unwanted robot messages. Temp Mail Pro provides you with a safe, temporary, anonymous, and disposable email address instantly with zero registration required!
+
+Protect your real personal inbox clean, secure, and spam-free. Use your temporary mailbox for signing up on untrusted websites, downloading resources, accessing social media accounts, testing apps, and verifying OTP codes without risking your primary identity.
+
+
+WHY CHOOSE TEMP MAIL PRO?
+
+* MULTI-ENGINE INBOX GENERATION: Get a fresh disposable email address on multiple premium domains (@emalupe.com, @guerrillamail.com, @sharklasers.com, @pokemail.net, @grr.la, etc.).
+* GUARANTEED SPAM PROTECTION: Keep promotional clutter, phishing, and trackers away from your real email.
+* SMART OTP DETECTION: Advanced real-time algorithm automatically detects, highlights, and lets you copy verification codes in 1 tap.
+* GMAIL-STYLE READER: Clean, modern, and intuitive Material 3 interface with rendered HTML and raw source code preview.
+* TELEGRAM BOT INTEGRATION: Create and receive emails directly via our official Telegram bot (@TEMPMAIL8234_bot) and sync them seamlessly.
+* ZERO LOGS, 100% PRIVACY: No personal data required. No passwords, no phone numbers, and full zero-telemetry architecture.
+* MULTIPLE ACCOUNT MANAGEMENT: Switch, save, restore, or wipe temporary mail accounts effortlessly with local Room DB encryption.
+* MULTI-LANGUAGE SUPPORT: Fully localized in English, Bengali, Hindi, Arabic, and Spanish.
+
+
+HOW IT WORKS:
+
+1. Open the app to instantly receive a valid temporary email address (@emalupe.com).
+2. Copy the address with one tap and paste it into any website or app registration form.
+3. Incoming emails and OTP verification codes will appear in your inbox immediately in real-time.
+4. Read, reply, copy verification codes, or delete the mailbox whenever you are done!
+
+
+KEY FEATURES AT A GLANCE:
+
+- No registration or signup required
+- 100% free and unlimited usage
+- Real-time incoming email notifications
+- Fast one-tap copy for email and OTP codes
+- Safe file attachment viewing and text export
+- Modern dark/light mode with fluid animations
+
+
+COMMUNITY & OFFICIAL CHANNELS:
+
+* Official Release APK: https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO/releases/tag/TempMailProV1.0
+* Official Telegram Bot: https://t.me/TEMPMAIL8234_bot
+* Telegram Channel: https://t.me/HANTER_XD_OFFICIAL
+* Official GitHub Repository: https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO
+
+================================================================================
+Download Temp Mail Pro today and take full control of your online email privacy!
+================================================================================

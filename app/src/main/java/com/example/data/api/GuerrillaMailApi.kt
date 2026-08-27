@@ -20,6 +20,12 @@ interface GuerrillaMailApi {
         @Query("sid_token") sidToken: String? = null
     ): Response<GuerrillaAddressResponse>
 
+    @GET("ajax.php?f=get_email_list")
+    suspend fun getEmailList(
+        @Query("offset") offset: Int = 0,
+        @Query("sid_token") sidToken: String? = null
+    ): Response<GuerrillaCheckEmailResponse>
+
     @GET("ajax.php?f=check_email")
     suspend fun checkEmail(
         @Query("seq") seq: Int = 0,
@@ -31,4 +37,10 @@ interface GuerrillaMailApi {
         @Query("email_id") emailId: String,
         @Query("sid_token") sidToken: String? = null
     ): Response<GuerrillaFetchEmailResponse>
+
+    @GET("ajax.php?f=forget_me")
+    suspend fun forgetMe(
+        @Query("email_addr") emailAddr: String,
+        @Query("sid_token") sidToken: String? = null
+    ): Response<Map<String, Any>>
 }

@@ -28,8 +28,18 @@ Whether registering on untrusted platforms, testing SaaS pipelines, bypassing re
 
 ## ✨ Key Architectural Capabilities
 
-### 1. 🛡️ Exclusive `@emalupe.com` Node Infrastructure
-- Dedicated integration with the verified **`@emalupe.com`** domain engine.
+### 1. 🛡️ Multi-Node Email Infrastructure (`@emalupe.com`, GuerrillaMail & more)
+- Dedicated dual-engine routing integrating **Mail.tm API** (`@emalupe.com`) and **Guerrilla Mail REST API**.
+- Direct creation and receiving on 8+ popular domains:
+  - `@emalupe.com` (Primary secure node)
+  - `@guerrillamail.com`
+  - `@sharklasers.com`
+  - `@guerrillamailblock.com`
+  - `@guerrillamail.net`
+  - `@guerrillamail.org`
+  - `@pokemail.net`
+  - `@spam4.me`
+  - `@grr.la`
 - Instant routing for inbound SMTP traffic with live payload parsing.
 - Automated token issuance and auto-refresh credentials for persistent mailbox access.
 
