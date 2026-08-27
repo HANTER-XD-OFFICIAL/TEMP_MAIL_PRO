@@ -4,7 +4,7 @@
   <img src="app/src/main/res/drawable/app_logo_tempmailpro_1787514649787.jpg" width="140" height="140" alt="Temp Mail Pro Logo" style="border-radius: 28px;" />
   <br/><br/>
   
-  [![Release Version](https://img.shields.io/badge/Release-v1.0.0-blue.svg?style=for-the-badge&logo=android)](https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO/releases/tag/v2.0TempMailPro)
+  [![Release Version](https://img.shields.io/badge/Release-v2.0.0-blue.svg?style=for-the-badge&logo=android)](https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO/releases/tag/v2.0TempMailPro)
   [![Android](https://img.shields.io/badge/Platform-Android%208.0%2B-3DDC84.svg?style=for-the-badge&logo=android)](https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO)
   [![Kotlin](https://img.shields.io/badge/Language-Kotlin%20100%25-7F52FF.svg?style=for-the-badge&logo=kotlin)](https://kotlinlang.org)
   [![Jetpack Compose](https://img.shields.io/badge/UI-Jetpack%20Compose%20M3-4285F4.svg?style=for-the-badge&logo=jetpackcompose)](https://developer.android.com/jetpack/compose)
