@@ -162,20 +162,6 @@ fun DeveloperContactDialog(
                 Spacer(modifier = Modifier.height(18.dp))
 
                 // Action buttons without revealing raw private data strings on the screen
-                // 0. Official App Download Button (Primary)
-                ContactActionButton(
-                    title = "Download Latest APK (v1.0)",
-                    icon = Icons.Default.Download,
-                    buttonColor = Color(0xFF00C853),
-                    contentColor = Color.White,
-                    testTag = "download_app_apk_btn",
-                    onClick = {
-                        openUrl(context, "https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO/releases/tag/TempMailProV1.0")
-                    }
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
                 // 1. WhatsApp Button
                 ContactActionButton(
                     title = "Chat on WhatsApp",

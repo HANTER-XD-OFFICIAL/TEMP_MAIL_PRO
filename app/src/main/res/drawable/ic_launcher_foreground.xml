@@ -1,8 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Outer Cyan/Blue Glow Ring (matches splash screen circles) -->
     <item
-        android:width="66dp"
-        android:height="66dp"
-        android:drawable="@drawable/app_logo_tempmailpro_1787514649787"
-        android:gravity="center" />
+        android:width="76dp"
+        android:height="76dp"
+        android:gravity="center">
+        <shape android:shape="oval">
+            <stroke
+                android:width="2dp"
+                android:color="#4D00C6FF" />
+            <solid android:color="#00000000" />
+        </shape>
+    </item>
+
+    <!-- Mid Gradient Concentric Ring -->
+    <item
+        android:width="70dp"
+        android:height="70dp"
+        android:gravity="center">
+        <shape android:shape="oval">
+            <stroke
+                android:width="2dp"
+                android:color="#990072FF" />
+            <solid android:color="#0F2027" />
+        </shape>
+    </item>
+
+    <!-- Original App Logo from Splash Screen centered in safe adaptive zone -->
+    <item
+        android:width="62dp"
+        android:height="62dp"
+        android:gravity="center"
+        android:drawable="@drawable/app_logo_tempmailpro_1787514649787"/>
 </layer-list>

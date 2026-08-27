@@ -218,18 +218,6 @@ fun HomeScreen(
                         }
                     }
 
-                    // Telegram Bot Quick Button
-                    IconButton(
-                        onClick = { showTelegramWelcomeDialog = true },
-                        modifier = Modifier.testTag("telegram_bot_top_btn")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Send,
-                            contentDescription = "Telegram Bot",
-                            tint = androidx.compose.ui.graphics.Color(0xFF229ED9)
-                        )
-                    }
-
                     // Developer Support Action Button
                     IconButton(
                         onClick = { showDeveloperDialog = true },
