@@ -6,6 +6,7 @@ import com.example.data.api.AttachmentItem
 import com.example.data.api.CreateAccountRequest
 import com.example.data.api.DomainItem
 import com.example.data.api.EmailParticipant
+import com.example.data.api.MailTmApi
 import com.example.data.api.MessageDetailResponse
 import com.example.data.api.MessageHeaderItem
 import com.example.data.api.SecMailApi
@@ -30,7 +31,29 @@ class TempMailRepository(
 
     private val secureRandom = SecureRandom()
 
-    // Available domains from Mail.tm and GuerrillaMail APIs
+    // Map each domain to its hosting server (Mail.tm vs Mail.gw)
+    private val domainServerMap = java.util.concurrent.ConcurrentHashMap<String, String>().apply {
+        put("emalupe.com", ApiClient.PRIMARY_BASE_URL)
+        put("westcast-systems.com", ApiClient.SECONDARY_BASE_URL)
+    }
+
+    private fun getServicesForDomain(domain: String): List<Pair<MailTmApi, String>> {
+        val cleanDomain = domain.trim().lowercase(Locale.ROOT)
+        val preferredServer = domainServerMap[cleanDomain]
+        return if (preferredServer == ApiClient.SECONDARY_BASE_URL || cleanDomain == "westcast-systems.com") {
+            listOf(
+                Pair(ApiClient.mailGwService, ApiClient.SECONDARY_BASE_URL),
+                Pair(ApiClient.mailTmService, ApiClient.PRIMARY_BASE_URL)
+            )
+        } else {
+            listOf(
+                Pair(ApiClient.mailTmService, ApiClient.PRIMARY_BASE_URL),
+                Pair(ApiClient.mailGwService, ApiClient.SECONDARY_BASE_URL)
+            )
+        }
+    }
+
+    // Available domains from Mail.tm, Mail.gw and GuerrillaMail APIs
     private val allSupportedDomains = listOf(
         "emalupe.com",
         "westcast-systems.com",
@@ -45,24 +68,32 @@ class TempMailRepository(
         val resultDomains = mutableListOf<DomainItem>()
 
         // 1. Fetch live domains directly from Mail.tm / Mail.gw APIs
-        val mailServices = listOf(ApiClient.mailTmService, ApiClient.mailGwService)
-        for (api in mailServices) {
+        val serviceEndpoints = listOf(
+            Pair(ApiClient.mailTmService, ApiClient.PRIMARY_BASE_URL),
+            Pair(ApiClient.mailGwService, ApiClient.SECONDARY_BASE_URL)
+        )
+        for ((api, serverUrl) in serviceEndpoints) {
             try {
                 val resp = api.getDomains()
                 if (resp.isSuccessful && resp.body() != null) {
                     val activeList = resp.body()!!.member.filter { it.isActive }
                     activeList.forEach { d ->
+                        val cleanD = d.domain.lowercase(Locale.ROOT)
+                        domainServerMap[cleanD] = serverUrl
                         if (resultDomains.none { it.domain.equals(d.domain, ignoreCase = true) }) {
                             resultDomains.add(d)
                         }
                     }
                 }
             } catch (e: Exception) {
-                Log.w("TempMailRepo", "Mail.tm getDomains error", e)
+                Log.w("TempMailRepo", "Fetch domains error from $serverUrl", e)
             }
         }
 
-        // Guarantee emalupe.com and westcast-systems.com
+        // Guarantee emalupe.com (Mail.tm) and westcast-systems.com (Mail.gw)
+        domainServerMap["emalupe.com"] = ApiClient.PRIMARY_BASE_URL
+        domainServerMap["westcast-systems.com"] = ApiClient.SECONDARY_BASE_URL
+
         val guaranteedTmDomains = listOf("emalupe.com", "westcast-systems.com")
         guaranteedTmDomains.forEach { tmDomain ->
             if (resultDomains.none { it.domain.equals(tmDomain, ignoreCase = true) }) {
@@ -152,15 +183,25 @@ class TempMailRepository(
                 }
             }
 
-            val randomPrefix = generateFriendlyHandle()
-            val generatedAddress = "$randomPrefix@$domain".lowercase(Locale.ROOT)
-            val generatedPassword = generateSecurePassword()
+            var lastError: Throwable? = null
+            // Retry up to 3 times with a fresh random handle in case of any rare handle collision
+            for (attempt in 1..3) {
+                val randomPrefix = generateFriendlyHandle()
+                val generatedAddress = "$randomPrefix@$domain".lowercase(Locale.ROOT)
+                val generatedPassword = generateSecurePassword()
 
-            createAndRegisterAccount(
-                address = generatedAddress,
-                password = generatedPassword,
-                label = label.ifBlank { "Live Mailbox" }
-            )
+                val result = createAndRegisterAccount(
+                    address = generatedAddress,
+                    password = generatedPassword,
+                    label = label.ifBlank { "Live Mailbox" }
+                )
+                if (result.isSuccess) {
+                    return@withContext result
+                } else {
+                    lastError = result.exceptionOrNull()
+                }
+            }
+            Result.failure(lastError ?: Exception("Could not generate mailbox on @$domain. Please try again."))
         } catch (e: Exception) {
             Log.e("TempMailRepo", "createRandomAccount error", e)
             Result.failure(e)
@@ -243,10 +284,7 @@ class TempMailRepository(
         val domain = cleanAddress.substringAfter("@", "")
         val cleanUsername = cleanAddress.substringBefore("@")
 
-        val mailTmServices = listOf(
-            Pair(ApiClient.mailTmService, ApiClient.PRIMARY_BASE_URL),
-            Pair(ApiClient.mailGwService, ApiClient.SECONDARY_BASE_URL)
-        )
+        val mailTmServices = getServicesForDomain(domain)
 
         var lastErrorMessage = ""
 
@@ -258,12 +296,14 @@ class TempMailRepository(
                     createResp.body()!!.id
                 } else null
 
-                // If registration failed because address is already used (422), try logging in with password
-                if (!createResp.isSuccessful && createResp.code() == 422) {
+                if (createResp.isSuccessful) {
+                    // Record and cache serverUrl for domain
+                    domainServerMap[domain] = serverUrl
                     val tokenResp = api.getToken(TokenRequest(address = cleanAddress, password = password))
                     if (tokenResp.isSuccessful && tokenResp.body() != null) {
                         val token = tokenResp.body()!!.token
-                        val retrievedAccountId = tokenResp.body()!!.id
+                        val retrievedAccountId = accountId ?: tokenResp.body()!!.id
+
                         val entity = SavedAccountEntity(
                             address = cleanAddress,
                             password = password,
@@ -276,48 +316,67 @@ class TempMailRepository(
                             isActive = true,
                             serverUrl = serverUrl
                         )
+
                         accountDao.clearAllActiveFlags()
                         accountDao.insertAccount(entity)
                         return Result.success(entity)
                     } else {
-                        // Username taken by someone else
-                        return Result.failure(
-                            Exception("Username '$cleanUsername' is already taken on @$domain. Please choose a different username.")
-                        )
+                        lastErrorMessage = "Failed to authenticate mailbox: HTTP ${tokenResp.code()}"
+                    }
+                } else {
+                    val rawErrorBody = try { createResp.errorBody()?.string().orEmpty() } catch (_: Exception) { "" }
+                    Log.w("TempMailRepo", "Create account failed on $serverUrl ($cleanAddress): code=${createResp.code()}, body=$rawErrorBody")
+
+                    if (createResp.code() == 422) {
+                        val isInvalidDomain = rawErrorBody.contains("not valid", ignoreCase = true) ||
+                                              rawErrorBody.contains("domain", ignoreCase = true)
+                        val isAlreadyUsed = rawErrorBody.contains("already used", ignoreCase = true) ||
+                                            rawErrorBody.contains("already taken", ignoreCase = true)
+
+                        if (isInvalidDomain) {
+                            // Domain is not on this server (e.g. mail.tm vs mail.gw), continue to next server in loop
+                            lastErrorMessage = "Domain @$domain is not supported on $serverUrl."
+                            continue
+                        }
+
+                        if (isAlreadyUsed) {
+                            // Address already exists on this server. Check if user already owns it.
+                            val tokenResp = api.getToken(TokenRequest(address = cleanAddress, password = password))
+                            if (tokenResp.isSuccessful && tokenResp.body() != null) {
+                                domainServerMap[domain] = serverUrl
+                                val token = tokenResp.body()!!.token
+                                val retrievedAccountId = tokenResp.body()!!.id
+                                val entity = SavedAccountEntity(
+                                    address = cleanAddress,
+                                    password = password,
+                                    token = token,
+                                    accountId = retrievedAccountId,
+                                    label = label,
+                                    createdAt = System.currentTimeMillis(),
+                                    lastUsedAt = System.currentTimeMillis(),
+                                    expiresAt = System.currentTimeMillis() + (10 * 60 * 1000L),
+                                    isActive = true,
+                                    serverUrl = serverUrl
+                                )
+                                accountDao.clearAllActiveFlags()
+                                accountDao.insertAccount(entity)
+                                return Result.success(entity)
+                            } else {
+                                return Result.failure(
+                                    Exception("Username '$cleanUsername' is already taken on @$domain. Please choose a different username.")
+                                )
+                            }
+                        }
+
+                        lastErrorMessage = "Account request error: $rawErrorBody"
+                    } else if (createResp.code() == 429) {
+                        return Result.failure(Exception("Mail service rate limit reached. Please wait 10 seconds and try again."))
+                    } else {
+                        lastErrorMessage = "Server error (HTTP ${createResp.code()})"
                     }
                 }
-
-                if (createResp.code() == 429) {
-                    return Result.failure(Exception("Mail service rate limit reached. Please wait 10 seconds and try again."))
-                }
-
-                // If account created, get JWT token
-                val tokenResp = api.getToken(TokenRequest(address = cleanAddress, password = password))
-                if (tokenResp.isSuccessful && tokenResp.body() != null) {
-                    val token = tokenResp.body()!!.token
-                    val retrievedAccountId = accountId ?: tokenResp.body()!!.id
-
-                    val entity = SavedAccountEntity(
-                        address = cleanAddress,
-                        password = password,
-                        token = token,
-                        accountId = retrievedAccountId,
-                        label = label,
-                        createdAt = System.currentTimeMillis(),
-                        lastUsedAt = System.currentTimeMillis(),
-                        expiresAt = System.currentTimeMillis() + (10 * 60 * 1000L),
-                        isActive = true,
-                        serverUrl = serverUrl
-                    )
-
-                    accountDao.clearAllActiveFlags()
-                    accountDao.insertAccount(entity)
-                    return Result.success(entity)
-                } else {
-                    lastErrorMessage = "Failed to authenticate mailbox: HTTP ${tokenResp.code()}"
-                }
             } catch (e: Exception) {
-                Log.w("TempMailRepo", "Mail.tm account registration attempt failed", e)
+                Log.w("TempMailRepo", "Mail account registration attempt failed on $serverUrl", e)
                 lastErrorMessage = e.localizedMessage ?: "Network error"
             }
         }
@@ -373,11 +432,12 @@ class TempMailRepository(
         }
 
         // 2. Mail.tm / Mail.gw
-        val services = listOf(ApiClient.mailTmService, ApiClient.mailGwService)
-        for (api in services) {
+        val services = getServicesForDomain(domain)
+        for ((api, serverUrl) in services) {
             try {
                 val tokenResp = api.getToken(TokenRequest(address = cleanAddress, password = cleanPassword))
                 if (tokenResp.isSuccessful && tokenResp.body() != null) {
+                    domainServerMap[domain] = serverUrl
                     val token = tokenResp.body()!!.token
                     val accountId = tokenResp.body()!!.id
 
@@ -388,18 +448,19 @@ class TempMailRepository(
                         accountId = accountId,
                         lastUsedAt = System.currentTimeMillis(),
                         isActive = true,
-                        label = if (label.isNotBlank()) label else existing.label.ifBlank { "Mail.tm Account" }
+                        serverUrl = serverUrl,
+                        label = if (label.isNotBlank()) label else existing.label.ifBlank { "Live Account" }
                     )) ?: SavedAccountEntity(
                         address = cleanAddress,
                         password = cleanPassword,
                         token = token,
                         accountId = accountId,
-                        label = label.ifBlank { "Mail.tm Account" },
+                        label = label.ifBlank { "Live Account" },
                         createdAt = System.currentTimeMillis(),
                         lastUsedAt = System.currentTimeMillis(),
                         expiresAt = System.currentTimeMillis() + (10 * 60 * 1000L),
                         isActive = true,
-                        serverUrl = ApiClient.PRIMARY_BASE_URL
+                        serverUrl = serverUrl
                     )
 
                     accountDao.clearAllActiveFlags()
@@ -407,7 +468,7 @@ class TempMailRepository(
                     return@withContext Result.success(entity)
                 }
             } catch (e: Exception) {
-                Log.w("TempMailRepo", "Login attempt failed on Mail.tm service...", e)
+                Log.w("TempMailRepo", "Login attempt failed on $serverUrl", e)
             }
         }
 
@@ -452,8 +513,8 @@ class TempMailRepository(
         }
 
         // 2. Mail.tm / Mail.gw: check token health or re-authenticate / auto-register
-        val services = listOf(ApiClient.mailTmService, ApiClient.mailGwService)
-        for (api in services) {
+        val services = getServicesForDomain(domain)
+        for ((api, serverUrl) in services) {
             try {
                 if (!account.token.isNullOrBlank() && !account.token.startsWith("secmail_") && !account.token.startsWith("grr_")) {
                     val meResp = api.getMe("Bearer ${account.token}")
@@ -471,7 +532,8 @@ class TempMailRepository(
                             account.copy(
                                 token = newToken,
                                 accountId = newId,
-                                lastUsedAt = System.currentTimeMillis()
+                                lastUsedAt = System.currentTimeMillis(),
+                                serverUrl = serverUrl
                             )
                         )
                         return@withContext newToken
@@ -487,7 +549,8 @@ class TempMailRepository(
                                     account.copy(
                                         token = newToken,
                                         accountId = newId,
-                                        lastUsedAt = System.currentTimeMillis()
+                                        lastUsedAt = System.currentTimeMillis(),
+                                        serverUrl = serverUrl
                                     )
                                 )
                                 return@withContext newToken
@@ -496,7 +559,7 @@ class TempMailRepository(
                     }
                 }
             } catch (e: Exception) {
-                Log.w("TempMailRepo", "ensureValidToken retry failed", e)
+                Log.w("TempMailRepo", "ensureValidToken retry failed on $serverUrl", e)
             }
         }
 
@@ -615,9 +678,9 @@ class TempMailRepository(
             }
         } else {
             // 2. Mail.tm / Mail.gw account
-            val mailTmServices = listOf(ApiClient.mailTmService, ApiClient.mailGwService)
+            val mailTmServices = getServicesForDomain(domain)
             var authToken = token
-            for (api in mailTmServices) {
+            for ((api, serverUrl) in mailTmServices) {
                 try {
                     // If token is invalid or missing, heal and fetch JWT token
                     if (authToken.startsWith("secmail_") || authToken.startsWith("grr_") || authToken.isBlank()) {
@@ -626,7 +689,7 @@ class TempMailRepository(
                             val tokenResp = api.getToken(TokenRequest(address = cleanAddress, password = existingAccount.password))
                             if (tokenResp.isSuccessful && tokenResp.body() != null) {
                                 authToken = tokenResp.body()!!.token
-                                accountDao.updateAccount(existingAccount.copy(token = authToken))
+                                accountDao.updateAccount(existingAccount.copy(token = authToken, serverUrl = serverUrl))
                             } else {
                                 val createResp = api.createAccount(CreateAccountRequest(address = cleanAddress, password = existingAccount.password))
                                 if (createResp.isSuccessful || createResp.code() == 422) {
@@ -634,7 +697,7 @@ class TempMailRepository(
                                     if (retryToken.isSuccessful && retryToken.body() != null) {
                                         authToken = retryToken.body()!!.token
                                         val newId = createResp.body()?.id ?: retryToken.body()!!.id
-                                        accountDao.updateAccount(existingAccount.copy(token = authToken, accountId = newId))
+                                        accountDao.updateAccount(existingAccount.copy(token = authToken, accountId = newId, serverUrl = serverUrl))
                                     }
                                 }
                             }
@@ -653,7 +716,7 @@ class TempMailRepository(
                                 val tokenResp = api.getToken(TokenRequest(address = cleanAddress, password = existingAccount.password))
                                 if (tokenResp.isSuccessful && tokenResp.body() != null) {
                                     authToken = tokenResp.body()!!.token
-                                    accountDao.updateAccount(existingAccount.copy(token = authToken))
+                                    accountDao.updateAccount(existingAccount.copy(token = authToken, serverUrl = serverUrl))
                                     val retryResp = api.getMessages("Bearer $authToken")
                                     if (retryResp.isSuccessful && retryResp.body() != null) {
                                         remoteList.addAll(retryResp.body()!!.member)
@@ -664,7 +727,7 @@ class TempMailRepository(
                         }
                     }
                 } catch (e: Exception) {
-                    Log.w("TempMailRepo", "Mail.tm fetchMessages error", e)
+                    Log.w("TempMailRepo", "Mail.tm fetchMessages error on $serverUrl", e)
                 }
             }
         }
@@ -736,9 +799,9 @@ class TempMailRepository(
         }
 
         // 2. Primary: Fetch from Mail.tm / Mail.gw API
-        val services = listOf(ApiClient.mailTmService, ApiClient.mailGwService)
+        val services = getServicesForDomain(domain)
         var authToken = token
-        for (api in services) {
+        for ((api, serverUrl) in services) {
             try {
                 if (!authToken.startsWith("secmail_") && !authToken.startsWith("grr_") && authToken.isNotBlank()) {
                     val response = api.getMessageDetail("Bearer $authToken", messageId)
@@ -751,7 +814,7 @@ class TempMailRepository(
                             val tokenResp = api.getToken(TokenRequest(address = cleanAddress, password = existingAccount.password))
                             if (tokenResp.isSuccessful && tokenResp.body() != null) {
                                 authToken = tokenResp.body()!!.token
-                                accountDao.updateAccount(existingAccount.copy(token = authToken))
+                                accountDao.updateAccount(existingAccount.copy(token = authToken, serverUrl = serverUrl))
                                 val retryResp = api.getMessageDetail("Bearer $authToken", messageId)
                                 if (retryResp.isSuccessful && retryResp.body() != null) {
                                     return@withContext Result.success(retryResp.body()!!)
@@ -761,7 +824,7 @@ class TempMailRepository(
                     }
                 }
             } catch (e: Exception) {
-                Log.w("TempMailRepo", "Mail.tm fetchMessageDetail error", e)
+                Log.w("TempMailRepo", "Mail.tm fetchMessageDetail error on $serverUrl", e)
             }
         }
 
@@ -772,6 +835,9 @@ class TempMailRepository(
         if (!token.startsWith("secmail_") && !token.startsWith("grr_")) {
             try {
                 ApiClient.mailTmService.deleteMessage("Bearer $token", messageId)
+            } catch (ignored: Exception) {}
+            try {
+                ApiClient.mailGwService.deleteMessage("Bearer $token", messageId)
             } catch (ignored: Exception) {}
         }
         Result.success(Unit)

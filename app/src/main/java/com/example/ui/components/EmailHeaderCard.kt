@@ -472,59 +472,66 @@ fun EmailHeaderCard(
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                // Primary Quick Actions
+                // Primary Hero Action: Copy Address (Full-width for maximum readability and effortless tap)
+                Button(
+                    onClick = {
+                        activeAccount?.let { onCopyAddress(it.address) }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                        .testTag("copy_email_main_btn"),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    ),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
+                    enabled = activeAccount != null && !isGenerating
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ContentCopy,
+                        contentDescription = null,
+                        modifier = Modifier.size(19.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = strings.copyAddress,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        maxLines = 1
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Secondary Quick Actions Row: New Mail & Saved Vault
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    // Copy Address Button
-                    Button(
-                        onClick = {
-                            activeAccount?.let { onCopyAddress(it.address) }
-                        },
-                        modifier = Modifier
-                            .weight(1.3f)
-                            .height(46.dp)
-                            .testTag("copy_email_main_btn"),
-                        shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        ),
-                        enabled = activeAccount != null && !isGenerating
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ContentCopy,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = strings.copyAddress,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp
-                        )
-                    }
-
                     // Change / New Mail Button
                     FilledTonalButton(
                         onClick = onOpenCreateDialog,
                         modifier = Modifier
-                            .weight(1.1f)
-                            .height(46.dp)
+                            .weight(1f)
+                            .height(44.dp)
                             .testTag("new_email_main_btn"),
-                        shape = RoundedCornerShape(14.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp),
                         enabled = !isGenerating
                     ) {
                         Icon(
                             imageVector = Icons.Default.Autorenew,
                             contentDescription = null,
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier.size(17.dp)
                         )
-                        Spacer(modifier = Modifier.width(4.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = strings.newMail,
                             fontWeight = FontWeight.SemiBold,
-                            fontSize = 13.sp
+                            fontSize = 13.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
 
@@ -532,21 +539,24 @@ fun EmailHeaderCard(
                     OutlinedButton(
                         onClick = onOpenVaultSheet,
                         modifier = Modifier
-                            .weight(0.9f)
-                            .height(46.dp)
+                            .weight(1f)
+                            .height(44.dp)
                             .testTag("open_vault_sheet_btn"),
-                        shape = RoundedCornerShape(14.dp)
+                        shape = RoundedCornerShape(12.dp),
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Storage,
                             contentDescription = null,
-                            modifier = Modifier.size(16.dp)
+                            modifier = Modifier.size(17.dp)
                         )
-                        Spacer(modifier = Modifier.width(4.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = "${strings.savedVault} ($savedAccountsCount)",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
