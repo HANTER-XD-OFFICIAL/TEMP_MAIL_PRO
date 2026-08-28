@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -58,8 +60,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -67,6 +71,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.example.R
 
 private const val WHATSAPP_URL = "https://wa.me/8801882278234"
 private const val TELEGRAM_CHANNEL_URL = "https://t.me/HANTER_XD_OFFICIAL"
@@ -188,26 +193,30 @@ fun DeveloperContactDialog(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                // Avatar circle with gradient
+                                // Developer Profile Avatar Photo with stylish border
                                 Box(
                                     modifier = Modifier
-                                        .size(46.dp)
+                                        .size(54.dp)
                                         .clip(CircleShape)
-                                        .background(
-                                            Brush.linearGradient(
+                                        .border(
+                                            width = 2.dp,
+                                            brush = Brush.linearGradient(
                                                 listOf(
                                                     Color(0xFF2563EB),
-                                                    Color(0xFF7C3AED)
+                                                    Color(0xFFEF4444)
                                                 )
-                                            )
+                                            ),
+                                            shape = CircleShape
                                         ),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text(
-                                        text = "MR",
-                                        fontWeight = FontWeight.ExtraBold,
-                                        fontSize = 17.sp,
-                                        color = Color.White
+                                    Image(
+                                        painter = painterResource(id = R.drawable.img_developer_avatar),
+                                        contentDescription = "MD RASEL Profile Photo",
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .clip(CircleShape),
+                                        contentScale = ContentScale.Crop
                                     )
                                 }
 

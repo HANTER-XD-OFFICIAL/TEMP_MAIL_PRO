@@ -47,11 +47,15 @@ KEY FEATURES AT A GLANCE:
 - Modern dark/light mode with fluid animations
 
 
-COMMUNITY & OFFICIAL CHANNELS:
+DEVELOPER & OFFICIAL CHANNELS:
 
-* Official Release APK: https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO/releases/tag/TempMailProV1.0
+* Lead Developer: MD RASEL (Hanter XD Official)
+* Official Release APK (v2.5.0): https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO/releases/tag/v2.5.0TempMailPro
 * Official Telegram Bot: https://t.me/TEMPMAIL8234_bot
-* Telegram Channel: https://t.me/HANTER_XD_OFFICIAL
+* Official Telegram Channel: https://t.me/HANTER_XD_OFFICIAL
+* Official Facebook Profile: https://www.facebook.com/md.rasel.7.8.2.3.4
+* WhatsApp Support Chat: https://wa.me/8801882278234
+* Support Desk: alexraselchodhury@gmail.com
 * Official GitHub Repository: https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO
 
 ================================================================================
