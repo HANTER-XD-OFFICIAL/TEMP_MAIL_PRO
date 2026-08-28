@@ -235,7 +235,7 @@ fun CreateAccountDialog(
                             value = customUsername,
                             onValueChange = { customUsername = it.trim().lowercase().replace(" ", "") },
                             label = { Text("Custom Username") },
-                            placeholder = { Text("e.g. rasel.work") },
+                            placeholder = { Text("e.g. user.work") },
                             leadingIcon = { Icon(Icons.Default.Mail, contentDescription = null) },
                             modifier = Modifier
                                 .fillMaxWidth()

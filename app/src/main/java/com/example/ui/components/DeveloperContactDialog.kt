@@ -5,9 +5,12 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,20 +25,25 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.SmartToy
+import androidx.compose.material.icons.filled.SupportAgent
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.outlined.Public
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -54,9 +62,18 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+
+private const val WHATSAPP_URL = "https://wa.me/8801882278234"
+private const val TELEGRAM_CHANNEL_URL = "https://t.me/HANTER_XD_OFFICIAL"
+private const val TELEGRAM_BOT_URL = "https://t.me/TEMPMAIL8234_bot"
+private const val GITHUB_REPO_URL = "https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO"
+private const val FACEBOOK_PROFILE_URL = "https://www.facebook.com/md.rasel.7.8.2.3.4"
+private const val SUPPORT_EMAIL = "alexraselchodhury@gmail.com"
 
 @Composable
 fun DeveloperContactDialog(
@@ -64,23 +81,30 @@ fun DeveloperContactDialog(
 ) {
     val context = LocalContext.current
 
-    Dialog(onDismissRequest = onDismissRequest) {
-        Card(
+    Dialog(
+        onDismissRequest = onDismissRequest,
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            dismissOnBackPress = true,
+            dismissOnClickOutside = true
+        )
+    ) {
+        Surface(
             modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(max = 640.dp)
-                .padding(horizontal = 8.dp, vertical = 16.dp)
+                .fillMaxWidth(0.94f)
+                .widthIn(max = 440.dp)
+                .heightIn(max = 700.dp)
+                .padding(vertical = 12.dp)
                 .testTag("developer_contact_dialog"),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+            shape = RoundedCornerShape(26.dp),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 6.dp,
+            shadowElevation = 14.dp
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                    .padding(horizontal = 18.dp, vertical = 14.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Header with close button (Pinned)
@@ -89,27 +113,40 @@ fun DeveloperContactDialog(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f)
+                    ) {
                         Box(
                             modifier = Modifier
-                                .size(36.dp)
+                                .size(38.dp)
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.primaryContainer),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Person,
+                                imageVector = Icons.Default.SupportAgent,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(22.dp)
                             )
                         }
                         Spacer(modifier = Modifier.width(10.dp))
-                        Text(
-                            text = "Developer Support",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Column {
+                            Text(
+                                text = "Developer Support Hub",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Text(
+                                text = "Official Assistance & Community",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 11.sp
+                            )
+                        }
                     }
 
                     IconButton(
@@ -123,7 +160,7 @@ fun DeveloperContactDialog(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 // Scrollable Content
                 Column(
@@ -132,114 +169,356 @@ fun DeveloperContactDialog(
                         .verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Developer badge
+                    // Developer Profile Card
                     Surface(
-                        shape = RoundedCornerShape(16.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                        shape = RoundedCornerShape(18.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+                        border = androidx.compose.foundation.BorderStroke(
+                            1.dp,
+                            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                        ),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Row(
+                        Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(14.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
+                                .padding(14.dp)
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Verified,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(22.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                // Avatar circle with gradient
+                                Box(
+                                    modifier = Modifier
+                                        .size(46.dp)
+                                        .clip(CircleShape)
+                                        .background(
+                                            Brush.linearGradient(
+                                                listOf(
+                                                    Color(0xFF2563EB),
+                                                    Color(0xFF7C3AED)
+                                                )
+                                            )
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "MR",
+                                        fontWeight = FontWeight.ExtraBold,
+                                        fontSize = 17.sp,
+                                        color = Color.White
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.width(12.dp))
+
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            text = "MD RASEL",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            letterSpacing = 0.5.sp
+                                        )
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Icon(
+                                            imageVector = Icons.Default.Verified,
+                                            contentDescription = "Verified Developer",
+                                            tint = Color(0xFF388AF6),
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                    Text(
+                                        text = "Founder & Lead Developer • Hanter XD",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontSize = 11.sp
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(10.dp))
+
+                            // Status and Version Chips
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = Color(0xFF10B981).copy(alpha = 0.12f)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(6.dp)
+                                                .clip(CircleShape)
+                                                .background(Color(0xFF10B981))
+                                        )
+                                        Spacer(modifier = Modifier.width(5.dp))
+                                        Text(
+                                            text = "Support Active",
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = Color(0xFF059669)
+                                        )
+                                    }
+                                }
+
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                                ) {
+                                    Text(
+                                        text = "v2.5.0 Final Release",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
                             Text(
-                                text = "MD RASEL",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                letterSpacing = 1.sp
+                                text = "Official support desk for custom domains, bug reports, and suggestions. Personal contact info is protected—tap below to open direct chat or email.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 11.5.sp,
+                                lineHeight = 16.sp
                             )
                         }
                     }
 
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Section Title
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "OFFICIAL CONTACT CHANNELS",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            letterSpacing = 0.8.sp
+                        )
+                    }
+
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Connect directly with the developer for updates, custom setups & instant support.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = 8.dp)
-                    )
 
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Action buttons without revealing raw private data strings on the screen
-                    // 1. WhatsApp Button
-                    ContactActionButton(
-                        title = "Chat on WhatsApp",
+                    // 1. WhatsApp Support Card (Phone number is hidden from text, opens on tap)
+                    ProfessionalChannelCard(
+                        title = "WhatsApp Support",
+                        subtitle = "Direct Encrypted Chat • Tap to open WhatsApp",
+                        actionBadge = "Chat",
                         icon = Icons.Outlined.Forum,
-                        buttonColor = Color(0xFF25D366),
-                        contentColor = Color.White,
+                        brandColor = Color(0xFF25D366),
                         testTag = "whatsapp_contact_btn",
-                        onClick = {
-                            openUrl(context, "https://wa.me/8801882278234")
-                        }
+                        onClick = { openUrl(context, WHATSAPP_URL) }
                     )
 
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                    // 2. Telegram Button
-                    ContactActionButton(
-                        title = "Join Telegram Channel",
+                    // 2. Telegram Channel Card
+                    ProfessionalChannelCard(
+                        title = "Official Telegram Channel",
+                        subtitle = "Community & Announcements • Tap to join",
+                        actionBadge = "Join",
                         icon = Icons.Default.Send,
-                        buttonColor = Color(0xFF229ED9),
-                        contentColor = Color.White,
+                        brandColor = Color(0xFF229ED9),
                         testTag = "telegram_contact_btn",
-                        onClick = {
-                            openUrl(context, "https://t.me/HANTER_XD_OFFICIAL")
-                        }
+                        onClick = { openUrl(context, TELEGRAM_CHANNEL_URL) }
                     )
 
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                    // 3. Facebook Profile Button
-                    ContactActionButton(
-                        title = "Visit Facebook Profile",
-                        icon = Icons.Outlined.Public,
-                        buttonColor = Color(0xFF1877F2),
-                        contentColor = Color.White,
-                        testTag = "facebook_contact_btn",
-                        onClick = {
-                            openUrl(context, "https://www.facebook.com/md.rasel.7.8.2.3.4")
-                        }
+                    // 3. Telegram Bot Card
+                    ProfessionalChannelCard(
+                        title = "Telegram Assistant Bot",
+                        subtitle = "24/7 Automated Temp Mail Bot • Tap to start",
+                        actionBadge = "Start",
+                        icon = Icons.Default.SmartToy,
+                        brandColor = Color(0xFF8B5CF6),
+                        testTag = "telegram_bot_contact_btn",
+                        onClick = { openUrl(context, TELEGRAM_BOT_URL) }
                     )
 
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                    // 4. Email Button
-                    ContactActionButton(
-                        title = "Send Direct Email",
+                    // 4. GitHub Repository Card
+                    ProfessionalChannelCard(
+                        title = "GitHub Project & Releases",
+                        subtitle = "Source Code & Releases • Tap to view",
+                        actionBadge = "Code",
+                        icon = Icons.Default.Code,
+                        brandColor = Color(0xFF4B5563),
+                        testTag = "github_contact_btn",
+                        onClick = { openUrl(context, GITHUB_REPO_URL) }
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // 5. Direct Email Card (Email address is hidden from text, opens on tap)
+                    ProfessionalChannelCard(
+                        title = "Direct Support Email",
+                        subtitle = "Official Help Desk • Tap to compose email",
+                        actionBadge = "Email",
                         icon = Icons.Default.Email,
-                        buttonColor = Color(0xFFEA4335),
-                        contentColor = Color.White,
+                        brandColor = Color(0xFFEA4335),
                         testTag = "email_contact_btn",
                         onClick = {
-                            sendEmail(context, "alexraselchodhury@gmail.com", "Temp Mail Pro Support Inquiry")
+                            sendEmail(context, SUPPORT_EMAIL, "Temp Mail Pro - Support & Inquiry")
                         }
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // 6. Facebook Support Card
+                    ProfessionalChannelCard(
+                        title = "Official Facebook Profile",
+                        subtitle = "MD Rasel • Tap to open Facebook profile",
+                        actionBadge = "Visit",
+                        icon = Icons.Outlined.Public,
+                        brandColor = Color(0xFF1877F2),
+                        testTag = "facebook_contact_btn",
+                        onClick = { openUrl(context, FACEBOOK_PROFILE_URL) }
+                    )
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Quick Utility Tools Bar
+                    Text(
+                        text = "QUICK ACTIONS (TAP TO OPEN)",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        letterSpacing = 0.8.sp,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 4.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        // Open WhatsApp directly
+                        FilledTonalButton(
+                            onClick = {
+                                openUrl(context, WHATSAPP_URL)
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(38.dp)
+                                .testTag("open_whatsapp_quick_btn"),
+                            shape = RoundedCornerShape(10.dp),
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Forum,
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "WhatsApp",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1
+                            )
+                        }
+
+                        // Compose Email directly
+                        FilledTonalButton(
+                            onClick = {
+                                sendEmail(context, SUPPORT_EMAIL, "Temp Mail Pro - Support & Inquiry")
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(38.dp)
+                                .testTag("send_email_quick_btn"),
+                            shape = RoundedCornerShape(10.dp),
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Email,
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Email",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1
+                            )
+                        }
+
+                        // Share App
+                        FilledTonalButton(
+                            onClick = {
+                                shareApp(context)
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(38.dp)
+                                .testTag("share_app_quick_btn"),
+                            shape = RoundedCornerShape(10.dp),
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Share,
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Share",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Text(
+                        text = "Temp Mail Pro • 100% Kotlin & Jetpack Compose",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                        fontSize = 10.sp,
+                        textAlign = TextAlign.Center
                     )
                 }
 
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 // Pinned Close Button
                 OutlinedButton(
                     onClick = onDismissRequest,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(44.dp),
+                        .height(44.dp)
+                        .testTag("dismiss_developer_support_btn"),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Close")
+                    Text(
+                        text = "Close",
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 14.sp
+                    )
                 }
             }
         }
@@ -247,38 +526,121 @@ fun DeveloperContactDialog(
 }
 
 @Composable
-private fun ContactActionButton(
+private fun ProfessionalChannelCard(
     title: String,
+    subtitle: String,
+    actionBadge: String,
     icon: ImageVector,
-    buttonColor: Color,
-    contentColor: Color,
+    brandColor: Color,
     testTag: String,
     onClick: () -> Unit
 ) {
-    Button(
+    Surface(
         onClick = onClick,
+        shape = RoundedCornerShape(14.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+        ),
         modifier = Modifier
             .fillMaxWidth()
-            .height(48.dp)
-            .testTag(testTag),
-        shape = RoundedCornerShape(14.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = buttonColor,
-            contentColor = contentColor
-        ),
-        elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
+            .testTag(testTag)
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(20.dp)
-        )
-        Spacer(modifier = Modifier.width(10.dp))
-        Text(
-            text = title,
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.SemiBold
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f)
+            ) {
+                // Soft colored icon container
+                Box(
+                    modifier = Modifier
+                        .size(38.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(brandColor.copy(alpha = 0.14f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = brandColor,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(10.dp))
+
+                Column {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 11.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            // Action Pill
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = brandColor.copy(alpha = 0.14f)
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = actionBadge,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = brandColor
+                    )
+                    Spacer(modifier = Modifier.width(2.dp))
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = null,
+                        tint = brandColor,
+                        modifier = Modifier.size(12.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+private fun shareApp(context: Context) {
+    try {
+        val sendIntent = Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(
+                Intent.EXTRA_TEXT,
+                "Temp Mail Pro - Instant Disposable Temporary Email, Live OTP Verification & Custom Mailbox (Hanter XD Official).\n\nDownload APK: $GITHUB_REPO_URL/releases\nTelegram Bot: $TELEGRAM_BOT_URL"
+            )
+            type = "text/plain"
+        }
+        val shareIntent = Intent.createChooser(sendIntent, "Share Temp Mail Pro")
+        shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(shareIntent)
+    } catch (e: Exception) {
+        Toast.makeText(context, "Could not share app", Toast.LENGTH_SHORT).show()
     }
 }
 

@@ -62,7 +62,8 @@ data class AppStrings(
     val delete: String,
     val switchAccount: String,
     val totalAccounts: String,
-    val otpCodeFound: String
+    val otpCodeFound: String,
+    val developerAction: String = "Contact"
 )
 
 object LocalizationManager {
@@ -102,6 +103,7 @@ object LocalizationManager {
                 selectLanguage = "Select Language / ভাষা নির্বাচন",
                 changeLanguage = "Language",
                 developerContact = "Developer Support",
+                developerAction = "Contact",
                 createCustomTitle = "Create Custom Email",
                 close = "Close",
                 save = "Save",
@@ -145,6 +147,7 @@ object LocalizationManager {
                 selectLanguage = "ভাষা নির্বাচন করুন",
                 changeLanguage = "ভাষা / Language",
                 developerContact = "ডেভেলপার সাপোর্ট",
+                developerAction = "যোগাযোগ",
                 createCustomTitle = "কাস্টম ইমেইল তৈরি",
                 close = "বন্ধ করুন",
                 save = "সংরক্ষণ",
