@@ -212,7 +212,7 @@ fun CreateAccountDialog(
                     // Custom Username
                     OutlinedTextField(
                         value = customUsername,
-                        onValueChange = { customUsername = it },
+                        onValueChange = { customUsername = it.trim().lowercase().replace(" ", "") },
                         label = { Text("Custom Username") },
                         placeholder = { Text("e.g. rasel.work") },
                         leadingIcon = { Icon(Icons.Default.Mail, contentDescription = null) },
@@ -305,10 +305,10 @@ fun CreateAccountDialog(
                                 onCreateRandom(selectedDomain, accountLabel)
                             } else {
                                 onCreateCustom(
-                                    customUsername,
+                                    customUsername.trim().lowercase().replace(" ", ""),
                                     selectedDomain,
                                     customPassword.ifBlank { "Pass${(1000..9999).random()}!" },
-                                    accountLabel
+                                    accountLabel.trim()
                                 )
                             }
                             onDismissRequest()
