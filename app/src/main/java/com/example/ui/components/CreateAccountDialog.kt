@@ -9,11 +9,15 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AutoFixHigh
@@ -58,6 +62,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.example.data.api.DomainItem
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -79,11 +84,20 @@ fun CreateAccountDialog(
     var isPasswordVisible by remember { mutableStateOf(false) }
     var accountLabel by remember { mutableStateOf("") }
 
-    Dialog(onDismissRequest = onDismissRequest) {
+    Dialog(
+        onDismissRequest = onDismissRequest,
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            dismissOnBackPress = true,
+            dismissOnClickOutside = true
+        )
+    ) {
         Card(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp)
+                .fillMaxWidth(0.92f)
+                .widthIn(max = 440.dp)
+                .heightIn(max = 660.dp)
+                .padding(vertical = 16.dp)
                 .testTag("create_account_dialog"),
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -92,10 +106,10 @@ fun CreateAccountDialog(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(20.dp),
+                    .padding(horizontal = 20.dp, vertical = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Header
+                // Header (Pinned)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -132,159 +146,167 @@ fun CreateAccountDialog(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Mode Tabs
-                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                    SegmentedButton(
-                        selected = selectedTab == 0,
-                        onClick = { selectedTab = 0 },
-                        shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Default.AutoFixHigh,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-                    ) {
-                        Text("Auto Instant")
-                    }
-
-                    SegmentedButton(
-                        selected = selectedTab == 1,
-                        onClick = { selectedTab = 1 },
-                        shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Default.Mail,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-                    ) {
-                        Text("Custom Name")
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Domain Selection
-                if (availableDomains.isNotEmpty()) {
-                    ExposedDropdownMenuBox(
-                        expanded = domainExpanded,
-                        onExpandedChange = { domainExpanded = !domainExpanded },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        OutlinedTextField(
-                            value = "@$selectedDomain",
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("Active Domain") },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = domainExpanded) },
-                            modifier = Modifier
-                                .menuAnchor()
-                                .fillMaxWidth()
-                                .testTag("domain_selector_field"),
-                            shape = RoundedCornerShape(12.dp)
-                        )
-
-                        ExposedDropdownMenu(
-                            expanded = domainExpanded,
-                            onDismissRequest = { domainExpanded = false }
-                        ) {
-                            availableDomains.forEach { domainItem ->
-                                DropdownMenuItem(
-                                    text = { Text("@${domainItem.domain}") },
-                                    onClick = {
-                                        selectedDomain = domainItem.domain
-                                        domainExpanded = false
-                                    }
-                                )
-                            }
-                        }
-                    }
-                }
-
                 Spacer(modifier = Modifier.height(12.dp))
 
-                if (selectedTab == 1) {
-                    // Custom Username
-                    OutlinedTextField(
-                        value = customUsername,
-                        onValueChange = { customUsername = it.trim().lowercase().replace(" ", "") },
-                        label = { Text("Custom Username") },
-                        placeholder = { Text("e.g. rasel.work") },
-                        leadingIcon = { Icon(Icons.Default.Mail, contentDescription = null) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .testTag("custom_username_input"),
-                        shape = RoundedCornerShape(12.dp),
-                        singleLine = true
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // Custom Password
-                    OutlinedTextField(
-                        value = customPassword,
-                        onValueChange = { customPassword = it },
-                        label = { Text("Password (Min 6 chars)") },
-                        placeholder = { Text("Secure password") },
-                        leadingIcon = { Icon(Icons.Default.Key, contentDescription = null) },
-                        trailingIcon = {
-                            IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                // Scrollable Form Fields
+                Column(
+                    modifier = Modifier
+                        .weight(1f, fill = false)
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // Mode Tabs
+                    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                        SegmentedButton(
+                            selected = selectedTab == 0,
+                            onClick = { selectedTab = 0 },
+                            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+                            icon = {
                                 Icon(
-                                    imageVector = if (isPasswordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
-                                    contentDescription = "Toggle password"
+                                    imageVector = Icons.Default.AutoFixHigh,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
                                 )
                             }
-                        },
-                        visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        ) {
+                            Text("Auto Instant")
+                        }
+
+                        SegmentedButton(
+                            selected = selectedTab == 1,
+                            onClick = { selectedTab = 1 },
+                            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+                            icon = {
+                                Icon(
+                                    imageVector = Icons.Default.Mail,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        ) {
+                            Text("Custom Name")
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Domain Selection
+                    if (availableDomains.isNotEmpty()) {
+                        ExposedDropdownMenuBox(
+                            expanded = domainExpanded,
+                            onExpandedChange = { domainExpanded = !domainExpanded },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            OutlinedTextField(
+                                value = "@$selectedDomain",
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text("Active Domain") },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = domainExpanded) },
+                                modifier = Modifier
+                                    .menuAnchor()
+                                    .fillMaxWidth()
+                                    .testTag("domain_selector_field"),
+                                shape = RoundedCornerShape(12.dp)
+                            )
+
+                            ExposedDropdownMenu(
+                                expanded = domainExpanded,
+                                onDismissRequest = { domainExpanded = false }
+                            ) {
+                                availableDomains.forEach { domainItem ->
+                                    DropdownMenuItem(
+                                        text = { Text("@${domainItem.domain}") },
+                                        onClick = {
+                                            selectedDomain = domainItem.domain
+                                            domainExpanded = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    if (selectedTab == 1) {
+                        // Custom Username
+                        OutlinedTextField(
+                            value = customUsername,
+                            onValueChange = { customUsername = it.trim().lowercase().replace(" ", "") },
+                            label = { Text("Custom Username") },
+                            placeholder = { Text("e.g. rasel.work") },
+                            leadingIcon = { Icon(Icons.Default.Mail, contentDescription = null) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("custom_username_input"),
+                            shape = RoundedCornerShape(12.dp),
+                            singleLine = true
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Custom Password
+                        OutlinedTextField(
+                            value = customPassword,
+                            onValueChange = { customPassword = it },
+                            label = { Text("Password (Min 6 chars)") },
+                            placeholder = { Text("Secure password") },
+                            leadingIcon = { Icon(Icons.Default.Key, contentDescription = null) },
+                            trailingIcon = {
+                                IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                                    Icon(
+                                        imageVector = if (isPasswordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                                        contentDescription = "Toggle password"
+                                    )
+                                }
+                            },
+                            visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("custom_password_input"),
+                            shape = RoundedCornerShape(12.dp),
+                            singleLine = true
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+
+                    // Account Label / Tag
+                    OutlinedTextField(
+                        value = accountLabel,
+                        onValueChange = { accountLabel = it },
+                        label = { Text("Label / Tag (Optional)") },
+                        placeholder = { Text("e.g. Discord, Gaming, Lifetime") },
+                        leadingIcon = { Icon(Icons.Default.Tag, contentDescription = null) },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .testTag("custom_password_input"),
+                            .testTag("account_label_input"),
                         shape = RoundedCornerShape(12.dp),
                         singleLine = true
                     )
 
-                    Spacer(modifier = Modifier.height(12.dp))
-                }
-
-                // Account Label / Tag
-                OutlinedTextField(
-                    value = accountLabel,
-                    onValueChange = { accountLabel = it },
-                    label = { Text("Label / Tag (Optional)") },
-                    placeholder = { Text("e.g. Discord, Gaming, Lifetime") },
-                    leadingIcon = { Icon(Icons.Default.Tag, contentDescription = null) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("account_label_input"),
-                    shape = RoundedCornerShape(12.dp),
-                    singleLine = true
-                )
-
-                if (selectedTab == 1 && customUsername.isNotBlank()) {
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = "Preview: ${customUsername.trim().lowercase()}@$selectedDomain",
-                            style = MaterialTheme.typography.bodySmall,
-                            fontFamily = FontFamily.Monospace,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(8.dp)
-                        )
+                    if (selectedTab == 1 && customUsername.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = "Preview: ${customUsername.trim().lowercase()}@$selectedDomain",
+                                style = MaterialTheme.typography.bodySmall,
+                                fontFamily = FontFamily.Monospace,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(8.dp)
+                            )
+                        }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                // Action Buttons
+                // Action Buttons (Pinned at bottom)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)

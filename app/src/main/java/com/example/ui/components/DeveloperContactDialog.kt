@@ -12,11 +12,15 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Email
@@ -64,7 +68,8 @@ fun DeveloperContactDialog(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .heightIn(max = 640.dp)
+                .padding(horizontal = 8.dp, vertical = 16.dp)
                 .testTag("developer_contact_dialog"),
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(
@@ -75,10 +80,10 @@ fun DeveloperContactDialog(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(20.dp),
+                    .padding(horizontal = 20.dp, vertical = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Header with close button
+                // Header with close button (Pinned)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -118,106 +123,115 @@ fun DeveloperContactDialog(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-                // Developer badge
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
-                    modifier = Modifier.fillMaxWidth()
+                // Scrollable Content
+                Column(
+                    modifier = Modifier
+                        .weight(1f, fill = false)
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(14.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
+                    // Developer badge
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Verified,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(22.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "MD RASEL",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            letterSpacing = 1.sp
-                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Verified,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(22.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "MD RASEL",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                letterSpacing = 1.sp
+                            )
+                        }
                     }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Connect directly with the developer for updates, custom setups & instant support.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Action buttons without revealing raw private data strings on the screen
+                    // 1. WhatsApp Button
+                    ContactActionButton(
+                        title = "Chat on WhatsApp",
+                        icon = Icons.Outlined.Forum,
+                        buttonColor = Color(0xFF25D366),
+                        contentColor = Color.White,
+                        testTag = "whatsapp_contact_btn",
+                        onClick = {
+                            openUrl(context, "https://wa.me/8801882278234")
+                        }
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // 2. Telegram Button
+                    ContactActionButton(
+                        title = "Join Telegram Channel",
+                        icon = Icons.Default.Send,
+                        buttonColor = Color(0xFF229ED9),
+                        contentColor = Color.White,
+                        testTag = "telegram_contact_btn",
+                        onClick = {
+                            openUrl(context, "https://t.me/HANTER_XD_OFFICIAL")
+                        }
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // 3. Facebook Profile Button
+                    ContactActionButton(
+                        title = "Visit Facebook Profile",
+                        icon = Icons.Outlined.Public,
+                        buttonColor = Color(0xFF1877F2),
+                        contentColor = Color.White,
+                        testTag = "facebook_contact_btn",
+                        onClick = {
+                            openUrl(context, "https://www.facebook.com/md.rasel.7.8.2.3.4")
+                        }
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // 4. Email Button
+                    ContactActionButton(
+                        title = "Send Direct Email",
+                        icon = Icons.Default.Email,
+                        buttonColor = Color(0xFFEA4335),
+                        contentColor = Color.White,
+                        testTag = "email_contact_btn",
+                        onClick = {
+                            sendEmail(context, "alexraselchodhury@gmail.com", "Temp Mail Pro Support Inquiry")
+                        }
+                    )
                 }
-
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Connect directly with the developer for updates, custom setups & instant support.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = 8.dp)
-                )
-
-                Spacer(modifier = Modifier.height(18.dp))
-
-                // Action buttons without revealing raw private data strings on the screen
-                // 1. WhatsApp Button
-                ContactActionButton(
-                    title = "Chat on WhatsApp",
-                    icon = Icons.Outlined.Forum,
-                    buttonColor = Color(0xFF25D366),
-                    contentColor = Color.White,
-                    testTag = "whatsapp_contact_btn",
-                    onClick = {
-                        openUrl(context, "https://wa.me/8801882278234")
-                    }
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                // 2. Telegram Button
-                ContactActionButton(
-                    title = "Join Telegram Channel",
-                    icon = Icons.Default.Send,
-                    buttonColor = Color(0xFF229ED9),
-                    contentColor = Color.White,
-                    testTag = "telegram_contact_btn",
-                    onClick = {
-                        openUrl(context, "https://t.me/HANTER_XD_OFFICIAL")
-                    }
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                // 3. Facebook Profile Button
-                ContactActionButton(
-                    title = "Visit Facebook Profile",
-                    icon = Icons.Outlined.Public,
-                    buttonColor = Color(0xFF1877F2),
-                    contentColor = Color.White,
-                    testTag = "facebook_contact_btn",
-                    onClick = {
-                        openUrl(context, "https://www.facebook.com/md.rasel.7.8.2.3.4")
-                    }
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                // 4. Email Button
-                ContactActionButton(
-                    title = "Send Direct Email",
-                    icon = Icons.Default.Email,
-                    buttonColor = Color(0xFFEA4335),
-                    contentColor = Color.White,
-                    testTag = "email_contact_btn",
-                    onClick = {
-                        sendEmail(context, "alexraselchodhury@gmail.com", "Temp Mail Pro Support Inquiry")
-                    }
-                )
 
                 Spacer(modifier = Modifier.height(14.dp))
 
+                // Pinned Close Button
                 OutlinedButton(
                     onClick = onDismissRequest,
                     modifier = Modifier

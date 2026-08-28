@@ -8,11 +8,15 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Key
@@ -45,6 +49,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 
 @Composable
 fun LoginAccountDialog(
@@ -57,11 +62,20 @@ fun LoginAccountDialog(
     var label by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
 
-    Dialog(onDismissRequest = onDismissRequest) {
+    Dialog(
+        onDismissRequest = onDismissRequest,
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            dismissOnBackPress = true,
+            dismissOnClickOutside = true
+        )
+    ) {
         Card(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp)
+                .fillMaxWidth(0.92f)
+                .widthIn(max = 440.dp)
+                .heightIn(max = 660.dp)
+                .padding(vertical = 16.dp)
                 .testTag("login_account_dialog"),
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -70,10 +84,10 @@ fun LoginAccountDialog(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(20.dp),
+                    .padding(horizontal = 20.dp, vertical = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Header
+                // Header (Pinned)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -110,73 +124,82 @@ fun LoginAccountDialog(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(14.dp))
-                Text(
-                    text = "Sign in to a previously saved or existing Mail.tm temporary address to retrieve all messages.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Scrollable Content
+                Column(
+                    modifier = Modifier
+                        .weight(1f, fill = false)
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Sign in to a previously saved or existing Mail.tm temporary address to retrieve all messages.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Email field
+                    OutlinedTextField(
+                        value = emailAddress,
+                        onValueChange = { emailAddress = it },
+                        label = { Text("Mail.tm Email Address") },
+                        placeholder = { Text("user@domain.com") },
+                        leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("login_email_input"),
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Password field
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        label = { Text("Account Password") },
+                        placeholder = { Text("Password") },
+                        leadingIcon = { Icon(Icons.Default.Key, contentDescription = null) },
+                        trailingIcon = {
+                            IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                                Icon(
+                                    imageVector = if (isPasswordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                                    contentDescription = "Toggle password"
+                                )
+                            }
+                        },
+                        visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("login_password_input"),
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Optional Tag field
+                    OutlinedTextField(
+                        value = label,
+                        onValueChange = { label = it },
+                        label = { Text("Tag / Nickname (Optional)") },
+                        placeholder = { Text("e.g. My Lifetime Gmail") },
+                        leadingIcon = { Icon(Icons.Default.Tag, contentDescription = null) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("login_label_input"),
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Email field
-                OutlinedTextField(
-                    value = emailAddress,
-                    onValueChange = { emailAddress = it },
-                    label = { Text("Mail.tm Email Address") },
-                    placeholder = { Text("user@domain.com") },
-                    leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("login_email_input"),
-                    shape = RoundedCornerShape(12.dp),
-                    singleLine = true
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Password field
-                OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    label = { Text("Account Password") },
-                    placeholder = { Text("Password") },
-                    leadingIcon = { Icon(Icons.Default.Key, contentDescription = null) },
-                    trailingIcon = {
-                        IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
-                            Icon(
-                                imageVector = if (isPasswordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
-                                contentDescription = "Toggle password"
-                            )
-                        }
-                    },
-                    visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("login_password_input"),
-                    shape = RoundedCornerShape(12.dp),
-                    singleLine = true
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Optional Tag field
-                OutlinedTextField(
-                    value = label,
-                    onValueChange = { label = it },
-                    label = { Text("Tag / Nickname (Optional)") },
-                    placeholder = { Text("e.g. My Lifetime Gmail") },
-                    leadingIcon = { Icon(Icons.Default.Tag, contentDescription = null) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("login_label_input"),
-                    shape = RoundedCornerShape(12.dp),
-                    singleLine = true
-                )
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                // Buttons
+                // Buttons (Pinned at bottom)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)

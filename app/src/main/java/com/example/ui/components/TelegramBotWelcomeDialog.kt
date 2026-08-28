@@ -13,11 +13,15 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Close
@@ -52,6 +56,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 
 @Composable
 fun TelegramBotWelcomeDialog(
@@ -61,13 +66,22 @@ fun TelegramBotWelcomeDialog(
 ) {
     val context = LocalContext.current
 
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            dismissOnBackPress = true,
+            dismissOnClickOutside = true
+        )
+    ) {
         Surface(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 2.dp)
+                .fillMaxWidth(0.92f)
+                .widthIn(max = 420.dp)
+                .heightIn(max = 680.dp)
+                .padding(vertical = 16.dp)
                 .testTag("telegram_welcome_dialog"),
-            shape = RoundedCornerShape(28.dp),
+            shape = RoundedCornerShape(26.dp),
             color = MaterialTheme.colorScheme.surface,
             tonalElevation = 10.dp,
             shadowElevation = 16.dp
@@ -75,10 +89,10 @@ fun TelegramBotWelcomeDialog(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(20.dp),
+                    .padding(horizontal = 18.dp, vertical = 14.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Top close bar
+                // Top close bar (Pinned header)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -124,141 +138,150 @@ fun TelegramBotWelcomeDialog(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
-                // Hero Floating Logo with Gradient Glow
-                Box(
+                // Scrollable Body Content
+                Column(
                     modifier = Modifier
-                        .size(72.dp)
-                        .clip(CircleShape)
-                        .background(
-                            Brush.linearGradient(
+                        .weight(1f, fill = false)
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // Hero Floating Logo with Gradient Glow
+                    Box(
+                        modifier = Modifier
+                            .size(58.dp)
+                            .clip(CircleShape)
+                            .background(
+                                Brush.linearGradient(
+                                    listOf(
+                                        Color(0xFF00C6FF),
+                                        Color(0xFF0072FF),
+                                        Color(0xFF1E88E5)
+                                    )
+                                )
+                            )
+                            .shadow(8.dp, CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Email,
+                            contentDescription = "App Logo",
+                            tint = Color.White,
+                            modifier = Modifier.size(30.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Welcoming Title
+                    Text(
+                        text = "Welcome to Temp Mail Pro ⚡",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        textAlign = TextAlign.Center,
+                        letterSpacing = (-0.5).sp
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = "Instant 100% anonymous email inboxes with real-time OTP detection and multi-platform sync.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 16.sp,
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Feature Matrix Card
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(18.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+                        ),
+                        border = CardDefaults.outlinedCardBorder().copy(
+                            brush = Brush.linearGradient(
                                 listOf(
-                                    Color(0xFF00C6FF),
-                                    Color(0xFF0072FF),
-                                    Color(0xFF1E88E5)
+                                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                                    Color(0xFF00C6FF).copy(alpha = 0.2f)
                                 )
                             )
                         )
-                        .shadow(12.dp, CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Email,
-                        contentDescription = "App Logo",
-                        tint = Color.White,
-                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            WelcomeFeatureRow(
+                                icon = Icons.Default.FlashOn,
+                                tint = Color(0xFFFFB300),
+                                title = "Instant Multi-Node Inboxes",
+                                desc = "Create emails across @emalupe.com, GuerrillaMail & more domains in 1-tap."
+                            )
+                            WelcomeFeatureRow(
+                                icon = Icons.Default.AutoAwesome,
+                                tint = Color(0xFF00C6FF),
+                                title = "Smart OTP Detection",
+                                desc = "Automatic verification code extraction with instant 1-tap copy button."
+                            )
+                            WelcomeFeatureRow(
+                                icon = Icons.Default.Shield,
+                                tint = Color(0xFF00E676),
+                                title = "100% Zero-Log Privacy",
+                                desc = "No registration, no personal phone numbers, no tracking."
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Direct Social & Developer Connection Buttons
+                    // 1. Official Telegram Bot Button
+                    QuickChannelButton(
+                        title = "Telegram Mail Bot (@$botUsername)",
+                        subtitle = "Create & check emails directly in Telegram",
+                        icon = Icons.Default.Send,
+                        primaryColor = Color(0xFF229ED9),
+                        testTag = "welcome_join_telegram_btn",
+                        onClick = {
+                            openTelegramBot(context, botUsername)
+                        }
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // 2. Developer Facebook Profile Button
+                    QuickChannelButton(
+                        title = "Developer Facebook Profile",
+                        subtitle = "Connect, view ID & get direct support",
+                        icon = Icons.Default.Person,
+                        primaryColor = Color(0xFF1877F2),
+                        testTag = "welcome_view_facebook_btn",
+                        onClick = {
+                            openUrl(context, facebookUrl)
+                        }
                     )
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Welcoming Title
-                Text(
-                    text = "Welcome to Temp Mail Pro ⚡",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Black,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    textAlign = TextAlign.Center,
-                    letterSpacing = (-0.5).sp
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Text(
-                    text = "Instant 100% anonymous email inboxes with real-time OTP detection and multi-platform sync.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                    lineHeight = 17.sp,
-                    modifier = Modifier.padding(horizontal = 8.dp)
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Feature Matrix Card
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
-                    ),
-                    border = CardDefaults.outlinedCardBorder().copy(
-                        brush = Brush.linearGradient(
-                            listOf(
-                                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
-                                Color(0xFF00C6FF).copy(alpha = 0.2f)
-                            )
-                        )
-                    )
-                ) {
-                    Column(
-                        modifier = Modifier.padding(14.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        WelcomeFeatureRow(
-                            icon = Icons.Default.FlashOn,
-                            tint = Color(0xFFFFB300),
-                            title = "Instant Multi-Node Inboxes",
-                            desc = "Create emails across @emalupe.com, GuerrillaMail & more domains in 1-tap."
-                        )
-                        WelcomeFeatureRow(
-                            icon = Icons.Default.AutoAwesome,
-                            tint = Color(0xFF00C6FF),
-                            title = "Smart OTP Detection",
-                            desc = "Automatic verification code extraction with instant 1-tap copy button."
-                        )
-                        WelcomeFeatureRow(
-                            icon = Icons.Default.Shield,
-                            tint = Color(0xFF00E676),
-                            title = "100% Zero-Log Privacy",
-                            desc = "No registration, no personal phone numbers, no tracking."
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Direct Social & Developer Connection Buttons
-                // 1. Official Telegram Bot Button
-                QuickChannelButton(
-                    title = "Telegram Mail Bot (@$botUsername)",
-                    subtitle = "Create & check emails directly in Telegram",
-                    icon = Icons.Default.Send,
-                    primaryColor = Color(0xFF229ED9),
-                    testTag = "welcome_join_telegram_btn",
-                    onClick = {
-                        openTelegramBot(context, botUsername)
-                    }
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                // 2. Developer Facebook Profile Button
-                QuickChannelButton(
-                    title = "Developer Facebook Profile",
-                    subtitle = "Connect, view ID & get direct support",
-                    icon = Icons.Default.Person,
-                    primaryColor = Color(0xFF1877F2), // Official Facebook Blue
-                    testTag = "welcome_view_facebook_btn",
-                    onClick = {
-                        openUrl(context, facebookUrl)
-                    }
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // 3. Main Action Button: Start Using App
+                // 3. Main Action Button: Start Using App (Permanently Pinned, Never Cut Off!)
                 Button(
                     onClick = onDismiss,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp)
+                        .height(48.dp)
                         .testTag("start_using_app_btn"),
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary
-                    )
+                    ),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
                 ) {
                     Text(
                         text = "Start Using Temp Mail Pro",
