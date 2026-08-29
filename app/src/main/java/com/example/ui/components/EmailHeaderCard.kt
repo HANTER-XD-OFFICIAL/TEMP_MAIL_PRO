@@ -294,14 +294,44 @@ fun EmailHeaderCard(
                                     overflow = TextOverflow.Ellipsis
                                 )
 
-                                if (activeAccount.label.isNotBlank()) {
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    Text(
-                                        text = "🏷️ ${activeAccount.label}",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        fontSize = 11.sp
-                                    )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(top = 2.dp)
+                                ) {
+                                    val domain = activeAccount.address.substringAfter("@", "").lowercase()
+                                    val providerName = when {
+                                        domain.contains("nada") || domain == "getairmail.com" || domain == "inboxbear.com" || domain == "dropjar.com" || domain == "robot-mail.com" || domain == "tafmail.com" || domain == "vomoto.com" || domain == "gimpmail.com" || domain == "blondmail.com" || domain == "chapsmail.com" || domain == "clowmail.com" || domain == "fivermail.com" || domain == "getmule.com" || domain == "givmail.com" || domain == "guysmail.com" || domain == "replyloop.com" || domain == "temptami.com" || domain == "tupmail.com" -> "Getnada"
+                                        domain.contains("1secmail") || domain == "esiix.com" || domain == "wwjmp.com" || domain == "icznn.com" || domain == "ezztt.com" || domain == "vmani.com" -> "1secmail"
+                                        domain.contains("guerrillamail") || domain == "grr.la" || domain == "sharklasers.com" || domain == "pokemail.net" || domain == "spam4.me" -> "Guerrilla"
+                                        domain.contains("rapid") || domain == "cevipsa.com" || domain == "freeml.net" || domain == "txcct.com" || domain == "vebby.com" -> "RapidAPI"
+                                        else -> "Mail.tm"
+                                    }
+
+                                    Surface(
+                                        shape = RoundedCornerShape(4.dp),
+                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                                    ) {
+                                        Text(
+                                            text = "⚡ $providerName",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp)
+                                        )
+                                    }
+
+                                    if (activeAccount.label.isNotBlank()) {
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text(
+                                            text = "🏷️ ${activeAccount.label}",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            fontSize = 11.sp,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
                                 }
                             }
 

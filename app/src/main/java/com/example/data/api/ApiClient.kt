@@ -94,6 +94,42 @@ object ApiClient {
             .create(GuerrillaMailApi::class.java)
     }
 
+    // ==================== GETNADA / INBOXES.COM ====================
+    const val GETNADA_URL = "https://inboxes.com/api/v2/"
+
+    val getnadaService: GetnadaApi by lazy {
+        createGetnadaService(GETNADA_URL)
+    }
+
+    fun createGetnadaService(baseUrl: String): GetnadaApi {
+        val url = if (baseUrl.endsWith("/")) baseUrl else "$baseUrl/"
+        return Retrofit.Builder()
+            .baseUrl(url)
+            .client(okHttpClient)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+            .create(GetnadaApi::class.java)
+    }
+
+    // ==================== TEMP-MAIL (RAPIDAPI) ====================
+    const val RAPID_API_URL = "https://privatix-temp-mail-v1.p.rapidapi.com/"
+
+    var rapidApiKey: String = ""
+
+    val rapidApiTempMailService: TempMailRapidApi by lazy {
+        createRapidApiService(RAPID_API_URL)
+    }
+
+    fun createRapidApiService(baseUrl: String): TempMailRapidApi {
+        val url = if (baseUrl.endsWith("/")) baseUrl else "$baseUrl/"
+        return Retrofit.Builder()
+            .baseUrl(url)
+            .client(okHttpClient)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+            .create(TempMailRapidApi::class.java)
+    }
+
     fun createService(baseUrl: String): MailTmApi {
         val url = if (baseUrl.endsWith("/")) baseUrl else "$baseUrl/"
         return Retrofit.Builder()

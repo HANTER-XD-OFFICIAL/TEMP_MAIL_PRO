@@ -215,8 +215,41 @@ fun CreateAccountDialog(
                                 onDismissRequest = { domainExpanded = false }
                             ) {
                                 availableDomains.forEach { domainItem ->
+                                    val d = domainItem.domain.lowercase()
+                                    val provider = when {
+                                        d.contains("nada") || d == "getairmail.com" || d == "inboxbear.com" || d == "dropjar.com" || d == "robot-mail.com" || d == "tafmail.com" || d == "vomoto.com" || d == "gimpmail.com" || d == "blondmail.com" || d == "chapsmail.com" || d == "clowmail.com" || d == "fivermail.com" || d == "getmule.com" || d == "givmail.com" || d == "guysmail.com" || d == "replyloop.com" || d == "temptami.com" || d == "tupmail.com" -> "Getnada"
+                                        d.contains("1secmail") || d == "esiix.com" || d == "wwjmp.com" || d == "icznn.com" || d == "ezztt.com" || d == "vmani.com" -> "1secmail"
+                                        d.contains("guerrillamail") || d == "grr.la" || d == "sharklasers.com" || d == "pokemail.net" || d == "spam4.me" -> "Guerrilla"
+                                        d.contains("rapid") || d == "cevipsa.com" || d == "freeml.net" || d == "txcct.com" || d == "vebby.com" -> "RapidAPI"
+                                        else -> "Mail.tm"
+                                    }
+
                                     DropdownMenuItem(
-                                        text = { Text("@${domainItem.domain}") },
+                                        text = {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text(
+                                                    text = "@${domainItem.domain}",
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    fontWeight = FontWeight.Medium
+                                                )
+                                                Surface(
+                                                    shape = RoundedCornerShape(6.dp),
+                                                    color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f)
+                                                ) {
+                                                    Text(
+                                                        text = provider,
+                                                        style = MaterialTheme.typography.labelSmall,
+                                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                                        fontSize = 10.sp
+                                                    )
+                                                }
+                                            }
+                                        },
                                         onClick = {
                                             selectedDomain = domainItem.domain
                                             domainExpanded = false

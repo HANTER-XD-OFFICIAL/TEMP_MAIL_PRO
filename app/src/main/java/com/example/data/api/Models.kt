@@ -177,4 +177,72 @@ data class GuerrillaFetchEmailResponse(
     @Json(name = "mail_date") val mailDate: String = ""
 )
 
+// ==================== GETNADA / INBOXES.COM MODELS ====================
+
+@JsonClass(generateAdapter = true)
+data class GetnadaDomainItem(
+    @Json(name = "qdn") val qdn: String? = null,
+    @Json(name = "name") val name: String? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class GetnadaDomainsResponse(
+    @Json(name = "domains") val domains: List<GetnadaDomainItem> = emptyList()
+)
+
+@JsonClass(generateAdapter = true)
+data class GetnadaInboxCreateResponse(
+    @Json(name = "inbox") val inbox: String? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class GetnadaMessageItem(
+    @Json(name = "uid") val uid: String = "",
+    @Json(name = "f") val f: String? = null,
+    @Json(name = "fe") val fe: String? = null,
+    @Json(name = "s") val s: String? = null,
+    @Json(name = "r") val r: Long? = null,
+    @Json(name = "ibx") val ibx: String? = null,
+    @Json(name = "text") val text: String? = null,
+    @Json(name = "html") val html: String? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class GetnadaInboxResponse(
+    @Json(name = "msgs") val msgs: List<GetnadaMessageItem> = emptyList()
+)
+
+@JsonClass(generateAdapter = true)
+data class GetnadaMessageDetailResponse(
+    @Json(name = "msg") val msg: GetnadaMessageItem? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class GetnadaDeleteRequest(
+    @Json(name = "ids") val ids: List<String> = emptyList()
+)
+
+// ==================== TEMP-MAIL (RAPIDAPI) MODELS ====================
+
+@JsonClass(generateAdapter = true)
+data class RapidApiAttachment(
+    @Json(name = "filename") val filename: String = "",
+    @Json(name = "size") val size: Long = 0
+)
+
+@JsonClass(generateAdapter = true)
+data class RapidApiTempMailItem(
+    @Json(name = "mail_id") val mailId: String = "",
+    @Json(name = "mail_address_id") val mailAddressId: String = "",
+    @Json(name = "mail_from") val mailFrom: String = "",
+    @Json(name = "mail_subject") val mailSubject: String = "",
+    @Json(name = "mail_preview") val mailPreview: String = "",
+    @Json(name = "mail_text_only") val mailTextOnly: String? = null,
+    @Json(name = "mail_text") val mailText: String? = null,
+    @Json(name = "mail_html") val mailHtml: String? = null,
+    @Json(name = "mail_timestamp") val mailTimestamp: Double? = null,
+    @Json(name = "attachments") val attachments: List<RapidApiAttachment>? = null
+)
+
+
 

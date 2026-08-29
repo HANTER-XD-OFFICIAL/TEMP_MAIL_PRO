@@ -211,7 +211,7 @@ fun DeveloperContactDialog(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Image(
-                                        painter = painterResource(id = R.drawable.img_developer_avatar),
+                                        painter = painterResource(id = R.drawable.img_dev_profile_1787942918830),
                                         contentDescription = "MD RASEL Profile Photo",
                                         modifier = Modifier
                                             .fillMaxSize()

@@ -131,6 +131,155 @@ class TempMailRepository(
             }
         }
 
+        // Add Getnada / Inboxes.com domains
+        try {
+            val nadaResp = ApiClient.getnadaService.getDomains()
+            if (nadaResp.isSuccessful && nadaResp.body() != null) {
+                nadaResp.body()!!.domains.forEach { item ->
+                    val domainName = item.qdn?.trim()?.lowercase(Locale.ROOT) ?: item.name?.trim()?.lowercase(Locale.ROOT)
+                    if (!domainName.isNullOrBlank() && resultDomains.none { it.domain.equals(domainName, ignoreCase = true) }) {
+                        resultDomains.add(
+                            DomainItem(
+                                id = domainName,
+                                domain = domainName,
+                                isActive = true,
+                                isPrivate = false,
+                                createdAt = "2026-01-01T00:00:00.000Z"
+                            )
+                        )
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.w("TempMailRepo", "Getnada domains fetch error", e)
+        }
+
+        val getnadaDomains = listOf(
+            "getnada.com",
+            "getairmail.com",
+            "inboxbear.com",
+            "dropjar.com",
+            "robot-mail.com",
+            "tafmail.com",
+            "vomoto.com",
+            "gimpmail.com",
+            "blondmail.com",
+            "chapsmail.com",
+            "clowmail.com",
+            "fivermail.com",
+            "getmule.com",
+            "givmail.com",
+            "guysmail.com",
+            "replyloop.com",
+            "temptami.com",
+            "tupmail.com"
+        )
+        getnadaDomains.forEach { d ->
+            if (resultDomains.none { it.domain.equals(d, ignoreCase = true) }) {
+                resultDomains.add(
+                    DomainItem(
+                        id = d,
+                        domain = d,
+                        isActive = true,
+                        isPrivate = false,
+                        createdAt = "2026-01-01T00:00:00.000Z"
+                    )
+                )
+            }
+        }
+
+        // Add 1secmail domains
+        try {
+            val secResp = ApiClient.secMailService.getDomainList()
+            if (secResp.isSuccessful && secResp.body() != null) {
+                secResp.body()!!.forEach { d ->
+                    val cleanD = d.trim().lowercase(Locale.ROOT)
+                    if (cleanD.isNotBlank() && resultDomains.none { it.domain.equals(cleanD, ignoreCase = true) }) {
+                        resultDomains.add(
+                            DomainItem(
+                                id = cleanD,
+                                domain = cleanD,
+                                isActive = true,
+                                isPrivate = false,
+                                createdAt = "2026-01-01T00:00:00.000Z"
+                            )
+                        )
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.w("TempMailRepo", "1secmail domains fetch error", e)
+        }
+
+        val secMailDomains = listOf(
+            "1secmail.com",
+            "1secmail.net",
+            "1secmail.org",
+            "esiix.com",
+            "wwjmp.com",
+            "icznn.com",
+            "ezztt.com",
+            "vmani.com"
+        )
+        secMailDomains.forEach { d ->
+            if (resultDomains.none { it.domain.equals(d, ignoreCase = true) }) {
+                resultDomains.add(
+                    DomainItem(
+                        id = d,
+                        domain = d,
+                        isActive = true,
+                        isPrivate = false,
+                        createdAt = "2026-01-01T00:00:00.000Z"
+                    )
+                )
+            }
+        }
+
+        // Add RapidAPI Temp-Mail domains if configured
+        if (ApiClient.rapidApiKey.isNotBlank()) {
+            try {
+                val rapidResp = ApiClient.rapidApiTempMailService.getDomains(ApiClient.rapidApiKey)
+                if (rapidResp.isSuccessful && rapidResp.body() != null) {
+                    rapidResp.body()!!.forEach { d ->
+                        val cleanD = d.trim().removePrefix("@").lowercase(Locale.ROOT)
+                        if (cleanD.isNotBlank() && resultDomains.none { it.domain.equals(cleanD, ignoreCase = true) }) {
+                            resultDomains.add(
+                                DomainItem(
+                                    id = cleanD,
+                                    domain = cleanD,
+                                    isActive = true,
+                                    isPrivate = false,
+                                    createdAt = "2026-01-01T00:00:00.000Z"
+                                )
+                            )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.w("TempMailRepo", "RapidAPI domains fetch error", e)
+            }
+        }
+
+        val rapidApiDomains = listOf(
+            "cevipsa.com",
+            "freeml.net",
+            "txcct.com",
+            "vebby.com"
+        )
+        rapidApiDomains.forEach { d ->
+            if (resultDomains.none { it.domain.equals(d, ignoreCase = true) }) {
+                resultDomains.add(
+                    DomainItem(
+                        id = d,
+                        domain = d,
+                        isActive = true,
+                        isPrivate = false,
+                        createdAt = "2026-01-01T00:00:00.000Z"
+                    )
+                )
+            }
+        }
+
         Result.success(resultDomains)
     }
 
@@ -181,6 +330,73 @@ class TempMailRepository(
                 } catch (e: Exception) {
                     Log.w("TempMailRepo", "Guerrilla random generation attempt failed", e)
                 }
+            }
+
+            // Direct Getnada / Inboxes.com API generator
+            if (isGetnadaDomain(domain)) {
+                val userPrefix = generateFriendlyHandle()
+                val finalAddress = "$userPrefix@$domain"
+                try {
+                    ApiClient.getnadaService.createInbox()
+                } catch (ignored: Exception) {}
+
+                val entity = SavedAccountEntity(
+                    address = finalAddress,
+                    password = generateSecurePassword(),
+                    token = "nada_$finalAddress",
+                    accountId = "nada_$userPrefix",
+                    label = label.ifBlank { "Getnada Instant Mailbox" },
+                    createdAt = System.currentTimeMillis(),
+                    lastUsedAt = System.currentTimeMillis(),
+                    expiresAt = System.currentTimeMillis() + (10 * 60 * 1000L),
+                    isActive = true,
+                    serverUrl = ApiClient.GETNADA_URL
+                )
+                accountDao.clearAllActiveFlags()
+                accountDao.insertAccount(entity)
+                return@withContext Result.success(entity)
+            }
+
+            // Direct 1secmail API generator
+            if (isSecMailDomain(domain)) {
+                val userPrefix = generateFriendlyHandle()
+                val finalAddress = "$userPrefix@$domain"
+                val entity = SavedAccountEntity(
+                    address = finalAddress,
+                    password = generateSecurePassword(),
+                    token = "secmail_$finalAddress",
+                    accountId = "secmail_$userPrefix",
+                    label = label.ifBlank { "1secmail Instant Mailbox" },
+                    createdAt = System.currentTimeMillis(),
+                    lastUsedAt = System.currentTimeMillis(),
+                    expiresAt = System.currentTimeMillis() + (10 * 60 * 1000L),
+                    isActive = true,
+                    serverUrl = ApiClient.SEC_MAIL_PRIMARY_URL
+                )
+                accountDao.clearAllActiveFlags()
+                accountDao.insertAccount(entity)
+                return@withContext Result.success(entity)
+            }
+
+            // Direct RapidAPI Temp-Mail generator
+            if (isRapidApiDomain(domain)) {
+                val userPrefix = generateFriendlyHandle()
+                val finalAddress = "$userPrefix@$domain"
+                val entity = SavedAccountEntity(
+                    address = finalAddress,
+                    password = generateSecurePassword(),
+                    token = "rapid_$finalAddress",
+                    accountId = "rapid_$userPrefix",
+                    label = label.ifBlank { "RapidAPI Temp-Mail" },
+                    createdAt = System.currentTimeMillis(),
+                    lastUsedAt = System.currentTimeMillis(),
+                    expiresAt = System.currentTimeMillis() + (10 * 60 * 1000L),
+                    isActive = true,
+                    serverUrl = ApiClient.RAPID_API_URL
+                )
+                accountDao.clearAllActiveFlags()
+                accountDao.insertAccount(entity)
+                return@withContext Result.success(entity)
             }
 
             var lastError: Throwable? = null
@@ -267,7 +483,67 @@ class TempMailRepository(
             }
         }
 
-        // 2. Mail.tm / Mail.gw domain:
+        // 2. If Getnada domain:
+        if (isGetnadaDomain(cleanDomain)) {
+            try {
+                ApiClient.getnadaService.createInbox()
+            } catch (ignored: Exception) {}
+            val entity = SavedAccountEntity(
+                address = fullAddress,
+                password = cleanPassword,
+                token = "nada_$fullAddress",
+                accountId = "nada_$cleanUsername",
+                label = label.ifBlank { "Getnada Custom Mailbox" },
+                createdAt = System.currentTimeMillis(),
+                lastUsedAt = System.currentTimeMillis(),
+                expiresAt = System.currentTimeMillis() + (10 * 60 * 1000L),
+                isActive = true,
+                serverUrl = ApiClient.GETNADA_URL
+            )
+            accountDao.clearAllActiveFlags()
+            accountDao.insertAccount(entity)
+            return@withContext Result.success(entity)
+        }
+
+        // 3. If 1secmail domain:
+        if (isSecMailDomain(cleanDomain)) {
+            val entity = SavedAccountEntity(
+                address = fullAddress,
+                password = cleanPassword,
+                token = "secmail_$fullAddress",
+                accountId = "secmail_$cleanUsername",
+                label = label.ifBlank { "1secmail Custom Mailbox" },
+                createdAt = System.currentTimeMillis(),
+                lastUsedAt = System.currentTimeMillis(),
+                expiresAt = System.currentTimeMillis() + (10 * 60 * 1000L),
+                isActive = true,
+                serverUrl = ApiClient.SEC_MAIL_PRIMARY_URL
+            )
+            accountDao.clearAllActiveFlags()
+            accountDao.insertAccount(entity)
+            return@withContext Result.success(entity)
+        }
+
+        // 4. If RapidAPI Temp-Mail domain:
+        if (isRapidApiDomain(cleanDomain)) {
+            val entity = SavedAccountEntity(
+                address = fullAddress,
+                password = cleanPassword,
+                token = "rapid_$fullAddress",
+                accountId = "rapid_$cleanUsername",
+                label = label.ifBlank { "RapidAPI Custom Mailbox" },
+                createdAt = System.currentTimeMillis(),
+                lastUsedAt = System.currentTimeMillis(),
+                expiresAt = System.currentTimeMillis() + (10 * 60 * 1000L),
+                isActive = true,
+                serverUrl = ApiClient.RAPID_API_URL
+            )
+            accountDao.clearAllActiveFlags()
+            accountDao.insertAccount(entity)
+            return@withContext Result.success(entity)
+        }
+
+        // 5. Mail.tm / Mail.gw domain:
         createAndRegisterAccount(
             address = fullAddress,
             password = cleanPassword,
@@ -431,7 +707,64 @@ class TempMailRepository(
             }
         }
 
-        // 2. Mail.tm / Mail.gw
+        // 2. Getnada domain
+        if (isGetnadaDomain(domain)) {
+            val entity = SavedAccountEntity(
+                address = cleanAddress,
+                password = cleanPassword,
+                token = "nada_$cleanAddress",
+                accountId = "nada_$userPrefix",
+                label = label.ifBlank { "Getnada Mailbox" },
+                createdAt = System.currentTimeMillis(),
+                lastUsedAt = System.currentTimeMillis(),
+                expiresAt = System.currentTimeMillis() + (10 * 60 * 1000L),
+                isActive = true,
+                serverUrl = ApiClient.GETNADA_URL
+            )
+            accountDao.clearAllActiveFlags()
+            accountDao.insertAccount(entity)
+            return@withContext Result.success(entity)
+        }
+
+        // 3. 1secmail domain
+        if (isSecMailDomain(domain)) {
+            val entity = SavedAccountEntity(
+                address = cleanAddress,
+                password = cleanPassword,
+                token = "secmail_$cleanAddress",
+                accountId = "secmail_$userPrefix",
+                label = label.ifBlank { "1secmail Mailbox" },
+                createdAt = System.currentTimeMillis(),
+                lastUsedAt = System.currentTimeMillis(),
+                expiresAt = System.currentTimeMillis() + (10 * 60 * 1000L),
+                isActive = true,
+                serverUrl = ApiClient.SEC_MAIL_PRIMARY_URL
+            )
+            accountDao.clearAllActiveFlags()
+            accountDao.insertAccount(entity)
+            return@withContext Result.success(entity)
+        }
+
+        // 4. RapidAPI domain
+        if (isRapidApiDomain(domain)) {
+            val entity = SavedAccountEntity(
+                address = cleanAddress,
+                password = cleanPassword,
+                token = "rapid_$cleanAddress",
+                accountId = "rapid_$userPrefix",
+                label = label.ifBlank { "RapidAPI Mailbox" },
+                createdAt = System.currentTimeMillis(),
+                lastUsedAt = System.currentTimeMillis(),
+                expiresAt = System.currentTimeMillis() + (10 * 60 * 1000L),
+                isActive = true,
+                serverUrl = ApiClient.RAPID_API_URL
+            )
+            accountDao.clearAllActiveFlags()
+            accountDao.insertAccount(entity)
+            return@withContext Result.success(entity)
+        }
+
+        // 5. Mail.tm / Mail.gw
         val services = getServicesForDomain(domain)
         for ((api, serverUrl) in services) {
             try {
@@ -479,6 +812,16 @@ class TempMailRepository(
         val cleanAddress = account.address.trim().lowercase(Locale.ROOT)
         val domain = cleanAddress.substringAfter("@", "")
         val userPrefix = cleanAddress.substringBefore("@")
+
+        if (account.token?.startsWith("nada_") == true) {
+            return@withContext account.token
+        }
+        if (account.token?.startsWith("secmail_") == true) {
+            return@withContext account.token
+        }
+        if (account.token?.startsWith("rapid_") == true) {
+            return@withContext account.token
+        }
 
         // 1. Guerrilla domain: ensure session is initialized and bound to user handle
         if (isGuerrillaDomain(domain) || account.token?.startsWith("grr_") == true) {
@@ -595,9 +938,19 @@ class TempMailRepository(
     suspend fun deleteSavedAccount(address: String, deleteFromServer: Boolean = false) = withContext(Dispatchers.IO) {
         try {
             val existing = accountDao.getAccountByAddress(address)
-            if (existing != null && deleteFromServer && !existing.token.isNullOrBlank() && !existing.accountId.isNullOrBlank() && !existing.token.startsWith("secmail_") && !existing.token.startsWith("grr_")) {
+            if (existing != null && deleteFromServer && !existing.token.isNullOrBlank() && !existing.accountId.isNullOrBlank() &&
+                !existing.token.startsWith("secmail_") &&
+                !existing.token.startsWith("grr_") &&
+                !existing.token.startsWith("nada_") &&
+                !existing.token.startsWith("rapid_")
+            ) {
                 try {
                     ApiClient.mailTmService.deleteAccount("Bearer ${existing.token}", existing.accountId)
+                } catch (ignored: Exception) {}
+            }
+            if (existing != null && existing.token?.startsWith("nada_") == true && deleteFromServer) {
+                try {
+                    ApiClient.getnadaService.deleteInbox(address)
                 } catch (ignored: Exception) {}
             }
             accountDao.deleteAccount(address)
@@ -676,8 +1029,104 @@ class TempMailRepository(
             } catch (e: Exception) {
                 Log.w("TempMailRepo", "GuerrillaMail fetchMessages error", e)
             }
+        } else if (isGetnadaDomain(domain) || token.startsWith("nada_")) {
+            // 2. Getnada / Inboxes.com account
+            try {
+                val resp = ApiClient.getnadaService.getInbox(cleanAddress)
+                if (resp.isSuccessful && resp.body() != null) {
+                    resp.body()!!.msgs.forEach { item ->
+                        val uid = item.uid.ifBlank { "${System.currentTimeMillis()}" }
+                        remoteList.add(
+                            MessageHeaderItem(
+                                id = "nada_$uid",
+                                accountId = "nada_$login",
+                                msgid = "<nada-$uid@$domain>",
+                                from = EmailParticipant(
+                                    address = item.fe ?: item.f ?: "sender@$domain",
+                                    name = item.f ?: item.fe ?: "Sender"
+                                ),
+                                to = listOf(EmailParticipant(address = cleanAddress, name = "You")),
+                                subject = item.s?.ifBlank { "(No Subject)" } ?: "(No Subject)",
+                                intro = item.text?.take(160) ?: item.s ?: "",
+                                seen = false,
+                                isDeleted = false,
+                                hasAttachments = false,
+                                size = (item.text?.length ?: 1024).toLong(),
+                                createdAt = formatTimestamp(item.r)
+                            )
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                Log.w("TempMailRepo", "Getnada fetchMessages error", e)
+            }
+        } else if (isSecMailDomain(domain) || token.startsWith("secmail_")) {
+            // 3. 1secmail account
+            try {
+                val secResp = ApiClient.secMailService.getMessages(login = login, domain = domain)
+                val list = if (secResp.isSuccessful && secResp.body() != null) {
+                    secResp.body()!!
+                } else {
+                    val netResp = ApiClient.secMailNetService.getMessages(login = login, domain = domain)
+                    if (netResp.isSuccessful && netResp.body() != null) netResp.body()!! else emptyList()
+                }
+                list.forEach { item ->
+                    remoteList.add(
+                        MessageHeaderItem(
+                            id = "secmail_${item.id}",
+                            accountId = "secmail_$login",
+                            msgid = "<secmail-${item.id}@$domain>",
+                            from = EmailParticipant(
+                                address = item.from,
+                                name = item.from.substringBefore("@")
+                            ),
+                            to = listOf(EmailParticipant(address = cleanAddress, name = "You")),
+                            subject = item.subject.ifBlank { "(No Subject)" },
+                            intro = item.subject,
+                            seen = false,
+                            isDeleted = false,
+                            hasAttachments = false,
+                            size = 1024L,
+                            createdAt = item.date
+                        )
+                    )
+                }
+            } catch (e: Exception) {
+                Log.w("TempMailRepo", "1secmail fetchMessages error", e)
+            }
+        } else if (isRapidApiDomain(domain) || token.startsWith("rapid_")) {
+            // 4. RapidAPI Temp-Mail account
+            try {
+                val md5 = md5Hex(cleanAddress)
+                val rapidResp = ApiClient.rapidApiTempMailService.getMail(md5 = md5, apiKey = ApiClient.rapidApiKey)
+                if (rapidResp.isSuccessful && rapidResp.body() != null) {
+                    rapidResp.body()!!.forEach { item ->
+                        remoteList.add(
+                            MessageHeaderItem(
+                                id = "rapid_${item.mailId}",
+                                accountId = "rapid_$login",
+                                msgid = "<rapid-${item.mailId}@$domain>",
+                                from = EmailParticipant(
+                                    address = item.mailFrom,
+                                    name = item.mailFrom.substringBefore("@")
+                                ),
+                                to = listOf(EmailParticipant(address = cleanAddress, name = "You")),
+                                subject = item.mailSubject.ifBlank { "(No Subject)" },
+                                intro = item.mailPreview.ifBlank { item.mailSubject },
+                                seen = false,
+                                isDeleted = false,
+                                hasAttachments = !item.attachments.isNullOrEmpty(),
+                                size = 1024L,
+                                createdAt = formatTimestamp(item.mailTimestamp?.toLong())
+                            )
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                Log.w("TempMailRepo", "RapidAPI fetchMessages error", e)
+            }
         } else {
-            // 2. Mail.tm / Mail.gw account
+            // 5. Mail.tm / Mail.gw account
             val mailTmServices = getServicesForDomain(domain)
             var authToken = token
             for ((api, serverUrl) in mailTmServices) {
@@ -796,9 +1245,124 @@ class TempMailRepository(
             } catch (e: Exception) {
                 Log.w("TempMailRepo", "GuerrillaMail fetchEmail error", e)
             }
+        } else if (messageId.startsWith("nada_")) {
+            // 2. Getnada message
+            val rawId = messageId.removePrefix("nada_")
+            try {
+                val resp = ApiClient.getnadaService.getMessage(rawId)
+                if (resp.isSuccessful && resp.body()?.msg != null) {
+                    val m = resp.body()!!.msg!!
+                    val rawBody = m.html ?: m.text ?: ""
+                    val isHtml = m.html != null || rawBody.contains("<div") || rawBody.contains("<p") || rawBody.contains("<html") || rawBody.contains("<br")
+                    val detail = MessageDetailResponse(
+                        id = messageId,
+                        accountId = "nada_$login",
+                        msgid = "<nada-$rawId@$domain>",
+                        from = EmailParticipant(address = m.fe ?: m.f ?: "sender@$domain", name = m.f ?: m.fe ?: "Sender"),
+                        to = listOf(EmailParticipant(address = cleanAddress, name = "You")),
+                        subject = m.s?.ifBlank { "(No Subject)" } ?: "(No Subject)",
+                        intro = m.text?.take(160) ?: m.s ?: "",
+                        seen = true,
+                        isDeleted = false,
+                        hasAttachments = false,
+                        size = rawBody.length.toLong(),
+                        createdAt = formatTimestamp(m.r),
+                        text = if (isHtml && m.html != null) null else (m.text ?: rawBody),
+                        html = if (m.html != null) listOf(m.html) else if (isHtml) listOf(rawBody) else null,
+                        attachments = emptyList()
+                    )
+                    return@withContext Result.success(detail)
+                }
+            } catch (e: Exception) {
+                Log.w("TempMailRepo", "Getnada getMessage error", e)
+            }
+        } else if (messageId.startsWith("secmail_")) {
+            // 3. 1secmail message
+            val rawId = messageId.removePrefix("secmail_")
+            try {
+                val resp = ApiClient.secMailService.readMessage(login = login, domain = domain, id = rawId)
+                if (resp.isSuccessful && resp.body() != null) {
+                    val b = resp.body()!!
+                    val rawHtml = b.htmlBody
+                    val rawText = b.textBody ?: b.body ?: ""
+                    val isHtml = !rawHtml.isNullOrBlank() || rawText.contains("<div") || rawText.contains("<p") || rawText.contains("<html")
+                    val attachments = b.attachments.map { at ->
+                        AttachmentItem(
+                            id = at.filename,
+                            filename = at.filename,
+                            contentType = at.contentType,
+                            size = at.size,
+                            downloadUrl = "https://www.1secmail.com/api/v1/?action=download&login=$login&domain=$domain&id=$rawId&file=${at.filename}"
+                        )
+                    }
+                    val detail = MessageDetailResponse(
+                        id = messageId,
+                        accountId = "secmail_$login",
+                        msgid = "<secmail-$rawId@$domain>",
+                        from = EmailParticipant(address = b.from, name = b.from.substringBefore("@")),
+                        to = listOf(EmailParticipant(address = cleanAddress, name = "You")),
+                        subject = b.subject.ifBlank { "(No Subject)" },
+                        intro = b.subject,
+                        seen = true,
+                        isDeleted = false,
+                        hasAttachments = attachments.isNotEmpty(),
+                        size = (rawHtml?.length ?: rawText.length).toLong(),
+                        createdAt = b.date,
+                        text = if (isHtml && !rawHtml.isNullOrBlank()) null else rawText,
+                        html = if (!rawHtml.isNullOrBlank()) listOf(rawHtml) else if (isHtml) listOf(rawText) else null,
+                        attachments = attachments
+                    )
+                    return@withContext Result.success(detail)
+                }
+            } catch (e: Exception) {
+                Log.w("TempMailRepo", "1secmail readMessage error", e)
+            }
+        } else if (messageId.startsWith("rapid_")) {
+            // 4. RapidAPI message
+            val rawId = messageId.removePrefix("rapid_")
+            try {
+                val md5 = md5Hex(cleanAddress)
+                val resp = ApiClient.rapidApiTempMailService.getMail(md5 = md5, apiKey = ApiClient.rapidApiKey)
+                if (resp.isSuccessful && resp.body() != null) {
+                    val match = resp.body()!!.firstOrNull { it.mailId == rawId }
+                    if (match != null) {
+                        val rawHtml = match.mailHtml
+                        val rawText = match.mailText ?: match.mailTextOnly ?: match.mailPreview
+                        val isHtml = !rawHtml.isNullOrBlank()
+                        val attachments = match.attachments?.map { at ->
+                            AttachmentItem(
+                                id = at.filename,
+                                filename = at.filename,
+                                contentType = "application/octet-stream",
+                                size = at.size
+                            )
+                        } ?: emptyList()
+                        val detail = MessageDetailResponse(
+                            id = messageId,
+                            accountId = "rapid_$login",
+                            msgid = "<rapid-$rawId@$domain>",
+                            from = EmailParticipant(address = match.mailFrom, name = match.mailFrom.substringBefore("@")),
+                            to = listOf(EmailParticipant(address = cleanAddress, name = "You")),
+                            subject = match.mailSubject.ifBlank { "(No Subject)" },
+                            intro = match.mailPreview,
+                            seen = true,
+                            isDeleted = false,
+                            hasAttachments = attachments.isNotEmpty(),
+                            size = (rawHtml?.length ?: rawText.length).toLong(),
+                            createdAt = formatTimestamp(match.mailTimestamp?.toLong()),
+                            text = if (isHtml && !rawHtml.isNullOrBlank()) null else rawText,
+                            html = if (!rawHtml.isNullOrBlank()) listOf(rawHtml) else null,
+                            attachments = attachments
+                        )
+                        return@withContext Result.success(detail)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.w("TempMailRepo", "RapidAPI getMail error", e)
+            }
         }
 
-        // 2. Primary: Fetch from Mail.tm / Mail.gw API
+        // 5. Primary: Fetch from Mail.tm / Mail.gw API
         val services = getServicesForDomain(domain)
         var authToken = token
         for ((api, serverUrl) in services) {
@@ -832,7 +1396,17 @@ class TempMailRepository(
     }
 
     suspend fun deleteMessage(token: String, messageId: String): Result<Unit> = withContext(Dispatchers.IO) {
-        if (!token.startsWith("secmail_") && !token.startsWith("grr_")) {
+        if (messageId.startsWith("nada_")) {
+            val rawId = messageId.removePrefix("nada_")
+            try {
+                ApiClient.getnadaService.deleteMessages(com.example.data.api.GetnadaDeleteRequest(ids = listOf(rawId)))
+            } catch (ignored: Exception) {}
+        } else if (messageId.startsWith("rapid_")) {
+            val rawId = messageId.removePrefix("rapid_")
+            try {
+                ApiClient.rapidApiTempMailService.deleteMail(mailId = rawId, apiKey = ApiClient.rapidApiKey)
+            } catch (ignored: Exception) {}
+        } else if (!token.startsWith("secmail_") && !token.startsWith("grr_")) {
             try {
                 ApiClient.mailTmService.deleteMessage("Bearer $token", messageId)
             } catch (ignored: Exception) {}
@@ -843,7 +1417,64 @@ class TempMailRepository(
         Result.success(Unit)
     }
 
-    private fun isGuerrillaDomain(domain: String): Boolean {
+    fun getProviderNameForDomain(domain: String): String {
+        val d = domain.trim().lowercase(Locale.ROOT)
+        return when {
+            isGetnadaDomain(d) -> "Getnada"
+            isSecMailDomain(d) -> "1secmail"
+            isGuerrillaDomain(d) -> "Guerrilla Mail"
+            isRapidApiDomain(d) -> "Temp-Mail"
+            else -> "Mail.tm"
+        }
+    }
+
+    fun isGetnadaDomain(domain: String): Boolean {
+        val d = domain.trim().lowercase(Locale.ROOT)
+        return d.contains("nada") ||
+                d == "getairmail.com" ||
+                d == "inboxbear.com" ||
+                d == "dropjar.com" ||
+                d == "robot-mail.com" ||
+                d == "tafmail.com" ||
+                d == "vomoto.com" ||
+                d == "gimpmail.com" ||
+                d == "blondmail.com" ||
+                d == "chapsmail.com" ||
+                d == "clowmail.com" ||
+                d == "fivermail.com" ||
+                d == "getmule.com" ||
+                d == "givmail.com" ||
+                d == "guysmail.com" ||
+                d == "replyloop.com" ||
+                d == "temptami.com" ||
+                d == "tupmail.com" ||
+                d == "abyssmail.com" ||
+                d == "boximail.com" ||
+                d == "clrmail.com"
+    }
+
+    fun isRapidApiDomain(domain: String): Boolean {
+        val d = domain.trim().lowercase(Locale.ROOT)
+        return d.contains("rapid") ||
+                d == "cevipsa.com" ||
+                d == "freeml.net" ||
+                d == "txcct.com" ||
+                d == "vebby.com" ||
+                d == "disbox.net" ||
+                d == "dropmail.me"
+    }
+
+    fun isSecMailDomain(domain: String): Boolean {
+        val d = domain.lowercase(Locale.ROOT)
+        return d.contains("1secmail") ||
+                d == "esiix.com" ||
+                d == "wwjmp.com" ||
+                d == "icznn.com" ||
+                d == "ezztt.com" ||
+                d == "vmani.com"
+    }
+
+    fun isGuerrillaDomain(domain: String): Boolean {
         val d = domain.lowercase(Locale.ROOT)
         return d.contains("guerrillamail") || d == "grr.la" || d == "sharklasers.com" || d == "pokemail.net" || d == "spam4.me"
     }
@@ -859,14 +1490,25 @@ class TempMailRepository(
         }
     }
 
-    private fun isSecMailDomain(domain: String): Boolean {
-        val d = domain.lowercase(Locale.ROOT)
-        return d.contains("1secmail") ||
-                d == "esiix.com" ||
-                d == "wwjmp.com" ||
-                d == "icznn.com" ||
-                d == "ezztt.com" ||
-                d == "vmani.com"
+    private fun md5Hex(input: String): String {
+        return try {
+            val md = java.security.MessageDigest.getInstance("MD5")
+            val digest = md.digest(input.trim().lowercase(Locale.ROOT).toByteArray(Charsets.UTF_8))
+            digest.joinToString("") { "%02x".format(it) }
+        } catch (_: Exception) {
+            input.hashCode().toString()
+        }
+    }
+
+    private fun formatTimestamp(timestamp: Long?): String {
+        if (timestamp == null || timestamp <= 0) return ""
+        return try {
+            val millis = if (timestamp < 10000000000L) timestamp * 1000L else timestamp
+            val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US)
+            sdf.format(Date(millis))
+        } catch (_: Exception) {
+            ""
+        }
     }
 
     private fun generateFriendlyHandle(): String {
