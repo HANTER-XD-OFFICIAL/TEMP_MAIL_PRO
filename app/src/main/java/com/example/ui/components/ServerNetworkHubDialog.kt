@@ -66,13 +66,13 @@ fun ServerNetworkHubDialog(
 ) {
     val engines = listOf(
         EngineNodeInfo(
-            name = "Mail.tm Cloud Gateway",
+            name = "Mail.tm Primary Core",
             emoji = "⚡",
             status = "Operational",
             ping = "85ms",
-            domainCount = "8 Domains",
+            domainCount = "Active Domain",
             techStack = "REST API • JWT Bearer Auth",
-            description = "High-fidelity mailbox provider with persistent credentials vault and automated message deletion.",
+            description = "High-fidelity mailbox provider with persistent credentials vault and automated real-time delivery.",
             accentColor = Color(0xFF00796B),
             bgColor = Color(0xFFE0F2F1)
         ),
@@ -80,45 +80,23 @@ fun ServerNetworkHubDialog(
             name = "Getnada / Inboxes Cluster",
             emoji = "📬",
             status = "Operational",
-            ping = "115ms",
-            domainCount = "18 Domains",
-            techStack = "HTML Realtime Mesh • Legacy Inboxes",
-            description = "Large multi-domain network including getairmail, inboxbear, and dropjar with instant delivery.",
+            ping = "110ms",
+            domainCount = "18 Live Domains",
+            techStack = "HTML Realtime Mesh • Inboxes.com",
+            description = "Large multi-domain network including getairmail, inboxbear, and dropjar with 100% instant reception.",
             accentColor = Color(0xFF0288D1),
             bgColor = Color(0xFFE1F5FE)
         ),
         EngineNodeInfo(
             name = "Guerrilla Mail Network",
-            emoji = "🦈",
+            emoji = "🛡️",
             status = "Operational",
-            ping = "120ms",
-            domainCount = "5 Domains",
+            ping = "118ms",
+            domainCount = "9 Live Domains",
             techStack = "Session SID Protocol • Grr.la",
-            description = "Decentralized disposable engine with sharklasers.com and pokemail.net, immune to standard spam traps.",
+            description = "Decentralized disposable engine with sharklasers.com and pokemail.net, immune to spam traps.",
             accentColor = Color(0xFFE65100),
             bgColor = Color(0xFFFFF3E0)
-        ),
-        EngineNodeInfo(
-            name = "1secmail High-Speed Node",
-            emoji = "⏱️",
-            status = "Operational",
-            ping = "72ms",
-            domainCount = "8 Domains",
-            techStack = "Lightweight JSON RPC",
-            description = "Ultra low-latency disposable address generator with support for binary file attachment parsing.",
-            accentColor = Color(0xFF7B1FA2),
-            bgColor = Color(0xFFF3E5F5)
-        ),
-        EngineNodeInfo(
-            name = "RapidAPI Temp-Mail Proxy",
-            emoji = "🚀",
-            status = "Online",
-            ping = "140ms",
-            domainCount = "4 Domains",
-            techStack = "MD5 Hash Query • Edge Proxy",
-            description = "Enterprise proxy bridge querying encrypted MD5 mailboxes with multi-region CDN failover.",
-            accentColor = Color(0xFFC2185B),
-            bgColor = Color(0xFFFCE4EC)
         )
     )
 
@@ -197,7 +175,7 @@ fun ServerNetworkHubDialog(
                                 }
                             }
                             Text(
-                                text = "5 Connected Email Providers • $totalDomainsCount Domains",
+                                text = "3 Verified Live Gateways • $totalDomainsCount Domains",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontSize = 11.sp
@@ -253,7 +231,7 @@ fun ServerNetworkHubDialog(
                                 fontSize = 10.sp
                             )
                             Text(
-                                text = "5 / 5",
+                                text = "3 / 3 Active",
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary

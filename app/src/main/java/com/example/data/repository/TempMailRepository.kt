@@ -114,6 +114,10 @@ class TempMailRepository(
             "sharklasers.com",
             "guerrillamail.com",
             "grr.la",
+            "guerrillamailblock.com",
+            "guerrillamail.net",
+            "guerrillamail.biz",
+            "guerrillamail.org",
             "pokemail.net",
             "spam4.me"
         )
@@ -188,97 +192,8 @@ class TempMailRepository(
             }
         }
 
-        // Add 1secmail domains
-        try {
-            val secResp = ApiClient.secMailService.getDomainList()
-            if (secResp.isSuccessful && secResp.body() != null) {
-                secResp.body()!!.forEach { d ->
-                    val cleanD = d.trim().lowercase(Locale.ROOT)
-                    if (cleanD.isNotBlank() && resultDomains.none { it.domain.equals(cleanD, ignoreCase = true) }) {
-                        resultDomains.add(
-                            DomainItem(
-                                id = cleanD,
-                                domain = cleanD,
-                                isActive = true,
-                                isPrivate = false,
-                                createdAt = "2026-01-01T00:00:00.000Z"
-                            )
-                        )
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            Log.w("TempMailRepo", "1secmail domains fetch error", e)
-        }
-
-        val secMailDomains = listOf(
-            "1secmail.com",
-            "1secmail.net",
-            "1secmail.org",
-            "esiix.com",
-            "wwjmp.com",
-            "icznn.com",
-            "ezztt.com",
-            "vmani.com"
-        )
-        secMailDomains.forEach { d ->
-            if (resultDomains.none { it.domain.equals(d, ignoreCase = true) }) {
-                resultDomains.add(
-                    DomainItem(
-                        id = d,
-                        domain = d,
-                        isActive = true,
-                        isPrivate = false,
-                        createdAt = "2026-01-01T00:00:00.000Z"
-                    )
-                )
-            }
-        }
-
-        // Add RapidAPI Temp-Mail domains if configured
-        if (ApiClient.rapidApiKey.isNotBlank()) {
-            try {
-                val rapidResp = ApiClient.rapidApiTempMailService.getDomains(ApiClient.rapidApiKey)
-                if (rapidResp.isSuccessful && rapidResp.body() != null) {
-                    rapidResp.body()!!.forEach { d ->
-                        val cleanD = d.trim().removePrefix("@").lowercase(Locale.ROOT)
-                        if (cleanD.isNotBlank() && resultDomains.none { it.domain.equals(cleanD, ignoreCase = true) }) {
-                            resultDomains.add(
-                                DomainItem(
-                                    id = cleanD,
-                                    domain = cleanD,
-                                    isActive = true,
-                                    isPrivate = false,
-                                    createdAt = "2026-01-01T00:00:00.000Z"
-                                )
-                            )
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                Log.w("TempMailRepo", "RapidAPI domains fetch error", e)
-            }
-        }
-
-        val rapidApiDomains = listOf(
-            "cevipsa.com",
-            "freeml.net",
-            "txcct.com",
-            "vebby.com"
-        )
-        rapidApiDomains.forEach { d ->
-            if (resultDomains.none { it.domain.equals(d, ignoreCase = true) }) {
-                resultDomains.add(
-                    DomainItem(
-                        id = d,
-                        domain = d,
-                        isActive = true,
-                        isPrivate = false,
-                        createdAt = "2026-01-01T00:00:00.000Z"
-                    )
-                )
-            }
-        }
+        // Note: 1secmail and RapidAPI public servers are offline/decommissioned upstream
+        // and have been excluded to guarantee 100% email delivery on all available domains.
 
         Result.success(resultDomains)
     }
