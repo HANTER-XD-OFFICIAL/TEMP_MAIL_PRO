@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Autorenew
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.HourglassTop
+import androidx.compose.material.icons.filled.Hub
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Login
 import androidx.compose.material.icons.filled.MoreTime
@@ -88,6 +89,8 @@ fun EmailHeaderCard(
     onOpenVaultSheet: () -> Unit,
     onOpenCredentialsDialog: () -> Unit,
     onOpenLoginDialog: () -> Unit = {},
+    onOpenServerHub: () -> Unit = {},
+    onOpenDomainSelector: () -> Unit = {},
     onExtendTime: (Int) -> Unit = {},
     onResetTime: () -> Unit = {},
     modifier: Modifier = Modifier
@@ -202,6 +205,21 @@ fun EmailHeaderCard(
                             }
                         }
 
+                        // Server Network Hub button
+                        IconButton(
+                            onClick = onOpenServerHub,
+                            modifier = Modifier
+                                .size(34.dp)
+                                .testTag("open_server_hub_card_btn")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Hub,
+                                contentDescription = "Mail Server Network Hub",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+
                         // Login / Bind Account button
                         IconButton(
                             onClick = onOpenLoginDialog,
@@ -299,25 +317,39 @@ fun EmailHeaderCard(
                                     modifier = Modifier.padding(top = 2.dp)
                                 ) {
                                     val domain = activeAccount.address.substringAfter("@", "").lowercase()
-                                    val providerName = when {
-                                        domain.contains("nada") || domain == "getairmail.com" || domain == "inboxbear.com" || domain == "dropjar.com" || domain == "robot-mail.com" || domain == "tafmail.com" || domain == "vomoto.com" || domain == "gimpmail.com" || domain == "blondmail.com" || domain == "chapsmail.com" || domain == "clowmail.com" || domain == "fivermail.com" || domain == "getmule.com" || domain == "givmail.com" || domain == "guysmail.com" || domain == "replyloop.com" || domain == "temptami.com" || domain == "tupmail.com" -> "Getnada"
-                                        domain.contains("1secmail") || domain == "esiix.com" || domain == "wwjmp.com" || domain == "icznn.com" || domain == "ezztt.com" || domain == "vmani.com" -> "1secmail"
-                                        domain.contains("guerrillamail") || domain == "grr.la" || domain == "sharklasers.com" || domain == "pokemail.net" || domain == "spam4.me" -> "Guerrilla"
-                                        domain.contains("rapid") || domain == "cevipsa.com" || domain == "freeml.net" || domain == "txcct.com" || domain == "vebby.com" -> "RapidAPI"
-                                        else -> "Mail.tm"
-                                    }
+                                    val provider = resolveNetworkProvider(domain)
 
                                     Surface(
-                                        shape = RoundedCornerShape(4.dp),
-                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                                        onClick = onOpenServerHub,
+                                        shape = RoundedCornerShape(6.dp),
+                                        color = provider.containerColor,
+                                        modifier = Modifier.testTag("provider_badge_chip")
                                     ) {
                                         Text(
-                                            text = "⚡ $providerName",
+                                            text = "${provider.badgeEmoji} ${provider.title} ▾",
                                             style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.primary,
+                                            color = provider.primaryColor,
                                             fontSize = 10.sp,
                                             fontWeight = FontWeight.Bold,
-                                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp)
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.width(6.dp))
+
+                                    Surface(
+                                        onClick = onOpenDomainSelector,
+                                        shape = RoundedCornerShape(6.dp),
+                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                                        modifier = Modifier.testTag("header_switch_server_chip")
+                                    ) {
+                                        Text(
+                                            text = "Servers",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            fontSize = 9.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
                                         )
                                     }
 

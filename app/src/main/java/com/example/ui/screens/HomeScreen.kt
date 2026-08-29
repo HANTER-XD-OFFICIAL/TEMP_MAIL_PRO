@@ -29,9 +29,12 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ContactSupport
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Dns
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.HelpOutline
+import androidx.compose.material.icons.filled.Hub
 import androidx.compose.material.icons.filled.Inbox
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.MarkEmailRead
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Refresh
@@ -60,6 +63,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -84,17 +88,18 @@ import com.example.R
 import com.example.ui.components.AccountCredentialsDialog
 import com.example.ui.components.CreateAccountDialog
 import com.example.ui.components.DeveloperContactDialog
+import com.example.ui.components.DomainSelectorDialog
 import com.example.ui.components.EmailDetailDialog
 import com.example.ui.components.EmailHeaderCard
 import com.example.ui.components.LanguageSelectionDialog
 import com.example.ui.components.LoginAccountDialog
 import com.example.ui.components.MessageItemCard
 import com.example.ui.components.SavedAccountsSheet
+import com.example.ui.components.ServerNetworkHubDialog
 import com.example.ui.components.TelegramBotWelcomeDialog
 import com.example.ui.viewmodel.TempMailViewModel
 import com.example.util.AppLanguage
 import com.example.util.AppStrings
-import androidx.compose.material.icons.filled.Language
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -127,6 +132,8 @@ fun HomeScreen(
     var showLoginDialog by remember { mutableStateOf(false) }
     var showCredentialsDialog by remember { mutableStateOf(false) }
     var showVaultSheet by remember { mutableStateOf(false) }
+    var showServerHubDialog by remember { mutableStateOf(false) }
+    var showDomainSelectorDialog by remember { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -158,7 +165,7 @@ fun HomeScreen(
             .testTag("home_screen_scaffold"),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            CenterAlignedTopAppBar(
+            TopAppBar(
                 title = {
                     Row(
                         verticalAlignment = Alignment.CenterVertically
@@ -167,56 +174,79 @@ fun HomeScreen(
                             painter = painterResource(id = R.drawable.app_logo_tempmailpro_1787514649787),
                             contentDescription = "Temp Mail Pro Logo",
                             modifier = Modifier
-                                .size(34.dp)
+                                .size(36.dp)
                                 .clip(RoundedCornerShape(10.dp)),
                             contentScale = ContentScale.Crop
                         )
                         Spacer(modifier = Modifier.width(10.dp))
-                        Text(
-                            text = "Temp Mail Pro",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.ExtraBold,
-                            letterSpacing = 0.3.sp
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Surface(
-                            shape = RoundedCornerShape(6.dp),
-                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                        ) {
+                        Column {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "Temp Mail Pro",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    letterSpacing = 0.3.sp,
+                                    maxLines = 1
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Surface(
+                                    shape = RoundedCornerShape(6.dp),
+                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                                ) {
+                                    Text(
+                                        text = "MULTI-API",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontSize = 9.sp,
+                                        modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                                    )
+                                }
+                            }
                             Text(
-                                text = "API",
+                                text = "5 Networks • Zero Logs",
                                 style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontSize = 9.sp,
-                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 10.sp
                             )
                         }
                     }
                 },
                 actions = {
+                    // Mail Server Hub Button
+                    IconButton(
+                        onClick = { showServerHubDialog = true },
+                        modifier = Modifier.testTag("server_hub_top_btn")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Hub,
+                            contentDescription = "Mail Server Hub",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
                     // Language Switcher Button
                     Surface(
                         onClick = { showLanguageDialog = true },
                         shape = RoundedCornerShape(12.dp),
                         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
                         modifier = Modifier
-                            .padding(end = 4.dp)
+                            .padding(end = 2.dp)
                             .testTag("language_switch_top_btn")
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)
+                            modifier = Modifier.padding(horizontal = 7.dp, vertical = 5.dp)
                         ) {
                             Text(
                                 text = currentLanguage.flagEmoji,
-                                fontSize = 16.sp
+                                fontSize = 15.sp
                             )
-                            Spacer(modifier = Modifier.width(4.dp))
+                            Spacer(modifier = Modifier.width(3.dp))
                             Icon(
                                 imageVector = Icons.Default.Language,
                                 contentDescription = "Language",
-                                modifier = Modifier.size(16.dp),
+                                modifier = Modifier.size(15.dp),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -246,7 +276,7 @@ fun HomeScreen(
                         )
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
             )
@@ -287,17 +317,26 @@ fun HomeScreen(
                     onOpenVaultSheet = { showVaultSheet = true },
                     onOpenCredentialsDialog = { showCredentialsDialog = true },
                     onOpenLoginDialog = { showLoginDialog = true },
+                    onOpenServerHub = { showServerHubDialog = true },
+                    onOpenDomainSelector = { showDomainSelectorDialog = true },
                     onExtendTime = { minutes -> viewModel.extendActiveMailboxTime(minutes) },
                     onResetTime = { viewModel.resetActiveMailboxTime(10) }
                 )
             }
 
-            // Live Mail Server Status & Gmail Delivery Guide
+            // Live Mail Server Status & Multi-Engine Gateways Hub
             item {
                 Surface(
+                    onClick = { showServerHubDialog = true },
                     shape = RoundedCornerShape(16.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f),
-                    modifier = Modifier.fillMaxWidth()
+                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.22f),
+                    border = androidx.compose.foundation.BorderStroke(
+                        1.dp,
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("server_hub_gateway_banner")
                 ) {
                     Row(
                         modifier = Modifier
@@ -307,13 +346,13 @@ fun HomeScreen(
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(36.dp)
+                                .size(38.dp)
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.primaryContainer),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Check,
+                                imageVector = Icons.Default.Hub,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(20.dp)
@@ -321,20 +360,42 @@ fun HomeScreen(
                         }
                         Spacer(modifier = Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Live SMTP Server Connected",
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
-                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "5 Multi-Engine Gateways Online",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Surface(
+                                    shape = RoundedCornerShape(4.dp),
+                                    color = Color(0xFFE8F5E9)
+                                ) {
+                                    Text(
+                                        text = "${availableDomains.size} Domains",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF2E7D32),
+                                        fontSize = 9.sp,
+                                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                                    )
+                                }
+                            }
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = "Send any email from your personal Gmail/Yahoo to this address. It will appear here within 5-10 seconds automatically.",
+                                text = "Mail.tm • Getnada • Guerrilla • 1secmail • RapidAPI. Tap to view latency & server status.",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontSize = 12.sp
+                                fontSize = 11.sp
                             )
                         }
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(16.dp)
+                        )
                     }
                 }
             }
@@ -602,6 +663,35 @@ fun HomeScreen(
             onDismissRequest = { viewModel.closeMessageDetail() },
             onDelete = { viewModel.deleteCurrentMessage(it) },
             onCopyContent = { viewModel.copyToClipboard(context, it, "Email content copied!") }
+        )
+    }
+
+    // Server Network Hub Dialog
+    if (showServerHubDialog) {
+        ServerNetworkHubDialog(
+            totalDomainsCount = availableDomains.size,
+            onDismissRequest = { showServerHubDialog = false },
+            onOpenDomainSelector = {
+                showServerHubDialog = false
+                showDomainSelectorDialog = true
+            }
+        )
+    }
+
+    // Direct Domain Selector Dialog
+    if (showDomainSelectorDialog) {
+        DomainSelectorDialog(
+            availableDomains = availableDomains,
+            currentSelectedDomain = activeAccount?.address?.substringAfter("@") ?: (availableDomains.firstOrNull()?.domain ?: ""),
+            onDismissRequest = { showDomainSelectorDialog = false },
+            onSelectDomain = { selectedDomain ->
+                showDomainSelectorDialog = false
+                viewModel.generateQuickRandomAccount(domain = selectedDomain, label = "")
+            },
+            onDirectGenerate = { selectedDomain ->
+                showDomainSelectorDialog = false
+                viewModel.generateQuickRandomAccount(domain = selectedDomain, label = "")
+            }
         )
     }
 }

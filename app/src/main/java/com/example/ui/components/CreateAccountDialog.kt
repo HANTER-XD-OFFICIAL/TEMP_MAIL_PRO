@@ -1,5 +1,6 @@
 package com.example.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,9 +21,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.AutoFixHigh
+import androidx.compose.material.icons.filled.Dns
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Mail
+import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Visibility
@@ -31,10 +35,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -54,6 +55,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -78,7 +80,7 @@ fun CreateAccountDialog(
     var selectedDomain by remember(availableDomains) {
         mutableStateOf(availableDomains.firstOrNull()?.domain ?: "emalupe.com")
     }
-    var domainExpanded by remember { mutableStateOf(false) }
+    var showDomainSelectorDialog by remember { mutableStateOf(false) }
     var customUsername by remember { mutableStateOf("") }
     var customPassword by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
@@ -190,71 +192,130 @@ fun CreateAccountDialog(
 
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    // Domain Selection
+                    // Domain Selection Card
                     if (availableDomains.isNotEmpty()) {
-                        ExposedDropdownMenuBox(
-                            expanded = domainExpanded,
-                            onExpandedChange = { domainExpanded = !domainExpanded },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            OutlinedTextField(
-                                value = "@$selectedDomain",
-                                onValueChange = {},
-                                readOnly = true,
-                                label = { Text("Active Domain") },
-                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = domainExpanded) },
-                                modifier = Modifier
-                                    .menuAnchor()
-                                    .fillMaxWidth()
-                                    .testTag("domain_selector_field"),
-                                shape = RoundedCornerShape(12.dp)
-                            )
+                        val activeProvider = resolveNetworkProvider(selectedDomain)
 
-                            ExposedDropdownMenu(
-                                expanded = domainExpanded,
-                                onDismissRequest = { domainExpanded = false }
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                availableDomains.forEach { domainItem ->
-                                    val d = domainItem.domain.lowercase()
-                                    val provider = when {
-                                        d.contains("nada") || d == "getairmail.com" || d == "inboxbear.com" || d == "dropjar.com" || d == "robot-mail.com" || d == "tafmail.com" || d == "vomoto.com" || d == "gimpmail.com" || d == "blondmail.com" || d == "chapsmail.com" || d == "clowmail.com" || d == "fivermail.com" || d == "getmule.com" || d == "givmail.com" || d == "guysmail.com" || d == "replyloop.com" || d == "temptami.com" || d == "tupmail.com" -> "Getnada"
-                                        d.contains("1secmail") || d == "esiix.com" || d == "wwjmp.com" || d == "icznn.com" || d == "ezztt.com" || d == "vmani.com" -> "1secmail"
-                                        d.contains("guerrillamail") || d == "grr.la" || d == "sharklasers.com" || d == "pokemail.net" || d == "spam4.me" -> "Guerrilla"
-                                        d.contains("rapid") || d == "cevipsa.com" || d == "freeml.net" || d == "txcct.com" || d == "vebby.com" -> "RapidAPI"
-                                        else -> "Mail.tm"
-                                    }
+                                Text(
+                                    text = "MAIL SERVER DOMAIN",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 0.6.sp,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontSize = 11.sp
+                                )
 
-                                    DropdownMenuItem(
-                                        text = {
+                                Text(
+                                    text = "${availableDomains.size} Servers Available",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontSize = 10.sp
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(6.dp))
+
+                            Surface(
+                                onClick = { showDomainSelectorDialog = true },
+                                shape = RoundedCornerShape(14.dp),
+                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                                border = BorderStroke(
+                                    1.dp,
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                                ),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .testTag("domain_selector_field")
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(34.dp)
+                                                .clip(RoundedCornerShape(9.dp))
+                                                .background(activeProvider.containerColor),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(text = activeProvider.badgeEmoji, fontSize = 16.sp)
+                                        }
+
+                                        Spacer(modifier = Modifier.width(10.dp))
+
+                                        Column {
+                                            Text(
+                                                text = "@$selectedDomain",
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                fontWeight = FontWeight.Bold,
+                                                fontFamily = FontFamily.Monospace,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
                                             Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                verticalAlignment = Alignment.CenterVertically
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                modifier = Modifier.padding(top = 2.dp)
                                             ) {
-                                                Text(
-                                                    text = "@${domainItem.domain}",
-                                                    style = MaterialTheme.typography.bodyMedium,
-                                                    fontWeight = FontWeight.Medium
-                                                )
                                                 Surface(
-                                                    shape = RoundedCornerShape(6.dp),
-                                                    color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f)
+                                                    shape = RoundedCornerShape(4.dp),
+                                                    color = activeProvider.containerColor
                                                 ) {
                                                     Text(
-                                                        text = provider,
+                                                        text = activeProvider.title,
                                                         style = MaterialTheme.typography.labelSmall,
-                                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                                        color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                                        fontSize = 10.sp
+                                                        color = activeProvider.primaryColor,
+                                                        fontWeight = FontWeight.Bold,
+                                                        fontSize = 9.sp,
+                                                        modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp)
                                                     )
                                                 }
+                                                Spacer(modifier = Modifier.width(6.dp))
+                                                Text(
+                                                    text = "● Online",
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    color = Color(0xFF2E7D32),
+                                                    fontSize = 10.sp
+                                                )
                                             }
-                                        },
-                                        onClick = {
-                                            selectedDomain = domainItem.domain
-                                            domainExpanded = false
                                         }
-                                    )
+                                    }
+
+                                    Surface(
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(
+                                                text = "Change",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                fontSize = 11.sp
+                                            )
+                                            Spacer(modifier = Modifier.width(2.dp))
+                                            Icon(
+                                                imageVector = Icons.Default.ArrowDropDown,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -388,5 +449,17 @@ fun CreateAccountDialog(
                 }
             }
         }
+    }
+
+    if (showDomainSelectorDialog) {
+        DomainSelectorDialog(
+            availableDomains = availableDomains,
+            currentSelectedDomain = selectedDomain,
+            onDismissRequest = { showDomainSelectorDialog = false },
+            onSelectDomain = {
+                selectedDomain = it
+                showDomainSelectorDialog = false
+            }
+        )
     }
 }
