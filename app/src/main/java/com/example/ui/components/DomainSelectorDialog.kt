@@ -76,10 +76,10 @@ enum class MailNetworkProvider(
     val speedRating: String,
     val isOutage: Boolean = false
 ) {
-    ALL("All Active Servers", "All", "🌐", Color(0xFF1976D2), Color(0xFFE3F2FD), "Live Mesh"),
-    MAIL_TM("Mail.tm / Mail.gw (Verified Live)", "Mail.tm", "⚡", Color(0xFF00796B), Color(0xFFE0F2F1), "< 1.0s (Live)"),
-    GUERRILLA("Guerrilla (Instant Delivery)", "Guerrilla", "🛡️", Color(0xFFE65100), Color(0xFFFFF3E0), "< 1.5s (Live)"),
-    GETNADA("Getnada Network", "Getnada", "📬", Color(0xFF0288D1), Color(0xFFE1F5FE), "< 2.0s")
+    ALL("All Active Servers", "All", "🌐", Color(0xFF60A5FA), Color(0x2660A5FA), "Live Mesh"),
+    MAIL_TM("Mail.tm Core (Live)", "Mail.tm", "⚡", Color(0xFF2DD4BF), Color(0x262DD4BF), "< 1.0s (Live)"),
+    GUERRILLA("Guerrilla Mail", "Guerrilla", "🛡️", Color(0xFFFB923C), Color(0x26FB923C), "< 1.5s (Live)"),
+    GETNADA("Getnada Cluster", "Getnada", "📬", Color(0xFF38BDF8), Color(0x2638BDF8), "< 2.0s")
 }
 
 fun isMaildropDomain(domain: String): Boolean {
@@ -575,7 +575,7 @@ private fun DomainServerItemCard(
                             color = provider.containerColor
                         ) {
                             Text(
-                                text = provider.title,
+                                text = provider.shortLabel,
                                 style = MaterialTheme.typography.labelSmall,
                                 color = provider.primaryColor,
                                 fontWeight = FontWeight.Bold,

@@ -2,6 +2,7 @@ package com.example.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -59,6 +60,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -226,11 +228,11 @@ fun CreateAccountDialog(
 
                             Surface(
                                 onClick = { showDomainSelectorDialog = true },
-                                shape = RoundedCornerShape(14.dp),
-                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                                shape = RoundedCornerShape(16.dp),
+                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
                                 border = BorderStroke(
                                     1.dp,
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
                                 ),
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -239,65 +241,90 @@ fun CreateAccountDialog(
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                                        .padding(horizontal = 14.dp, vertical = 12.dp),
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
+                                    // Left: Provider Avatar Icon + Domain Name & Status
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
                                         modifier = Modifier.weight(1f)
                                     ) {
                                         Box(
                                             modifier = Modifier
-                                                .size(34.dp)
-                                                .clip(RoundedCornerShape(9.dp))
-                                                .background(activeProvider.containerColor),
+                                                .size(38.dp)
+                                                .clip(RoundedCornerShape(10.dp))
+                                                .background(activeProvider.containerColor)
+                                                .border(
+                                                    1.dp,
+                                                    activeProvider.primaryColor.copy(alpha = 0.3f),
+                                                    RoundedCornerShape(10.dp)
+                                                ),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            Text(text = activeProvider.badgeEmoji, fontSize = 16.sp)
+                                            Text(text = activeProvider.badgeEmoji, fontSize = 18.sp)
                                         }
 
-                                        Spacer(modifier = Modifier.width(10.dp))
+                                        Spacer(modifier = Modifier.width(12.dp))
 
-                                        Column {
+                                        Column(
+                                            modifier = Modifier.weight(1f),
+                                            verticalArrangement = Arrangement.Center
+                                        ) {
                                             Text(
                                                 text = "@$selectedDomain",
-                                                style = MaterialTheme.typography.bodyMedium,
+                                                style = MaterialTheme.typography.titleSmall,
                                                 fontWeight = FontWeight.Bold,
                                                 fontFamily = FontFamily.Monospace,
-                                                color = MaterialTheme.colorScheme.onSurface
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
                                             )
+
+                                            Spacer(modifier = Modifier.height(3.dp))
+
                                             Row(
                                                 verticalAlignment = Alignment.CenterVertically,
-                                                modifier = Modifier.padding(top = 2.dp)
+                                                horizontalArrangement = Arrangement.spacedBy(6.dp)
                                             ) {
                                                 Surface(
                                                     shape = RoundedCornerShape(4.dp),
                                                     color = activeProvider.containerColor
                                                 ) {
                                                     Text(
-                                                        text = activeProvider.title,
+                                                        text = activeProvider.shortLabel,
                                                         style = MaterialTheme.typography.labelSmall,
                                                         color = activeProvider.primaryColor,
                                                         fontWeight = FontWeight.Bold,
-                                                        fontSize = 9.sp,
-                                                        modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp)
+                                                        fontSize = 10.sp,
+                                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.5.dp)
                                                     )
                                                 }
-                                                Spacer(modifier = Modifier.width(6.dp))
+
+                                                Surface(
+                                                    shape = CircleShape,
+                                                    color = Color(0xFF10B981),
+                                                    modifier = Modifier.size(5.dp)
+                                                ) {}
+
                                                 Text(
-                                                    text = "● Online",
+                                                    text = "Live & Verified",
                                                     style = MaterialTheme.typography.labelSmall,
-                                                    color = Color(0xFF2E7D32),
+                                                    color = Color(0xFF10B981),
+                                                    fontWeight = FontWeight.SemiBold,
                                                     fontSize = 10.sp
                                                 )
                                             }
                                         }
                                     }
 
+                                    Spacer(modifier = Modifier.width(8.dp))
+
+                                    // Right: Change Button
                                     Surface(
                                         shape = RoundedCornerShape(8.dp),
-                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.25f))
                                     ) {
                                         Row(
                                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
@@ -320,6 +347,34 @@ fun CreateAccountDialog(
                                         }
                                     }
                                 }
+                            }
+                        }
+                    }
+
+                    if (selectedTab == 0) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.AutoFixHigh,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(15.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Generates a randomized secure mailbox on @$selectedDomain",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontSize = 11.sp
+                                )
                             }
                         }
                     }
@@ -386,17 +441,28 @@ fun CreateAccountDialog(
                     if (selectedTab == 1 && customUsername.isNotBlank()) {
                         Spacer(modifier = Modifier.height(10.dp))
                         Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(10.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text(
-                                text = "Preview: ${customUsername.trim().lowercase()}@$selectedDomain",
-                                style = MaterialTheme.typography.bodySmall,
-                                fontFamily = FontFamily.Monospace,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(8.dp)
-                            )
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Preview: ",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = "${customUsername.trim().lowercase()}@$selectedDomain",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontFamily = FontFamily.Monospace,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
                         }
                     }
                 }
