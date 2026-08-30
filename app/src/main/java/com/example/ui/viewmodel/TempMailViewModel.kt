@@ -299,6 +299,17 @@ class TempMailViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    fun panicWipeAllData(customMessage: String? = null) {
+        viewModelScope.launch {
+            _messages.value = emptyList()
+            _activeMessageDetail.value = null
+            _searchQuery.value = ""
+            repository.wipeAllUserData(deleteFromServers = true)
+            generateQuickRandomAccount()
+            showNotification(customMessage ?: "🛡️ 100% Privacy Wipe: All mailboxes & histories shredded.")
+        }
+    }
+
     fun updateAccountLabel(address: String, label: String) {
         viewModelScope.launch {
             repository.updateAccountLabel(address, label)

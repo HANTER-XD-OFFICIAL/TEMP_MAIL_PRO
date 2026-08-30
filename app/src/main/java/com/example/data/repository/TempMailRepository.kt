@@ -15,6 +15,7 @@ import com.example.data.db.AccountDao
 import com.example.data.db.SavedAccountEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 import java.security.SecureRandom
 import java.text.SimpleDateFormat
@@ -954,6 +955,35 @@ class TempMailRepository(
             accountDao.deleteAccount(address)
         } catch (e: Exception) {
             Log.e("TempMailRepo", "deleteSavedAccount error", e)
+        }
+    }
+
+    suspend fun wipeAllUserData(deleteFromServers: Boolean = true) = withContext(Dispatchers.IO) {
+        try {
+            val allAccounts = accountDao.getAllAccounts().firstOrNull() ?: emptyList()
+            if (deleteFromServers) {
+                allAccounts.forEach { acc ->
+                    try {
+                        if (!acc.token.isNullOrBlank() && !acc.accountId.isNullOrBlank() &&
+                            !acc.token.startsWith("secmail_") &&
+                            !acc.token.startsWith("grr_") &&
+                            !acc.token.startsWith("nada_") &&
+                            !acc.token.startsWith("rapid_")
+                        ) {
+                            ApiClient.mailTmService.deleteAccount("Bearer ${acc.token}", acc.accountId)
+                        }
+                    } catch (_: Exception) {}
+                    try {
+                        if (acc.token?.startsWith("nada_") == true) {
+                            ApiClient.getnadaService.deleteInbox(acc.address)
+                        }
+                    } catch (_: Exception) {}
+                }
+            }
+            accountDao.deleteAllAccounts()
+        } catch (e: Exception) {
+            Log.e("TempMailRepo", "wipeAllUserData error", e)
+            accountDao.deleteAllAccounts()
         }
     }
 

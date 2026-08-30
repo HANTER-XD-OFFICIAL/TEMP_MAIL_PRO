@@ -102,6 +102,7 @@ import com.example.ui.components.MessageItemCard
 import com.example.ui.components.SavedAccountsSheet
 import com.example.ui.components.ServerNetworkHubDialog
 import com.example.ui.components.TelegramBotWelcomeDialog
+import com.example.ui.components.UserPrivacySecurityDialog
 import com.example.ui.components.isSecMailDomain
 import com.example.ui.components.isRapidApiDomain
 import com.example.ui.viewmodel.TempMailViewModel
@@ -141,6 +142,7 @@ fun HomeScreen(
     var showVaultSheet by remember { mutableStateOf(false) }
     var showServerHubDialog by remember { mutableStateOf(false) }
     var showDomainSelectorDialog by remember { mutableStateOf(false) }
+    var showPrivacyDialog by remember { mutableStateOf(false) }
 
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -249,6 +251,21 @@ fun HomeScreen(
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
+                    }
+
+                    // 100% User Privacy & Security Action Button
+                    IconButton(
+                        onClick = { showPrivacyDialog = true },
+                        modifier = Modifier
+                            .size(36.dp)
+                            .testTag("privacy_security_top_btn")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Shield,
+                            contentDescription = strings.privacyGuaranteeTitle,
+                            tint = Color(0xFF34D399),
+                            modifier = Modifier.size(19.dp)
+                        )
                     }
 
                     // Mail Server Hub Button (compact)
@@ -522,6 +539,103 @@ fun HomeScreen(
                 }
             }
 
+            // 100% User Privacy & Security Guarantee Banner
+            item {
+                Surface(
+                    onClick = { showPrivacyDialog = true },
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color(0xFF064E3B).copy(alpha = 0.25f),
+                    border = androidx.compose.foundation.BorderStroke(
+                        1.dp,
+                        Color(0xFF10B981).copy(alpha = 0.4f)
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("user_privacy_guarantee_card")
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFF10B981).copy(alpha = 0.15f))
+                                .border(1.dp, Color(0xFF10B981).copy(alpha = 0.4f), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Shield,
+                                contentDescription = "Privacy Shield",
+                                tint = Color(0xFF34D399),
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = strings.privacyGuaranteeTitle,
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF34D399),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Surface(
+                                    shape = RoundedCornerShape(4.dp),
+                                    color = Color(0xFF10B981).copy(alpha = 0.2f)
+                                ) {
+                                    Text(
+                                        text = "100%",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Black,
+                                        color = Color(0xFF34D399),
+                                        fontSize = 9.sp,
+                                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = strings.privacySubtitle,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 11.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(6.dp))
+                        FilledTonalButton(
+                            onClick = { showPrivacyDialog = true },
+                            modifier = Modifier
+                                .height(32.dp)
+                                .testTag("view_privacy_guarantee_btn"),
+                            shape = RoundedCornerShape(10.dp),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp),
+                            colors = ButtonDefaults.filledTonalButtonColors(
+                                containerColor = Color(0xFF10B981).copy(alpha = 0.15f),
+                                contentColor = Color(0xFF34D399)
+                            )
+                        ) {
+                            Text(
+                                text = if (currentLanguage == AppLanguage.BENGALI) "নিশ্চয়তা" else "Policy",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
+
             // Developer Banner / Quick Contact Strip
             item {
                 Surface(
@@ -773,7 +887,8 @@ fun HomeScreen(
             onOpenLoginDialog = { showLoginDialog = true },
             onCopyAddress = { viewModel.copyToClipboard(context, it, strings.addressCopied) },
             onCopyPassword = { viewModel.copyToClipboard(context, it, "Password copied!") },
-            onExportAll = { viewModel.copyToClipboard(context, it, "Vault credentials exported to clipboard!") }
+            onExportAll = { viewModel.copyToClipboard(context, it, "Vault credentials exported to clipboard!") },
+            onPanicWipe = { viewModel.panicWipeAllData(strings.panicWipeSuccess) }
         )
     }
 
@@ -813,6 +928,18 @@ fun HomeScreen(
             onDirectGenerate = { selectedDomain ->
                 showDomainSelectorDialog = false
                 viewModel.generateQuickRandomAccount(domain = selectedDomain, label = "")
+            }
+        )
+    }
+
+    // 100% User Privacy & Security Guarantee Dialog
+    if (showPrivacyDialog) {
+        UserPrivacySecurityDialog(
+            currentLanguage = currentLanguage,
+            strings = strings,
+            onDismiss = { showPrivacyDialog = false },
+            onPanicWipeAllData = {
+                viewModel.panicWipeAllData(strings.panicWipeSuccess)
             }
         )
     }

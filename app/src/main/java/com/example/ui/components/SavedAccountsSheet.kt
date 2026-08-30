@@ -77,12 +77,14 @@ fun SavedAccountsSheet(
     onOpenLoginDialog: () -> Unit,
     onCopyAddress: (String) -> Unit,
     onCopyPassword: (String) -> Unit,
-    onExportAll: (String) -> Unit
+    onExportAll: (String) -> Unit,
+    onPanicWipe: (() -> Unit)? = null
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var searchQuery by remember { mutableStateOf("") }
     var editingAccountForTag by remember { mutableStateOf<SavedAccountEntity?>(null) }
     var tagInput by remember { mutableStateOf("") }
+    var showConfirmWipe by remember { mutableStateOf(false) }
 
     val filteredAccounts = remember(accounts, searchQuery) {
         if (searchQuery.isBlank()) accounts else {
@@ -140,7 +142,20 @@ fun SavedAccountsSheet(
                     }
                 }
 
-                Row {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (onPanicWipe != null && accounts.isNotEmpty()) {
+                        IconButton(
+                            onClick = { showConfirmWipe = true },
+                            modifier = Modifier.testTag("wipe_vault_btn")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Shred All Vault Data",
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+
                     // Export backup button
                     IconButton(
                         onClick = {
@@ -154,6 +169,33 @@ fun SavedAccountsSheet(
                         Icon(Icons.Default.ContentCopy, contentDescription = "Backup Vault")
                     }
                 }
+            }
+
+            if (showConfirmWipe && onPanicWipe != null) {
+                androidx.compose.material3.AlertDialog(
+                    onDismissRequest = { showConfirmWipe = false },
+                    title = { Text("Shred All Vault Accounts?", fontWeight = FontWeight.Bold) },
+                    text = { Text("Permanently erase all saved temporary mailboxes and passwords? This action is irreversible.") },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                showConfirmWipe = false
+                                onDismissRequest()
+                                onPanicWipe()
+                            },
+                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.error
+                            )
+                        ) {
+                            Text("Yes, Shred All")
+                        }
+                    },
+                    dismissButton = {
+                        androidx.compose.material3.OutlinedButton(onClick = { showConfirmWipe = false }) {
+                            Text("Cancel")
+                        }
+                    }
+                )
             }
 
             Spacer(modifier = Modifier.height(14.dp))

@@ -29,6 +29,9 @@ interface AccountDao {
     @Query("DELETE FROM saved_accounts WHERE address = :address")
     suspend fun deleteAccount(address: String)
 
+    @Query("DELETE FROM saved_accounts")
+    suspend fun deleteAllAccounts()
+
     @Query("UPDATE saved_accounts SET isActive = 0")
     suspend fun clearAllActiveFlags()
 

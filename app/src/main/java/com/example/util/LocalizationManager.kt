@@ -63,7 +63,16 @@ data class AppStrings(
     val switchAccount: String,
     val totalAccounts: String,
     val otpCodeFound: String,
-    val developerAction: String = "Contact"
+    val developerAction: String = "Contact",
+    val privacyGuaranteeTitle: String = "100% User Privacy & Security",
+    val privacyGuaranteeBadge: String = "100% Privacy Guaranteed",
+    val privacySubtitle: String = "Zero logs, zero tracking, encrypted on-device storage & burner anonymity.",
+    val privacyShieldActive: String = "Shield Active • 0 Logs",
+    val viewPrivacyPolicy: String = "Privacy & Security Guarantee",
+    val panicWipeAction: String = "Shred All Data",
+    val panicWipeConfirmTitle: String = "Panic Wipe All Data?",
+    val panicWipeConfirmDesc: String = "This will immediately shred all temporary mailboxes, saved accounts, local history, and cache. Zero trace will be left behind.",
+    val panicWipeSuccess: String = "🛡️ 100% Privacy Wipe: All mailboxes, data & histories permanently shredded."
 )
 
 object LocalizationManager {
@@ -154,7 +163,16 @@ object LocalizationManager {
                 delete = "মুছে ফেলুন",
                 switchAccount = "মেইল পরিবর্তন",
                 totalAccounts = "সংরক্ষিত মেইলবক্স",
-                otpCodeFound = "ওটিপি কোড:"
+                otpCodeFound = "ওটিপি কোড:",
+                privacyGuaranteeTitle = "১০০% ইউজার প্রাইভেসি ও সিকিউরিটি",
+                privacyGuaranteeBadge = "১০০% প্রাইভেসি গ্যারান্টি",
+                privacySubtitle = "জিরো লগ, জিরো ট্র্যাকিং, ডিভাইসে সুরক্ষিত এনক্রিপশন ও শতভাগ গোপন বেনামী সুরক্ষা।",
+                privacyShieldActive = "প্রাইভেসি সক্রিয় • জিরো লগ",
+                viewPrivacyPolicy = "প্রাইভেসি ও সিকিউরিটি নিশ্চয়তা",
+                panicWipeAction = "সব ডেটা ধ্বংস করুন",
+                panicWipeConfirmTitle = "সব ডেটা সম্পূর্ণ ধ্বংস করবেন?",
+                panicWipeConfirmDesc = "এটি নিশ্চিত করলে আপনার সমস্ত অস্থায়ী মেইলবক্স, সংরক্ষিত অ্যাকাউন্ট ও ইনবক্স হিস্টোরি স্থায়ীভাবে মুছে ফেলা হবে। কোনো প্রকার ডিজিটাল ট্রেইস অবশিষ্ট থাকবে না।",
+                panicWipeSuccess = "🛡️ ১০০% ডেটা ওয়াইপ সম্পন্ন: সমস্ত অ্যাকাউন্ট, মেইলবক্স ও ক্যাশ স্থায়ীভাবে ধ্বংস করা হয়েছে।"
             )
 
             AppLanguage.HINDI -> AppStrings(
