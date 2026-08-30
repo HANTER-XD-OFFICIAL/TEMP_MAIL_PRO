@@ -53,10 +53,16 @@ class TempMailRepository(
         }
     }
 
-    // Available domains from Mail.tm, Mail.gw and GuerrillaMail APIs
+    // Available domains from Mail.tm, Mail.gw, GuerrillaMail, 1secmail and Getnada APIs
     private val allSupportedDomains = listOf(
         "emalupe.com",
         "westcast-systems.com",
+        "1secmail.com",
+        "1secmail.org",
+        "1secmail.net",
+        "wwjmp.com",
+        "esiix.com",
+        "dropmail.me",
         "sharklasers.com",
         "guerrillamail.com",
         "grr.la",
@@ -192,8 +198,47 @@ class TempMailRepository(
             }
         }
 
-        // Note: 1secmail and RapidAPI public servers are offline/decommissioned upstream
-        // and have been excluded to guarantee 100% email delivery on all available domains.
+        // 4. Add 1secmail domains
+        val secMailDomains = listOf(
+            "1secmail.com",
+            "1secmail.org",
+            "1secmail.net",
+            "wwjmp.com",
+            "esiix.com"
+        )
+        secMailDomains.forEach { d ->
+            if (resultDomains.none { it.domain.equals(d, ignoreCase = true) }) {
+                resultDomains.add(
+                    DomainItem(
+                        id = d,
+                        domain = d,
+                        isActive = true,
+                        isPrivate = false,
+                        createdAt = "2026-01-01T00:00:00.000Z"
+                    )
+                )
+            }
+        }
+
+        // 5. Add RapidAPI / Dropmail domains
+        val rapidDomains = listOf(
+            "dropmail.me",
+            "cevipsa.com",
+            "freeml.net"
+        )
+        rapidDomains.forEach { d ->
+            if (resultDomains.none { it.domain.equals(d, ignoreCase = true) }) {
+                resultDomains.add(
+                    DomainItem(
+                        id = d,
+                        domain = d,
+                        isActive = true,
+                        isPrivate = false,
+                        createdAt = "2026-01-01T00:00:00.000Z"
+                    )
+                )
+            }
+        }
 
         Result.success(resultDomains)
     }
@@ -775,10 +820,8 @@ class TempMailRepository(
         for ((api, serverUrl) in services) {
             try {
                 if (!account.token.isNullOrBlank() && !account.token.startsWith("secmail_") && !account.token.startsWith("grr_")) {
-                    val meResp = api.getMe("Bearer ${account.token}")
-                    if (meResp.isSuccessful) {
-                        return@withContext account.token
-                    }
+                    // Valid JWT token is already cached; return immediately to preserve rate limit budget
+                    return@withContext account.token
                 }
 
                 if (account.password.isNotBlank()) {
@@ -978,12 +1021,17 @@ class TempMailRepository(
         } else if (isSecMailDomain(domain) || token.startsWith("secmail_")) {
             // 3. 1secmail account
             try {
-                val secResp = ApiClient.secMailService.getMessages(login = login, domain = domain)
-                val list = if (secResp.isSuccessful && secResp.body() != null) {
+                val secResp = try { ApiClient.secMailService.getMessages(login = login, domain = domain) } catch (_: Exception) { null }
+                val list = if (secResp?.isSuccessful == true && secResp.body() != null) {
                     secResp.body()!!
                 } else {
-                    val netResp = ApiClient.secMailNetService.getMessages(login = login, domain = domain)
-                    if (netResp.isSuccessful && netResp.body() != null) netResp.body()!! else emptyList()
+                    val netResp = try { ApiClient.secMailNetService.getMessages(login = login, domain = domain) } catch (_: Exception) { null }
+                    if (netResp?.isSuccessful == true && netResp.body() != null) {
+                        netResp.body()!!
+                    } else {
+                        val orgResp = try { ApiClient.secMailOrgService.getMessages(login = login, domain = domain) } catch (_: Exception) { null }
+                        if (orgResp?.isSuccessful == true && orgResp.body() != null) orgResp.body()!! else emptyList()
+                    }
                 }
                 list.forEach { item ->
                     remoteList.add(
@@ -1042,13 +1090,25 @@ class TempMailRepository(
             }
         } else {
             // 5. Mail.tm / Mail.gw account
-            val mailTmServices = getServicesForDomain(domain)
+            val existingAccount = accountDao.getAccountByAddress(cleanAddress)
+            val mailTmServices = if (existingAccount?.serverUrl == ApiClient.SECONDARY_BASE_URL) {
+                listOf(
+                    Pair(ApiClient.mailGwService, ApiClient.SECONDARY_BASE_URL),
+                    Pair(ApiClient.mailTmService, ApiClient.PRIMARY_BASE_URL)
+                )
+            } else if (existingAccount?.serverUrl == ApiClient.PRIMARY_BASE_URL) {
+                listOf(
+                    Pair(ApiClient.mailTmService, ApiClient.PRIMARY_BASE_URL),
+                    Pair(ApiClient.mailGwService, ApiClient.SECONDARY_BASE_URL)
+                )
+            } else {
+                getServicesForDomain(domain)
+            }
             var authToken = token
             for ((api, serverUrl) in mailTmServices) {
                 try {
                     // If token is invalid or missing, heal and fetch JWT token
                     if (authToken.startsWith("secmail_") || authToken.startsWith("grr_") || authToken.isBlank()) {
-                        val existingAccount = accountDao.getAccountByAddress(cleanAddress)
                         if (existingAccount != null && existingAccount.password.isNotBlank()) {
                             val tokenResp = api.getToken(TokenRequest(address = cleanAddress, password = existingAccount.password))
                             if (tokenResp.isSuccessful && tokenResp.body() != null) {

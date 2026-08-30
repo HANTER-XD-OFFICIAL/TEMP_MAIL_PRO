@@ -78,7 +78,8 @@ enum class MailNetworkProvider(
     ALL("All Servers", "All", "🌐", Color(0xFF1976D2), Color(0xFFE3F2FD), "Global"),
     MAIL_TM("Mail.tm", "Mail.tm", "⚡", Color(0xFF00796B), Color(0xFFE0F2F1), "< 1.5s"),
     GETNADA("Getnada", "Getnada", "📬", Color(0xFF0288D1), Color(0xFFE1F5FE), "< 1.8s"),
-    GUERRILLA("Guerrilla", "Guerrilla", "🛡️", Color(0xFFE65100), Color(0xFFFFF3E0), "< 2.0s")
+    GUERRILLA("Guerrilla", "Guerrilla", "🛡️", Color(0xFFE65100), Color(0xFFFFF3E0), "< 2.0s"),
+    SEC_MAIL("1secmail", "1secmail", "⏱️", Color(0xFF6A1B9A), Color(0xFFF3E5F5), "< 1.2s")
 }
 
 fun isSecMailDomain(domain: String): Boolean {
@@ -94,6 +95,7 @@ fun isRapidApiDomain(domain: String): Boolean {
 fun resolveNetworkProvider(domain: String): MailNetworkProvider {
     val d = domain.lowercase(Locale.ROOT)
     return when {
+        isSecMailDomain(d) -> MailNetworkProvider.SEC_MAIL
         d.contains("nada") || d == "getairmail.com" || d == "inboxbear.com" || d == "dropjar.com" || d == "robot-mail.com" || d == "tafmail.com" || d == "vomoto.com" || d == "gimpmail.com" || d == "blondmail.com" || d == "chapsmail.com" || d == "clowmail.com" || d == "fivermail.com" || d == "getmule.com" || d == "givmail.com" || d == "guysmail.com" || d == "replyloop.com" || d == "temptami.com" || d == "tupmail.com" || d == "abyssmail.com" || d == "boximail.com" || d == "clrmail.com" -> MailNetworkProvider.GETNADA
         d.contains("guerrillamail") || d == "grr.la" || d == "sharklasers.com" || d == "pokemail.net" || d == "spam4.me" -> MailNetworkProvider.GUERRILLA
         else -> MailNetworkProvider.MAIL_TM

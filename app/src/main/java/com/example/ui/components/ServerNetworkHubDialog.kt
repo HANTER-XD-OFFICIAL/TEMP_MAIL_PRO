@@ -97,6 +97,17 @@ fun ServerNetworkHubDialog(
             description = "Decentralized disposable engine with sharklasers.com and pokemail.net, immune to spam traps.",
             accentColor = Color(0xFFE65100),
             bgColor = Color(0xFFFFF3E0)
+        ),
+        EngineNodeInfo(
+            name = "1secmail Mirror Network",
+            emoji = "⏱️",
+            status = "Operational",
+            ping = "140ms",
+            domainCount = "5 Live Domains",
+            techStack = "Multi-Mirror Fallback (com/net/org)",
+            description = "High-speed 1secmail network with wwjmp.com, esiix.com, and multi-mirror fallback.",
+            accentColor = Color(0xFF6A1B9A),
+            bgColor = Color(0xFFF3E5F5)
         )
     )
 

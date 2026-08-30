@@ -179,23 +179,25 @@ fun HomeScreen(
                             painter = painterResource(id = R.drawable.app_logo_tempmailpro_1787514649787),
                             contentDescription = "Temp Mail Pro Logo",
                             modifier = Modifier
-                                .size(36.dp)
-                                .clip(RoundedCornerShape(10.dp)),
+                                .size(32.dp)
+                                .clip(RoundedCornerShape(8.dp)),
                             contentScale = ContentScale.Crop
                         )
-                        Spacer(modifier = Modifier.width(10.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
                         Column {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
-                                    text = "Temp Mail Pro",
+                                    text = "Temp Mail",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Black,
-                                    letterSpacing = 0.3.sp,
-                                    maxLines = 1
+                                    letterSpacing = 0.2.sp,
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
-                                Spacer(modifier = Modifier.width(6.dp))
+                                Spacer(modifier = Modifier.width(5.dp))
                                 Surface(
-                                    shape = RoundedCornerShape(6.dp),
+                                    shape = RoundedCornerShape(4.dp),
                                     color = MaterialTheme.colorScheme.primary
                                 ) {
                                     Text(
@@ -204,7 +206,7 @@ fun HomeScreen(
                                         fontWeight = FontWeight.Black,
                                         color = MaterialTheme.colorScheme.onPrimary,
                                         fontSize = 10.sp,
-                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                        modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp)
                                     )
                                 }
                             }
@@ -212,28 +214,18 @@ fun HomeScreen(
                                 text = "Verified Gateways • Zero Logs",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontSize = 10.sp
+                                fontSize = 9.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
                 },
                 actions = {
-                    // Mail Server Hub Button
-                    IconButton(
-                        onClick = { showServerHubDialog = true },
-                        modifier = Modifier.testTag("server_hub_top_btn")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Hub,
-                            contentDescription = "Mail Server Hub",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-
-                    // Language Switcher Button
+                    // Language Switcher Button (compact)
                     Surface(
                         onClick = { showLanguageDialog = true },
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(10.dp),
                         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
                         modifier = Modifier
                             .padding(end = 2.dp)
@@ -241,43 +233,64 @@ fun HomeScreen(
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(horizontal = 7.dp, vertical = 5.dp)
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp)
                         ) {
                             Text(
                                 text = currentLanguage.flagEmoji,
-                                fontSize = 15.sp
+                                fontSize = 13.sp
                             )
-                            Spacer(modifier = Modifier.width(3.dp))
+                            Spacer(modifier = Modifier.width(2.dp))
                             Icon(
                                 imageVector = Icons.Default.Language,
                                 contentDescription = "Language",
-                                modifier = Modifier.size(15.dp),
+                                modifier = Modifier.size(13.dp),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
 
-                    // Developer Support Action Button
+                    // Mail Server Hub Button (compact)
+                    IconButton(
+                        onClick = { showServerHubDialog = true },
+                        modifier = Modifier
+                            .size(36.dp)
+                            .testTag("server_hub_top_btn")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Hub,
+                            contentDescription = "Mail Server Hub",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(19.dp)
+                        )
+                    }
+
+                    // Developer Support Action Button (compact)
                     IconButton(
                         onClick = { showDeveloperDialog = true },
-                        modifier = Modifier.testTag("developer_support_top_btn")
+                        modifier = Modifier
+                            .size(36.dp)
+                            .testTag("developer_support_top_btn")
                     ) {
                         Icon(
                             imageVector = Icons.Default.Person,
                             contentDescription = "Developer Support",
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(19.dp)
                         )
                     }
 
-                    // Refresh Button
+                    // Refresh Button (compact)
                     IconButton(
                         onClick = { viewModel.refreshInbox(silent = false) },
-                        modifier = Modifier.testTag("refresh_inbox_top_btn")
+                        modifier = Modifier
+                            .size(36.dp)
+                            .testTag("refresh_inbox_top_btn")
                     ) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
                             contentDescription = "Refresh Inbox",
-                            tint = MaterialTheme.colorScheme.onSurface
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.size(19.dp)
                         )
                     }
                 },
@@ -327,82 +340,6 @@ fun HomeScreen(
                     onExtendTime = { minutes -> viewModel.extendActiveMailboxTime(minutes) },
                     onResetTime = { viewModel.resetActiveMailboxTime(10) }
                 )
-            }
-
-            // Legacy Server Warning Banner (If active account is on 1secmail or RapidAPI)
-            val currentAddress = activeAccount?.address.orEmpty()
-            val currentDomain = currentAddress.substringAfter("@", "").lowercase(java.util.Locale.ROOT)
-            val isLegacyDomain = isSecMailDomain(currentDomain) || isRapidApiDomain(currentDomain)
-
-            if (isLegacyDomain) {
-                item {
-                    Surface(
-                        shape = RoundedCornerShape(16.dp),
-                        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.85f),
-                        border = androidx.compose.foundation.BorderStroke(
-                            1.dp,
-                            MaterialTheme.colorScheme.error.copy(alpha = 0.6f)
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .testTag("offline_domain_warning_banner")
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(14.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.error.copy(alpha = 0.15f)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Warning,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.error,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = "Server Offline ($currentDomain)",
-                                    style = MaterialTheme.typography.labelLarge,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onErrorContainer
-                                )
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = "This provider cannot receive emails due to upstream server outage. Tap Switch to generate an active inbox.",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onErrorContainer,
-                                    fontSize = 11.sp
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Button(
-                                onClick = { viewModel.generateQuickRandomAccount() },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.error
-                                ),
-                                shape = RoundedCornerShape(10.dp),
-                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                                modifier = Modifier.testTag("switch_offline_account_btn")
-                            ) {
-                                Text(
-                                    text = "Switch",
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onError
-                                )
-                            }
-                        }
-                    }
-                }
             }
 
             // Live Mail Server Status & Multi-Engine Gateways Hub
