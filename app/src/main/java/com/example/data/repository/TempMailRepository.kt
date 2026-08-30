@@ -53,21 +53,15 @@ class TempMailRepository(
         }
     }
 
-    // Available domains from Maildrop, GuerrillaMail, Mail.tm, Mail.gw, etc.
+    // Available verified active domains from Mail.tm, Mail.gw, GuerrillaMail, Getnada
     private val allSupportedDomains = listOf(
-        "maildrop.cc",
+        "emalupe.com",
+        "westcast-systems.com",
         "sharklasers.com",
         "guerrillamail.com",
         "grr.la",
         "pokemail.net",
-        "spam4.me",
-        "emalupe.com",
-        "westcast-systems.com",
-        "1secmail.com",
-        "1secmail.org",
-        "1secmail.net",
-        "wwjmp.com",
-        "esiix.com"
+        "spam4.me"
     )
 
     suspend fun getAvailableDomains(): Result<List<DomainItem>> = withContext(Dispatchers.IO) {
@@ -127,22 +121,6 @@ class TempMailRepository(
             "pokemail.net",
             "spam4.me"
         )
-        // Add Maildrop (100% verified real-time live engine)
-        val liveEngines = listOf("maildrop.cc")
-        liveEngines.forEach { d ->
-            if (resultDomains.none { it.domain.equals(d, ignoreCase = true) }) {
-                resultDomains.add(
-                    DomainItem(
-                        id = d,
-                        domain = d,
-                        isActive = true,
-                        isPrivate = false,
-                        createdAt = "2026-01-01T00:00:00.000Z"
-                    )
-                )
-            }
-        }
-
         guerrillaDomains.forEach { gDomain ->
             if (resultDomains.none { it.domain.equals(gDomain, ignoreCase = true) }) {
                 resultDomains.add(
@@ -214,28 +192,6 @@ class TempMailRepository(
             }
         }
 
-        // 4. Add 1secmail domains
-        val secMailDomains = listOf(
-            "1secmail.com",
-            "1secmail.org",
-            "1secmail.net",
-            "wwjmp.com",
-            "esiix.com"
-        )
-        secMailDomains.forEach { d ->
-            if (resultDomains.none { it.domain.equals(d, ignoreCase = true) }) {
-                resultDomains.add(
-                    DomainItem(
-                        id = d,
-                        domain = d,
-                        isActive = true,
-                        isPrivate = false,
-                        createdAt = "2026-01-01T00:00:00.000Z"
-                    )
-                )
-            }
-        }
-
         // 5. Add RapidAPI / Dropmail domains
         val rapidDomains = listOf(
             "dropmail.me",
@@ -264,7 +220,11 @@ class TempMailRepository(
         label: String = ""
     ): Result<SavedAccountEntity> = withContext(Dispatchers.IO) {
         try {
-            val domain = customDomain?.lowercase(Locale.ROOT)?.trim() ?: "emalupe.com"
+            var domain = customDomain?.lowercase(Locale.ROOT)?.trim() ?: "emalupe.com"
+            // If user or legacy caller requested maildrop.cc or 1secmail, auto-redirect to live Mail.tm
+            if (isBrokenDeliveryDomain(domain)) {
+                domain = "emalupe.com"
+            }
 
             // Direct Maildrop GraphQL API generator (100% live delivery)
             if (isMaildropDomain(domain)) {
@@ -427,7 +387,12 @@ class TempMailRepository(
         password: String,
         label: String = ""
     ): Result<SavedAccountEntity> = withContext(Dispatchers.IO) {
-        val cleanDomain = domain.trim().lowercase(Locale.ROOT)
+        var targetDomain = domain.trim().lowercase(Locale.ROOT)
+        // Automatically redirect unreliable domains (maildrop.cc / 1secmail) to 100% live engine
+        if (isBrokenDeliveryDomain(targetDomain)) {
+            targetDomain = "emalupe.com"
+        }
+        val cleanDomain = targetDomain
         val cleanUsername = username.trim().lowercase(Locale.ROOT)
             .replace("[^a-z0-9._-]".toRegex(), "")
             .trim('.', '-', '_')
@@ -1217,7 +1182,7 @@ class TempMailRepository(
             for ((api, serverUrl) in mailTmServices) {
                 try {
                     // If token is invalid or missing, heal and fetch JWT token
-                    if (authToken.startsWith("secmail_") || authToken.startsWith("grr_") || authToken.isBlank()) {
+                    if (authToken.startsWith("secmail_") || authToken.startsWith("grr_") || authToken.startsWith("maildrop_") || authToken.startsWith("nada_") || authToken.isBlank()) {
                         if (existingAccount != null && existingAccount.password.isNotBlank()) {
                             val tokenResp = api.getToken(TokenRequest(address = cleanAddress, password = existingAccount.password))
                             if (tokenResp.isSuccessful && tokenResp.body() != null) {
@@ -1237,7 +1202,7 @@ class TempMailRepository(
                         }
                     }
 
-                    if (!authToken.startsWith("secmail_") && !authToken.startsWith("grr_") && authToken.isNotBlank()) {
+                    if (!authToken.startsWith("secmail_") && !authToken.startsWith("grr_") && !authToken.startsWith("maildrop_") && !authToken.startsWith("nada_") && authToken.isNotBlank()) {
                         val response = api.getMessages("Bearer $authToken")
                         if (response.isSuccessful && response.body() != null) {
                             remoteList.addAll(response.body()!!.member)
@@ -1550,15 +1515,20 @@ class TempMailRepository(
         Result.success(Unit)
     }
 
+    fun isBrokenDeliveryDomain(domain: String): Boolean {
+        val d = domain.trim().lowercase(Locale.ROOT)
+        return isMaildropDomain(d) || isSecMailDomain(d)
+    }
+
     fun getProviderNameForDomain(domain: String): String {
         val d = domain.trim().lowercase(Locale.ROOT)
         return when {
-            isMaildropDomain(d) -> "Maildrop (Live)"
+            isMaildropDomain(d) -> "Maildrop (Delivery Issue)"
+            isSecMailDomain(d) -> "1secmail (HTTP 403 Outage)"
             isGetnadaDomain(d) -> "Getnada"
-            isSecMailDomain(d) -> "1secmail (Server Issue)"
             isGuerrillaDomain(d) -> "Guerrilla Mail (Live)"
             isRapidApiDomain(d) -> "Temp-Mail"
-            else -> "Mail.tm"
+            else -> "Mail.tm (Live)"
         }
     }
 

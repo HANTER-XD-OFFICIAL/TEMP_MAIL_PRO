@@ -26,11 +26,13 @@ object ApiClient {
 
     private val headersInterceptor by lazy {
         okhttp3.Interceptor { chain ->
-            val request = chain.request().newBuilder()
-                .header("Accept", "application/json, application/ld+json")
+            val original = chain.request()
+            val requestBuilder = original.newBuilder()
                 .header("User-Agent", "Mozilla/5.0 (Linux; Android 14; Mobile) TempMailPro/1.0")
-                .build()
-            chain.proceed(request)
+            if (original.header("Accept") == null) {
+                requestBuilder.header("Accept", "application/ld+json, application/json")
+            }
+            chain.proceed(requestBuilder.build())
         }
     }
 

@@ -76,12 +76,10 @@ enum class MailNetworkProvider(
     val speedRating: String,
     val isOutage: Boolean = false
 ) {
-    ALL("All Servers", "All", "🌐", Color(0xFF1976D2), Color(0xFFE3F2FD), "Global"),
-    MAILDROP("Maildrop (Live)", "Maildrop", "🚀", Color(0xFF2E7D32), Color(0xFFE8F5E9), "< 1.0s (Live)"),
-    GUERRILLA("Guerrilla (Live)", "Guerrilla", "🛡️", Color(0xFFE65100), Color(0xFFFFF3E0), "< 1.5s (Live)"),
-    MAIL_TM("Mail.tm (Live)", "Mail.tm", "⚡", Color(0xFF00796B), Color(0xFFE0F2F1), "< 1.5s (Live)"),
-    GETNADA("Getnada", "Getnada", "📬", Color(0xFF0288D1), Color(0xFFE1F5FE), "< 1.8s"),
-    SEC_MAIL("1secmail (Server Issue)", "1secmail", "⏱️", Color(0xFFC62828), Color(0xFFFFEBEE), "HTTP 403 Outage", isOutage = true)
+    ALL("All Active Servers", "All", "🌐", Color(0xFF1976D2), Color(0xFFE3F2FD), "Live Mesh"),
+    MAIL_TM("Mail.tm / Mail.gw (Verified Live)", "Mail.tm", "⚡", Color(0xFF00796B), Color(0xFFE0F2F1), "< 1.0s (Live)"),
+    GUERRILLA("Guerrilla (Instant Delivery)", "Guerrilla", "🛡️", Color(0xFFE65100), Color(0xFFFFF3E0), "< 1.5s (Live)"),
+    GETNADA("Getnada Network", "Getnada", "📬", Color(0xFF0288D1), Color(0xFFE1F5FE), "< 2.0s")
 }
 
 fun isMaildropDomain(domain: String): Boolean {
@@ -94,6 +92,11 @@ fun isSecMailDomain(domain: String): Boolean {
     return d.contains("1secmail") || d == "esiix.com" || d == "wwjmp.com" || d == "icznn.com" || d == "ezztt.com" || d == "vmani.com"
 }
 
+fun isBrokenDeliveryDomain(domain: String): Boolean {
+    val d = domain.trim().lowercase(Locale.ROOT)
+    return isMaildropDomain(d) || isSecMailDomain(d)
+}
+
 fun isRapidApiDomain(domain: String): Boolean {
     val d = domain.lowercase(Locale.ROOT)
     return d.contains("rapid") || d == "cevipsa.com" || d == "freeml.net" || d == "txcct.com" || d == "vebby.com" || d == "disbox.net" || d == "dropmail.me"
@@ -102,10 +105,8 @@ fun isRapidApiDomain(domain: String): Boolean {
 fun resolveNetworkProvider(domain: String): MailNetworkProvider {
     val d = domain.lowercase(Locale.ROOT)
     return when {
-        isMaildropDomain(d) -> MailNetworkProvider.MAILDROP
-        isSecMailDomain(d) -> MailNetworkProvider.SEC_MAIL
-        d.contains("nada") || d == "getairmail.com" || d == "inboxbear.com" || d == "dropjar.com" || d == "robot-mail.com" || d == "tafmail.com" || d == "vomoto.com" || d == "gimpmail.com" || d == "blondmail.com" || d == "chapsmail.com" || d == "clowmail.com" || d == "fivermail.com" || d == "getmule.com" || d == "givmail.com" || d == "guysmail.com" || d == "replyloop.com" || d == "temptami.com" || d == "tupmail.com" || d == "abyssmail.com" || d == "boximail.com" || d == "clrmail.com" -> MailNetworkProvider.GETNADA
         d.contains("guerrillamail") || d == "grr.la" || d == "sharklasers.com" || d == "pokemail.net" || d == "spam4.me" -> MailNetworkProvider.GUERRILLA
+        d.contains("nada") || d == "getairmail.com" || d == "inboxbear.com" || d == "dropjar.com" || d == "robot-mail.com" || d == "tafmail.com" || d == "vomoto.com" || d == "gimpmail.com" || d == "blondmail.com" || d == "chapsmail.com" || d == "clowmail.com" || d == "fivermail.com" || d == "getmule.com" || d == "givmail.com" || d == "guysmail.com" || d == "replyloop.com" || d == "temptami.com" || d == "tupmail.com" || d == "abyssmail.com" || d == "boximail.com" || d == "clrmail.com" -> MailNetworkProvider.GETNADA
         else -> MailNetworkProvider.MAIL_TM
     }
 }
@@ -121,8 +122,12 @@ fun DomainSelectorDialog(
     var searchQuery by remember { mutableStateOf("") }
     var selectedFilter by remember { mutableStateOf(MailNetworkProvider.ALL) }
 
-    val filteredDomains = remember(availableDomains, searchQuery, selectedFilter) {
-        availableDomains.filter { domainItem ->
+    val activeAvailable = remember(availableDomains) {
+        availableDomains.filterNot { isBrokenDeliveryDomain(it.domain) }
+    }
+
+    val filteredDomains = remember(activeAvailable, searchQuery, selectedFilter) {
+        activeAvailable.filter { domainItem ->
             val provider = resolveNetworkProvider(domainItem.domain)
             val matchesFilter = selectedFilter == MailNetworkProvider.ALL || provider == selectedFilter
             val matchesSearch = searchQuery.isBlank() ||
@@ -133,11 +138,11 @@ fun DomainSelectorDialog(
     }
 
     // Compute counts per provider
-    val providerCounts = remember(availableDomains) {
+    val providerCounts = remember(activeAvailable) {
         val counts = mutableMapOf<MailNetworkProvider, Int>()
-        counts[MailNetworkProvider.ALL] = availableDomains.size
+        counts[MailNetworkProvider.ALL] = activeAvailable.size
         MailNetworkProvider.entries.filter { it != MailNetworkProvider.ALL }.forEach { provider ->
-            counts[provider] = availableDomains.count { resolveNetworkProvider(it.domain) == provider }
+            counts[provider] = activeAvailable.count { resolveNetworkProvider(it.domain) == provider }
         }
         counts
     }

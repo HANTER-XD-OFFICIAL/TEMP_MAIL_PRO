@@ -57,6 +57,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import com.example.ui.components.isBrokenDeliveryDomain
 import com.example.ui.components.isSecMailDomain
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -343,8 +344,8 @@ fun HomeScreen(
                 )
             }
 
-            // 1secmail Outage Warning Banner
-            if (activeAccount != null && isSecMailDomain(activeAccount!!.address.substringAfter("@", ""))) {
+            // Delivery Outage Warning Banner for maildrop.cc and 1secmail
+            if (activeAccount != null && isBrokenDeliveryDomain(activeAccount!!.address.substringAfter("@", ""))) {
                 item {
                     Surface(
                         shape = RoundedCornerShape(16.dp),
@@ -365,7 +366,7 @@ fun HomeScreen(
                             ) {
                                 Box(
                                     modifier = Modifier
-                                        .size(36.dp)
+                                        .size(38.dp)
                                         .clip(CircleShape)
                                         .background(Color(0xFFFFCDD2)),
                                     contentAlignment = Alignment.Center
@@ -374,58 +375,61 @@ fun HomeScreen(
                                         imageVector = Icons.Default.Warning,
                                         contentDescription = null,
                                         tint = Color(0xFFC62828),
-                                        modifier = Modifier.size(20.dp)
+                                        modifier = Modifier.size(22.dp)
                                     )
                                 }
-                                Spacer(modifier = Modifier.width(10.dp))
+                                Spacer(modifier = Modifier.width(12.dp))
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        text = "1secmail সার্ভার ডাউন (HTTP 403)",
+                                        text = "মেইল রিসিভ সমস্যা (Server Delivery Outage)",
                                         style = MaterialTheme.typography.titleSmall,
                                         fontWeight = FontWeight.Bold,
                                         color = Color(0xFFB71C1C)
                                     )
                                     Text(
-                                        text = "1secmail আপস্ট্রিম সার্ভার ব্লক থাকায় এতে কোনো ইমেইল আসছে না। নিশ্চিত মেসেজ পেতে এখনই নিচে Switch চাপুন।",
+                                        text = "maildrop.cc এবং 1secmail সার্ভারে জিমেইল বা ওয়েবসাইট থেকে কোনো মেসেজ আসে না (Greylisting / 403 ব্লক)। তাৎক্ষণিক মেসেজ ও ভেরিফিকেশন কোড পাওয়ার জন্য নিচের সচল ইনবক্সে সুইচ করুন।",
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = Color(0xFF424242),
+                                        color = Color(0xFF37474F),
                                         fontSize = 12.sp
                                     )
                                 }
                             }
 
-                            Spacer(modifier = Modifier.height(10.dp))
+                            Spacer(modifier = Modifier.height(12.dp))
 
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.End,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 OutlinedButton(
-                                    onClick = { showDomainSelectorDialog = true },
+                                    onClick = {
+                                        viewModel.generateQuickRandomAccount(domain = "sharklasers.com")
+                                    },
                                     shape = RoundedCornerShape(10.dp),
                                     colors = ButtonDefaults.outlinedButtonColors(
-                                        contentColor = Color(0xFFB71C1C)
+                                        contentColor = Color(0xFFE65100)
                                     ),
-                                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE57373)),
-                                    modifier = Modifier.padding(end = 8.dp)
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFFB74D)),
+                                    modifier = Modifier.weight(1f)
                                 ) {
-                                    Text("ডোমেন তালিকা", fontSize = 12.sp)
+                                    Text("Guerrilla (🛡️)", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                 }
 
                                 Button(
                                     onClick = {
-                                        viewModel.generateQuickRandomAccount(domain = "maildrop.cc")
+                                        viewModel.generateQuickRandomAccount(domain = "emalupe.com")
                                     },
                                     shape = RoundedCornerShape(10.dp),
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(0xFFC62828),
+                                        containerColor = Color(0xFF00796B),
                                         contentColor = Color.White
-                                    )
+                                    ),
+                                    modifier = Modifier.weight(1.3f)
                                 ) {
                                     Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
                                     Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Maildrop এ যান (সচল)", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    Text("Mail.tm এ যান (সচল ⚡)", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }

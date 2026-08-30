@@ -66,42 +66,31 @@ fun ServerNetworkHubDialog(
 ) {
     val engines = listOf(
         EngineNodeInfo(
-            name = "Maildrop GraphQL Engine",
-            emoji = "🚀",
-            status = "Operational",
-            ping = "70ms",
-            domainCount = "maildrop.cc (100% Live)",
-            techStack = "GraphQL API • Instant Webhook",
-            description = "High-speed disposable email delivery engine with instant message reception and HTML rendering.",
-            accentColor = Color(0xFF2E7D32),
-            bgColor = Color(0xFFE8F5E9)
+            name = "Mail.tm / Mail.gw High-Speed Core",
+            emoji = "⚡",
+            status = "Operational (Live)",
+            ping = "65ms",
+            domainCount = "Verified Live Domains",
+            techStack = "REST API • Hydra JSON-LD • JWT Auth",
+            description = "High-fidelity mailbox provider with instant delivery for Gmail, OTPs, and account verifications.",
+            accentColor = Color(0xFF00796B),
+            bgColor = Color(0xFFE0F2F1)
         ),
         EngineNodeInfo(
             name = "Guerrilla Mail Network",
             emoji = "🛡️",
-            status = "Operational",
+            status = "Operational (Live)",
             ping = "118ms",
-            domainCount = "9 Live Domains",
+            domainCount = "9 Live Domains (sharklasers.com)",
             techStack = "Session SID Protocol • Grr.la",
             description = "Decentralized disposable engine with sharklasers.com and pokemail.net, immune to spam traps.",
             accentColor = Color(0xFFE65100),
             bgColor = Color(0xFFFFF3E0)
         ),
         EngineNodeInfo(
-            name = "Mail.tm Primary Core",
-            emoji = "⚡",
-            status = "Operational",
-            ping = "85ms",
-            domainCount = "Active Domain",
-            techStack = "REST API • JWT Bearer Auth",
-            description = "High-fidelity mailbox provider with persistent credentials vault and automated real-time delivery.",
-            accentColor = Color(0xFF00796B),
-            bgColor = Color(0xFFE0F2F1)
-        ),
-        EngineNodeInfo(
             name = "Getnada / Inboxes Cluster",
             emoji = "📬",
-            status = "Operational",
+            status = "Operational (Live)",
             ping = "110ms",
             domainCount = "18 Live Domains",
             techStack = "HTML Realtime Mesh • Inboxes.com",
@@ -110,13 +99,13 @@ fun ServerNetworkHubDialog(
             bgColor = Color(0xFFE1F5FE)
         ),
         EngineNodeInfo(
-            name = "1secmail Mirror Network",
-            emoji = "⏱️",
-            status = "Server Issue (HTTP 403)",
-            ping = "Blocked",
-            domainCount = "5 Domains (Outage)",
-            techStack = "Upstream Cloudflare Block (403)",
-            description = "1secmail.com public API is currently returning 403 Forbidden upstream. Emails cannot be received. Use Maildrop or GuerrillaMail instead.",
+            name = "Maildrop & 1secmail Network",
+            emoji = "⚠️",
+            status = "Delivery Outage",
+            ping = "Unavailable",
+            domainCount = "Disabled (0 Active)",
+            techStack = "Greylisting Delays & HTTP 403 Block",
+            description = "maildrop.cc drops incoming mail from Gmail/signups, and 1secmail public API is blocked with HTTP 403. Auto-redirected to Mail.tm.",
             accentColor = Color(0xFFC62828),
             bgColor = Color(0xFFFFEBEE)
         )

@@ -216,6 +216,8 @@ class TempMailViewModel(application: Application) : AndroidViewModel(application
                         showNotification("📬 Received ${newCount - previousCount} new email(s)!")
                     } else if (newCount > 0) {
                         showNotification("🔄 Inbox refreshed: $newCount message(s) present")
+                    } else if (repository.isBrokenDeliveryDomain(current.address.substringAfter("@", ""))) {
+                        showNotification("⚠️ ${current.address.substringAfter("@")} এ সার্ভার সমস্যার কারণে মেসেজ আসছে না। Mail.tm বা Guerrilla এ সুইচ করুন।", isError = true)
                     } else {
                         showNotification("🔄 Inbox is up-to-date (0 new messages)")
                     }

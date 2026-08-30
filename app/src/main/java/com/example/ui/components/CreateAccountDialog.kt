@@ -77,8 +77,11 @@ fun CreateAccountDialog(
     onCreateCustom: (username: String, domain: String, pass: String, label: String) -> Unit
 ) {
     var selectedTab by remember { mutableIntStateOf(0) } // 0: Fast Random, 1: Custom Handle
-    var selectedDomain by remember(availableDomains) {
-        mutableStateOf(availableDomains.firstOrNull()?.domain ?: "emalupe.com")
+    val activeAvailableDomains = remember(availableDomains) {
+        availableDomains.filterNot { isBrokenDeliveryDomain(it.domain) }
+    }
+    var selectedDomain by remember(activeAvailableDomains) {
+        mutableStateOf(activeAvailableDomains.firstOrNull()?.domain ?: "emalupe.com")
     }
     var showDomainSelectorDialog by remember { mutableStateOf(false) }
     var customUsername by remember { mutableStateOf("") }
@@ -453,7 +456,7 @@ fun CreateAccountDialog(
 
     if (showDomainSelectorDialog) {
         DomainSelectorDialog(
-            availableDomains = availableDomains,
+            availableDomains = activeAvailableDomains,
             currentSelectedDomain = selectedDomain,
             onDismissRequest = { showDomainSelectorDialog = false },
             onSelectDomain = {
