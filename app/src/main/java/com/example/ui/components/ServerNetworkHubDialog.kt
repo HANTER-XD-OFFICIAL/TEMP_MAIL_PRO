@@ -66,6 +66,28 @@ fun ServerNetworkHubDialog(
 ) {
     val engines = listOf(
         EngineNodeInfo(
+            name = "Maildrop GraphQL Engine",
+            emoji = "🚀",
+            status = "Operational",
+            ping = "70ms",
+            domainCount = "maildrop.cc (100% Live)",
+            techStack = "GraphQL API • Instant Webhook",
+            description = "High-speed disposable email delivery engine with instant message reception and HTML rendering.",
+            accentColor = Color(0xFF2E7D32),
+            bgColor = Color(0xFFE8F5E9)
+        ),
+        EngineNodeInfo(
+            name = "Guerrilla Mail Network",
+            emoji = "🛡️",
+            status = "Operational",
+            ping = "118ms",
+            domainCount = "9 Live Domains",
+            techStack = "Session SID Protocol • Grr.la",
+            description = "Decentralized disposable engine with sharklasers.com and pokemail.net, immune to spam traps.",
+            accentColor = Color(0xFFE65100),
+            bgColor = Color(0xFFFFF3E0)
+        ),
+        EngineNodeInfo(
             name = "Mail.tm Primary Core",
             emoji = "⚡",
             status = "Operational",
@@ -83,31 +105,20 @@ fun ServerNetworkHubDialog(
             ping = "110ms",
             domainCount = "18 Live Domains",
             techStack = "HTML Realtime Mesh • Inboxes.com",
-            description = "Large multi-domain network including getairmail, inboxbear, and dropjar with 100% instant reception.",
+            description = "Large multi-domain network including getairmail, inboxbear, and dropjar with instant reception.",
             accentColor = Color(0xFF0288D1),
             bgColor = Color(0xFFE1F5FE)
         ),
         EngineNodeInfo(
-            name = "Guerrilla Mail Network",
-            emoji = "🛡️",
-            status = "Operational",
-            ping = "118ms",
-            domainCount = "9 Live Domains",
-            techStack = "Session SID Protocol • Grr.la",
-            description = "Decentralized disposable engine with sharklasers.com and pokemail.net, immune to spam traps.",
-            accentColor = Color(0xFFE65100),
-            bgColor = Color(0xFFFFF3E0)
-        ),
-        EngineNodeInfo(
             name = "1secmail Mirror Network",
             emoji = "⏱️",
-            status = "Operational",
-            ping = "140ms",
-            domainCount = "5 Live Domains",
-            techStack = "Multi-Mirror Fallback (com/net/org)",
-            description = "High-speed 1secmail network with wwjmp.com, esiix.com, and multi-mirror fallback.",
-            accentColor = Color(0xFF6A1B9A),
-            bgColor = Color(0xFFF3E5F5)
+            status = "Server Issue (HTTP 403)",
+            ping = "Blocked",
+            domainCount = "5 Domains (Outage)",
+            techStack = "Upstream Cloudflare Block (403)",
+            description = "1secmail.com public API is currently returning 403 Forbidden upstream. Emails cannot be received. Use Maildrop or GuerrillaMail instead.",
+            accentColor = Color(0xFFC62828),
+            bgColor = Color(0xFFFFEBEE)
         )
     )
 

@@ -94,6 +94,18 @@ object ApiClient {
             .create(GuerrillaMailApi::class.java)
     }
 
+    // ==================== MAILDROP (GRAPHQL) ====================
+    const val MAILDROP_BASE_URL = "https://api.maildrop.cc/"
+
+    val maildropService: MaildropApi by lazy {
+        Retrofit.Builder()
+            .baseUrl(MAILDROP_BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+            .create(MaildropApi::class.java)
+    }
+
     // ==================== GETNADA / INBOXES.COM ====================
     const val GETNADA_URL = "https://inboxes.com/api/v2/"
 

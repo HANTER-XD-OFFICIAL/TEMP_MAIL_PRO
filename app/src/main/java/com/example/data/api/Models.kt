@@ -244,5 +244,44 @@ data class RapidApiTempMailItem(
     @Json(name = "attachments") val attachments: List<RapidApiAttachment>? = null
 )
 
+// ==================== MAILDROP (GRAPHQL) MODELS ====================
+
+@JsonClass(generateAdapter = true)
+data class MaildropGraphqlRequest(
+    @Json(name = "query") val query: String,
+    @Json(name = "variables") val variables: Map<String, String>? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class MaildropGraphqlResponse(
+    @Json(name = "data") val data: MaildropData? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class MaildropData(
+    @Json(name = "inbox") val inbox: List<MaildropInboxItem>? = null,
+    @Json(name = "message") val message: MaildropMessageDetail? = null,
+    @Json(name = "delete") val delete: Boolean? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class MaildropInboxItem(
+    @Json(name = "id") val id: String = "",
+    @Json(name = "subject") val subject: String? = null,
+    @Json(name = "date") val date: String? = null,
+    @Json(name = "headerfrom") val headerfrom: String? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class MaildropMessageDetail(
+    @Json(name = "id") val id: String = "",
+    @Json(name = "date") val date: String? = null,
+    @Json(name = "mailfrom") val mailfrom: String? = null,
+    @Json(name = "headerfrom") val headerfrom: String? = null,
+    @Json(name = "subject") val subject: String? = null,
+    @Json(name = "data") val data: String? = null,
+    @Json(name = "html") val html: String? = null
+)
+
 
 

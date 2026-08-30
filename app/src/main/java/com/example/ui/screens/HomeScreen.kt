@@ -57,6 +57,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import com.example.ui.components.isSecMailDomain
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -340,6 +341,96 @@ fun HomeScreen(
                     onExtendTime = { minutes -> viewModel.extendActiveMailboxTime(minutes) },
                     onResetTime = { viewModel.resetActiveMailboxTime(10) }
                 )
+            }
+
+            // 1secmail Outage Warning Banner
+            if (activeAccount != null && isSecMailDomain(activeAccount!!.address.substringAfter("@", ""))) {
+                item {
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = Color(0xFFFFEBEE),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFEF5350)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("secmail_outage_banner")
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(14.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFFFFCDD2)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Warning,
+                                        contentDescription = null,
+                                        tint = Color(0xFFC62828),
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "1secmail সার্ভার ডাউন (HTTP 403)",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFFB71C1C)
+                                    )
+                                    Text(
+                                        text = "1secmail আপস্ট্রিম সার্ভার ব্লক থাকায় এতে কোনো ইমেইল আসছে না। নিশ্চিত মেসেজ পেতে এখনই নিচে Switch চাপুন।",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color(0xFF424242),
+                                        fontSize = 12.sp
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(10.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                OutlinedButton(
+                                    onClick = { showDomainSelectorDialog = true },
+                                    shape = RoundedCornerShape(10.dp),
+                                    colors = ButtonDefaults.outlinedButtonColors(
+                                        contentColor = Color(0xFFB71C1C)
+                                    ),
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE57373)),
+                                    modifier = Modifier.padding(end = 8.dp)
+                                ) {
+                                    Text("ডোমেন তালিকা", fontSize = 12.sp)
+                                }
+
+                                Button(
+                                    onClick = {
+                                        viewModel.generateQuickRandomAccount(domain = "maildrop.cc")
+                                    },
+                                    shape = RoundedCornerShape(10.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFFC62828),
+                                        contentColor = Color.White
+                                    )
+                                ) {
+                                    Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Maildrop এ যান (সচল)", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             // Live Mail Server Status & Multi-Engine Gateways Hub
