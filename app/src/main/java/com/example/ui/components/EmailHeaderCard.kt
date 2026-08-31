@@ -205,21 +205,6 @@ fun EmailHeaderCard(
                             }
                         }
 
-                        // Server Network Hub button
-                        IconButton(
-                            onClick = onOpenServerHub,
-                            modifier = Modifier
-                                .size(34.dp)
-                                .testTag("open_server_hub_card_btn")
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Hub,
-                                contentDescription = "Mail Server Network Hub",
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
-
                         // Login / Bind Account button
                         IconButton(
                             onClick = onOpenLoginDialog,

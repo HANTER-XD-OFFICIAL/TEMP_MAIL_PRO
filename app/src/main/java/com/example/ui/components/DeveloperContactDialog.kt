@@ -197,13 +197,14 @@ fun DeveloperContactDialog(
                                 // Developer Profile Avatar Photo with stylish border
                                 Box(
                                     modifier = Modifier
-                                        .size(54.dp)
+                                        .size(64.dp)
                                         .clip(CircleShape)
                                         .border(
-                                            width = 2.dp,
+                                            width = 2.5.dp,
                                             brush = Brush.linearGradient(
                                                 listOf(
                                                     Color(0xFF2563EB),
+                                                    Color(0xFF00E5FF),
                                                     Color(0xFFEF4444)
                                                 )
                                             ),
@@ -212,8 +213,8 @@ fun DeveloperContactDialog(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Image(
-                                        painter = painterResource(id = R.drawable.img_dev_profile_1787942918830),
-                                        contentDescription = "MD RASEL Profile Photo",
+                                        painter = painterResource(id = R.drawable.img_hanter_xd_logo_1788170721783),
+                                        contentDescription = "HANTER XD OFFICIAL Logo",
                                         modifier = Modifier
                                             .fillMaxSize()
                                             .clip(CircleShape),
@@ -221,7 +222,7 @@ fun DeveloperContactDialog(
                                     )
                                 }
 
-                                Spacer(modifier = Modifier.width(12.dp))
+                                Spacer(modifier = Modifier.width(14.dp))
 
                                 Column(modifier = Modifier.weight(1f)) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {

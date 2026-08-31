@@ -270,21 +270,6 @@ fun HomeScreen(
                         )
                     }
 
-                    // Mail Server Hub Button (compact)
-                    IconButton(
-                        onClick = { showServerHubDialog = true },
-                        modifier = Modifier
-                            .size(36.dp)
-                            .testTag("server_hub_top_btn")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Hub,
-                            contentDescription = "Mail Server Hub",
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(19.dp)
-                        )
-                    }
-
                     // Developer Support Action Button (compact)
                     IconButton(
                         onClick = { showDeveloperDialog = true },
