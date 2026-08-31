@@ -1,6 +1,6 @@
 {
   "name": "Temp Mail Pro",
-  "description": "Professional temporary email management system powered by Mail.tm API with instant inbox, lifetime saved accounts vault, and developer support.",
+  "description": "Enterprise-grade disposable email system with 32+ verified domains, 100% user privacy & security guarantee, panic wipe shredder, and instant OTP detection.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

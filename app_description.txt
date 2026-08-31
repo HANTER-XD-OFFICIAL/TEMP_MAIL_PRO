@@ -3,35 +3,46 @@ TEMP MAIL PRO - OFFICIAL APP STORE & PLAY STORE LISTING DESCRIPTION
 ================================================================================
 
 APP TITLE:
-Temp Mail Pro - Disposable Anonymous Email
+Temp Mail Pro - Disposable Anonymous Email & Privacy Shield
 
 SHORT DESCRIPTION (Max 80 Characters for Google Play Store):
-Instant disposable email address. Keep your real inbox safe from spam and leaks!
+Instant disposable email with 32+ domains, 100% privacy shield & panic wipe!
 
 --------------------------------------------------------------------------------
-FULL DESCRIPTION (For Play Store, App Stores & Websites):
+FULL DESCRIPTION (For Google Play Store, App Stores & Websites):
 --------------------------------------------------------------------------------
 
-Forget about spam, promotional newsletters, email hacking, and unwanted robot messages. Temp Mail Pro provides you with a safe, temporary, anonymous, and disposable email address instantly with zero registration required!
+Forget about spam, promotional newsletters, email hacking, and unwanted robot messages. Temp Mail Pro provides you with a safe, temporary, anonymous, and disposable email address instantly with 100% zero registration required!
 
 Protect your real personal inbox clean, secure, and spam-free. Use your temporary mailbox for signing up on untrusted websites, downloading resources, accessing social media accounts, testing apps, and verifying OTP codes without risking your primary identity.
 
 
+🛡️ 100% USER PRIVACY & SECURITY GUARANTEE:
+
+Your safety and privacy are our highest priority:
+1. ZERO LOGS & ZERO TRACKING: We never record IP addresses, activity, or connection timestamps.
+2. NO PERSONAL DATA: No phone numbers, real names, or credit cards needed.
+3. HACKER SHIELD: Keeps your primary Google or personal email safe from leaks and phishing.
+4. ZERO DATA SALE: Your data is never sold, monitored, or transferred to third parties.
+5. LOCAL ENCRYPTED VAULT: Saved credentials stay only on your physical device.
+6. EMERGENCY PANIC SHREDDER: One tap permanently erases all temporary mailboxes, cached data, and saved accounts, immediately issuing a clean burner identity.
+
+
 WHY CHOOSE TEMP MAIL PRO?
 
-* MULTI-ENGINE INBOX GENERATION: Get a fresh disposable email address on multiple premium domains (@emalupe.com, @guerrillamail.com, @sharklasers.com, @pokemail.net, @grr.la, etc.).
-* GUARANTEED SPAM PROTECTION: Keep promotional clutter, phishing, and trackers away from your real email.
-* SMART OTP DETECTION: Advanced real-time algorithm automatically detects, highlights, and lets you copy verification codes in 1 tap.
-* GMAIL-STYLE READER: Clean, modern, and intuitive Material 3 interface with rendered HTML and raw source code preview.
-* TELEGRAM BOT INTEGRATION: Create and receive emails directly via our official Telegram bot (@TEMPMAIL8234_bot) and sync them seamlessly.
-* ZERO LOGS, 100% PRIVACY: No personal data required. No passwords, no phone numbers, and full zero-telemetry architecture.
-* MULTIPLE ACCOUNT MANAGEMENT: Switch, save, restore, or wipe temporary mail accounts effortlessly with local Room DB encryption.
-* MULTI-LANGUAGE SUPPORT: Fully localized in English, Bengali, Hindi, Arabic, and Spanish.
+* 32+ MULTI-GATEWAY VERIFIED DOMAINS: Connect seamlessly across Mail.tm, Getnada, GuerrillaMail, Maildrop, and 1secmail nodes (@emalupe.com, @getnada.com, @guerrillamail.com, @sharklasers.com, @pokemail.net, @maildrop.cc, etc.).
+* GUARANTEED SPAM PROTECTION: Block 100% of promotional clutter, trackers, and junk mail.
+* SMART OTP DETECTION: Real-time algorithm automatically scans, highlights, and lets you copy verification codes in 1 tap.
+* GMAIL-STYLE READER: Clean, modern, and intuitive Material 3 interface with rendered HTML and raw source preview.
+* 10-MINUTE ACTIVE COUNTDOWN TIMER: Includes fast extensions (+10 Min, +5 Min, Reset) to keep your temporary session under your control.
+* TELEGRAM BOT INTEGRATION: Create and receive emails directly via our official Telegram bot (@TEMPMAIL8234_bot) and sync them with your phone.
+* MULTIPLE ACCOUNT MANAGEMENT: Switch, save, restore, or wipe temporary mail accounts effortlessly with encrypted Room DB.
+* MULTI-LANGUAGE SUPPORT: Fully localized in English, Bengali (বাংলা), Hindi (हिन्दी), Arabic (العربية), and Spanish (Español).
 
 
 HOW IT WORKS:
 
-1. Open the app to instantly receive a valid temporary email address (@emalupe.com).
+1. Open the app to instantly receive a valid temporary email address.
 2. Copy the address with one tap and paste it into any website or app registration form.
 3. Incoming emails and OTP verification codes will appear in your inbox immediately in real-time.
 4. Read, reply, copy verification codes, or delete the mailbox whenever you are done!
@@ -40,17 +51,28 @@ HOW IT WORKS:
 KEY FEATURES AT A GLANCE:
 
 - No registration or signup required
-- 100% free and unlimited usage
+- 100% free and unlimited disposable mailboxes
+- 32+ active domains with automatic gateway fallback
 - Real-time incoming email notifications
 - Fast one-tap copy for email and OTP codes
-- Safe file attachment viewing and text export
+- Emergency Panic Shredder for instant data destruction
 - Modern dark/light mode with fluid animations
+
+
+WHAT'S NEW IN VERSION 2.6.0:
+
+* 100% User Privacy & Security Shield with official Guarantee Dialog
+* Emergency Panic Shredder (Panic Wipe) for one-tap irreversible data purge
+* Multi-Gateway Network with 32+ verified domains and server health indicators
+* Streamlined, clean top bar with bottom Verified Gateways Hub
+* Official HANTER XD OFFICIAL Developer Support with verified badges
+* Bug fixes and performance improvements for instant email delivery
 
 
 DEVELOPER & OFFICIAL CHANNELS:
 
 * Lead Developer: MD RASEL (Hanter XD Official)
-* Official Release APK (v2.5.0): https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO/releases/tag/v2.5.0TempMailPro
+* Official Release APK (v2.6.0): https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO/releases/tag/v2.6.0TempMailPro
 * Official Telegram Bot: https://t.me/TEMPMAIL8234_bot
 * Official Telegram Channel: https://t.me/HANTER_XD_OFFICIAL
 * Official Facebook Profile: https://www.facebook.com/md.rasel.7.8.2.3.4

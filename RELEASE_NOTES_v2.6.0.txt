@@ -1,0 +1,70 @@
+================================================================================
+TEMP MAIL PRO — RELEASE NOTES v2.6.0 (ULTIMATE PRIVACY & GATEWAY UPDATE)
+================================================================================
+
+📦 Release Tag: v2.6.0TempMailPro
+📱 Version Name: 2.6.0 (Version Code: 26)
+🛡️ Architecture: Multi-Gateway + Zero-Log Encrypted Vault
+🔗 Download Link: https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO/releases/tag/v2.6.0TempMailPro
+
+--------------------------------------------------------------------------------
+ENGLISH (For GitHub Releases & Google Play Console)
+--------------------------------------------------------------------------------
+
+🔥 WHAT'S NEW IN v2.6.0:
+
+🛡️ 100% USER PRIVACY & SECURITY GUARANTEE:
+- Built-in Privacy Shield with transparent commitment to zero logs, zero IP tracking, and zero telemetry.
+- Official Privacy Policy Dialog outlining 6 core privacy pillars.
+- Complete anonymity: no login, no phone number, no real identity required.
+
+💥 EMERGENCY PANIC SHREDDER (PANIC WIPE):
+- One-tap irreversible shredder located in the Privacy Dialog and Saved Accounts Vault.
+- Permanently purges all active and saved temporary mailboxes, cached messages, and Room DB records.
+- Immediately generates a brand-new clean burner identity.
+
+🌐 MULTI-GATEWAY ACTIVE NETWORK (32+ DOMAINS):
+- Direct routing across 5 enterprise-grade nodes: Mail.tm, Getnada, GuerrillaMail, Maildrop, and 1secmail.
+- Interactive Domain Selector with real-time health badges (Active, Fast, Pro) and search filter.
+
+🎨 STREAMLINED CLEAN UI & ACCESSIBILITY:
+- Removed redundant header buttons for a clean, distraction-free reading experience.
+- Interactive "Verified Gateways (32 Domains)" bottom hub.
+- 10-Minute countdown timer with quick extensions (+10m, +5m, reset).
+- Official Developer Support Hub featuring verified badge for MD RASEL and HANTER XD OFFICIAL logo.
+
+⚡ PERFORMANCE & RELIABILITY:
+- Ultra-fast 5-second automatic inbox polling with smart OTP extraction.
+- Offline persistence with local Room DB encryption.
+
+
+--------------------------------------------------------------------------------
+বাংলা সংস্করণ (টেলিগ্রাম চ্যানেল ও ফেসবুক পোস্টের জন্য)
+--------------------------------------------------------------------------------
+
+🚀 টেম্প মেইল প্রো (Temp Mail Pro) — নতুন সংস্করণ v2.6.0 রিলিজ!
+
+নতুন যা যুক্ত করা হয়েছে:
+🛡️ ১০০% ইউজার প্রাইভেসি ও সিকিউরিটি গ্যারান্টি:
+- জিরো-লগ নীতি: কোনো IP অ্যাড্রেস, টাইমস্ট্যাম্প বা ব্যক্তিগত তথ্য ট্র্যাক অথবা সংরক্ষণ করা হয় না।
+- আপনার আসল জিমেইল হ্যাকার ডাটাবেস ও স্প্যাম থেকে সম্পূর্ণ সুরক্ষিত।
+
+💥 প্যানিক ওয়াইপ (জরুরি ডেটা ধ্বংস / Panic Shredder):
+- এক ক্লিকেই অ্যাপের সমস্ত ডাটা, সেভ করা অ্যাকাউন্ট ও ক্যাশ চিরতরে মুছে ফেলে একটি সম্পূর্ণ ফ্রেশ ও নতুন মেইলবক্স তৈরি করার সুবিধা।
+
+🌐 ৩২+ ভেরিফাইড মাল্টি-গেটওয়ে ডোমেন:
+- Mail.tm, Getnada, GuerrillaMail, Maildrop এবং 1secmail-এর ৩২টিরও বেশি অ্যাক্টিভ ডোমেন থেকে ইচ্ছামতো মেইল বেছে নেওয়ার সুবিধা।
+
+🎨 ঝকঝকে ও ক্লিন ইন্টারফেস:
+- উপরের অপ্রয়োজনীয় বাটন সরিয়ে একদম ফ্রেশ লুক এবং নিচে সার্বক্ষণিক ভেরিফাইড গেটওয়ে হাব।
+- ১০ মিনিটের লাইভ টাইমার এবং প্রয়োজনমতো সময় বাড়িয়ে নেওয়ার সুবিধা।
+- এমডি রাসেলের (MD RASEL) অফিশিয়াল ডেভেলপার সাপোর্ট এবং HANTER XD OFFICIAL ভেরিফায়েড ব্র্যান্ডিং।
+
+📥 সরাসরি APK ডাউনলোড লিংক:
+https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO/releases/tag/v2.6.0TempMailPro
+
+🤖 অফিসিয়াল টেলিগ্রাম বট: https://t.me/TEMPMAIL8234_bot
+📢 অফিসিয়াল টেলিগ্রাম চ্যানেল: https://t.me/HANTER_XD_OFFICIAL
+💬 ডেভেলপার হোয়াটসঅ্যাপ: https://wa.me/8801882278234
+
+================================================================================
