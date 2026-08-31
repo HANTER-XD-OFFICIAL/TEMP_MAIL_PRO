@@ -82,7 +82,8 @@ private const val SUPPORT_EMAIL = "alexraselchodhury@gmail.com"
 
 @Composable
 fun DeveloperContactDialog(
-    onDismissRequest: () -> Unit
+    onDismissRequest: () -> Unit,
+    onOpenPrivacyGuarantee: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
 
@@ -401,6 +402,20 @@ fun DeveloperContactDialog(
                         testTag = "facebook_contact_btn",
                         onClick = { openUrl(context, FACEBOOK_PROFILE_URL) }
                     )
+
+                    // 7. 100% User Privacy & Security Guarantee Card
+                    if (onOpenPrivacyGuarantee != null) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        ProfessionalChannelCard(
+                            title = "100% User Privacy & Security Guarantee",
+                            subtitle = "Zero logs, encrypted local database & panic shredder",
+                            actionBadge = "Guarantee",
+                            icon = Icons.Default.Shield,
+                            brandColor = Color(0xFF10B981),
+                            testTag = "privacy_guarantee_contact_btn",
+                            onClick = onOpenPrivacyGuarantee
+                        )
+                    }
 
                     Spacer(modifier = Modifier.height(14.dp))
 

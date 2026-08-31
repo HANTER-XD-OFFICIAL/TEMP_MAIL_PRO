@@ -4,8 +4,10 @@ import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -545,7 +547,7 @@ fun HomeScreen(
                     onClick = { showPrivacyDialog = true },
                     shape = RoundedCornerShape(16.dp),
                     color = Color(0xFF064E3B).copy(alpha = 0.25f),
-                    border = androidx.compose.foundation.BorderStroke(
+                    border = BorderStroke(
                         1.dp,
                         Color(0xFF10B981).copy(alpha = 0.4f)
                     ),
@@ -833,7 +835,11 @@ fun HomeScreen(
     // Developer Contact Dialog (User Specified)
     if (showDeveloperDialog) {
         DeveloperContactDialog(
-            onDismissRequest = { showDeveloperDialog = false }
+            onDismissRequest = { showDeveloperDialog = false },
+            onOpenPrivacyGuarantee = {
+                showDeveloperDialog = false
+                showPrivacyDialog = true
+            }
         )
     }
 
