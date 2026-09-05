@@ -114,34 +114,34 @@ bot.onText(/\/start/, async (msg) => {
   const firstName = msg.from.first_name || 'User';
 
   const welcomeMessage = `
-⚡ <b>স্বাগতম ${firstName}! Temp Mail Pro অফিসিয়াল বটে!</b>
+⚡ <b>Welcome ${firstName} to Temp Mail Pro Official Bot!</b>
 
 🛡️ <b>Developed by:</b> <a href="${DEVELOPER_PROFILE}">${DEVELOPER_NAME}</a> (Hanter XD Official)
-🤖 <b>বট ইউজারনেম:</b> @TEMPMAILPRO34_bot
-📱 <b>Android App v2.6.0:</b> <a href="${APK_DOWNLOAD_URL}">এখানে ডাউনলোড করুন</a>
+🤖 <b>Bot Username:</b> @TEMPMAILPRO34_bot
+📱 <b>Android App v2.6.0:</b> <a href="${APK_DOWNLOAD_URL}">Download APK Here</a>
 
-এই বটের মাধ্যমে আপনি সম্পূর্ণ ফ্রিতে চব্বিশ ঘণ্টা আনলিমিটেড টেম্পোরারি ইমেইল তৈরি করতে পারবেন এবং ফেসবুক, টেলিগ্রাম, টিকটক, জিমেইলসহ যেকোনো সাইটের <b>লাইভ ওটিপি (OTP) ও ভেরিফিকেশন কোড</b> দেখতে পাবেন!
+With this bot, you can generate 100% free anonymous disposable email addresses 24/7, and receive instant <b>live OTP codes & verification emails</b> for Facebook, Telegram, TikTok, Google, and any online service!
 
-💡 <b>আপনার Telegram Chat ID:</b> <code>${chatId}</code>
-<i>(Temp Mail Pro অ্যাপে এই Chat ID লিঙ্ক করে ওটিপি সরাসরি এখানে পেতে পারেন)</i>
+💡 <b>Your Telegram Chat ID:</b> <code>${chatId}</code>
+<i>(Link this Chat ID in Temp Mail Pro Android App to forward OTPs automatically)</i>
 `;
 
   const keyboard = {
     inline_keyboard: [
       [
-        { text: '⚡ নতুন ইমেইল তৈরি করুন (Generate)', callback_data: 'GEN_NEW_MAIL' },
-        { text: '📬 ইনবক্স চেক করুন (Check Inbox)', callback_data: 'CHECK_INBOX' }
+        { text: '⚡ Generate New Email', callback_data: 'GEN_NEW_MAIL' },
+        { text: '📬 Check Inbox', callback_data: 'CHECK_INBOX' }
       ],
       [
-        { text: '🔄 ওটিপি অটো-রিফ্রেশ (Auto Check)', callback_data: 'AUTO_REFRESH' },
-        { text: '🗑️ সেশন রিসেট করুন', callback_data: 'RESET_MAIL' }
+        { text: '🔄 Auto Refresh (OTP)', callback_data: 'AUTO_REFRESH' },
+        { text: '🗑️ Reset Session', callback_data: 'RESET_MAIL' }
       ],
       [
-        { text: '📢 টেলিগ্রাম চ্যানেল', url: TELEGRAM_CHANNEL },
-        { text: '💬 ডেভেলপার হোয়াটসঅ্যাপ', url: WHATSAPP_CONTACT }
+        { text: '📢 Telegram Channel', url: TELEGRAM_CHANNEL },
+        { text: '💬 Developer WhatsApp', url: WHATSAPP_CONTACT }
       ],
       [
-        { text: '📥 Android APK ডাউনলোড (v2.6.0)', url: APK_DOWNLOAD_URL }
+        { text: '📥 Download Android APK (v2.6.0)', url: APK_DOWNLOAD_URL }
       ]
     ]
   };
@@ -166,7 +166,7 @@ bot.onText(/\/(inbox|check)/, async (msg) => {
 // /id or /myid Command
 bot.onText(/\/(id|myid)/, async (msg) => {
   const chatId = msg.chat.id;
-  await bot.sendMessage(chatId, `🆔 <b>আপনার Telegram Chat ID:</b> <code>${chatId}</code>\n\nঅ্যাপে ইনবক্স ফরোয়ার্ড চালু করতে এই আইডিটি ব্যবহার করুন।`, {
+  await bot.sendMessage(chatId, `🆔 <b>Your Telegram Chat ID:</b> <code>${chatId}</code>\n\nUse this ID in the Temp Mail Pro app to enable instant OTP forwarding.`, {
     parse_mode: 'HTML'
   });
 });
@@ -199,18 +199,18 @@ bot.on('callback_query', async (query) => {
 
   try {
     if (data === 'GEN_NEW_MAIL') {
-      await bot.answerCallbackQuery(query.id, { text: 'নতুন ইমেইল তৈরি হচ্ছে...' });
+      await bot.answerCallbackQuery(query.id, { text: 'Generating new email...' });
       await handleGenerateEmail(chatId);
     } else if (data === 'CHECK_INBOX' || data === 'AUTO_REFRESH') {
-      await bot.answerCallbackQuery(query.id, { text: 'ইনবক্স চেক করা হচ্ছে...' });
+      await bot.answerCallbackQuery(query.id, { text: 'Checking inbox...' });
       await handleCheckInbox(chatId);
     } else if (data === 'RESET_MAIL') {
       userSessions.delete(chatId);
-      await bot.answerCallbackQuery(query.id, { text: 'সেশন ক্লিয়ার করা হয়েছে' });
-      await bot.sendMessage(chatId, '🗑️ আপনার পূর্বের ইমেইল সেশন মুছে ফেলা হয়েছে। নতুন ইমেইল পেতে /new চাপুন।');
+      await bot.answerCallbackQuery(query.id, { text: 'Session cleared' });
+      await bot.sendMessage(chatId, '🗑️ Your previous email session has been cleared. Send /new or tap Generate to create a fresh inbox.');
     } else if (data.startsWith('READ_MSG_')) {
       const msgId = data.replace('READ_MSG_', '');
-      await bot.answerCallbackQuery(query.id, { text: 'ইমেইল পড়া হচ্ছে...' });
+      await bot.answerCallbackQuery(query.id, { text: 'Loading message...' });
       await handleReadMessage(chatId, msgId);
     }
   } catch (err) {
@@ -224,25 +224,25 @@ async function handleGenerateEmail(chatId) {
   userSessions.set(chatId, mailbox);
 
   const text = `
-⚡ <b>আপনার সক্রিয় অস্থায়ী ইমেইল তৈরি সম্পন্ন হয়েছে!</b>
+⚡ <b>Your Active Disposable Email is Ready!</b>
 
-✉️ <b>ইমেইল এড্রেস:</b>
-<code>${mailbox.email}</code> <i>(ট্যাপ করে কপি করুন)</i>
+✉️ <b>Email Address:</b>
+<code>${mailbox.email}</code> <i>(Tap to copy)</i>
 
-🌐 <b>ডোমেইন নোড:</b> <code>${mailbox.domain}</code>
-⏱️ <b>মেয়াদ:</b> সক্রিয় (24/7 Live Node)
-🛡️ <b>প্রাইভেসি:</b> 100% অ্যানোনিমাস ও সুরক্ষিত
+🌐 <b>Domain Node:</b> <code>${mailbox.domain}</code>
+⏱️ <b>Uptime:</b> Active (24/7 Live Node)
+🛡️ <b>Privacy:</b> 100% Anonymous & Secure
 
-<i>যেকোনো ওয়েবসাইট বা অ্যাপে এই ইমেইলটি দিন। ওটিপি আসলে নিচের 'ইনবক্স চেক করুন' বাটনে চাপুন।</i>
+<i>Paste this email into any website or app. When an OTP or email arrives, tap 'Check Inbox & OTP' below.</i>
 `;
 
   const keyboard = {
     inline_keyboard: [
       [
-        { text: '📬 ইনবক্স ও ওটিপি চেক করুন', callback_data: 'CHECK_INBOX' }
+        { text: '📬 Check Inbox & OTP', callback_data: 'CHECK_INBOX' }
       ],
       [
-        { text: '🔄 অন্য একটি ইমেইল বানান', callback_data: 'GEN_NEW_MAIL' },
+        { text: '🔄 Generate Another Email', callback_data: 'GEN_NEW_MAIL' },
         { text: '📥 Android App', url: APK_DOWNLOAD_URL }
       ]
     ]
@@ -258,10 +258,10 @@ async function handleGenerateEmail(chatId) {
 async function handleCheckInbox(chatId) {
   const session = userSessions.get(chatId);
   if (!session) {
-    await bot.sendMessage(chatId, '⚠️ আপনার কোনো সক্রিয় ইমেইল নেই! প্রথমে নিচের বাটনে চাপ দিয়ে একটি ইমেইল তৈরি করে নিন।', {
+    await bot.sendMessage(chatId, '⚠️ You do not have an active email session yet! Tap the button below to generate one.', {
       reply_markup: {
         inline_keyboard: [
-          [{ text: '⚡ নতুন ইমেইল তৈরি করুন', callback_data: 'GEN_NEW_MAIL' }]
+          [{ text: '⚡ Generate New Email', callback_data: 'GEN_NEW_MAIL' }]
         ]
       }
     });
@@ -272,17 +272,17 @@ async function handleCheckInbox(chatId) {
 
   if (!messages || messages.length === 0) {
     const emptyText = `
-📭 <b>ইনবক্স বর্তমানে খালি!</b>
+📭 <b>Inbox is currently empty!</b>
 
-✉️ <b>টার্গেট ইমেইল:</b> <code>${session.email}</code>
-⏱️ <i>এখনো কোনো নতুন বার্তা বা ওটিপি আসেনি। অনুগ্রহ করে যে সাইটে ইমেইলটি দিয়েছেন সেখান থেকে ভেরিফিকেশন রিকোয়েস্ট পাঠান এবং ১০-১৫ সেকেন্ড পর পুনরায় চেক করুন।</i>
+✉️ <b>Target Mailbox:</b> <code>${session.email}</code>
+⏱️ <i>No incoming messages or OTP codes received yet. Please trigger the verification from the target website or app and check again in 10-15 seconds.</i>
 `;
     await bot.sendMessage(chatId, emptyText, {
       parse_mode: 'HTML',
       reply_markup: {
         inline_keyboard: [
-          [{ text: '🔄 আবার রিফ্রেশ করুন', callback_data: 'CHECK_INBOX' }],
-          [{ text: '⚡ নতুন ইমেইল বানান', callback_data: 'GEN_NEW_MAIL' }]
+          [{ text: '🔄 Refresh Inbox', callback_data: 'CHECK_INBOX' }],
+          [{ text: '⚡ Generate New Email', callback_data: 'GEN_NEW_MAIL' }]
         ]
       }
     });
@@ -290,7 +290,7 @@ async function handleCheckInbox(chatId) {
   }
 
   // Found messages
-  let listText = `📬 <b>মোট ${messages.length} টি ইমেইল পাওয়া গেছে!</b>\n✉️ <b>ইমেইল:</b> <code>${session.email}</code>\n\n`;
+  let listText = `📬 <b>Found ${messages.length} Message(s)!</b>\n✉️ <b>Mailbox:</b> <code>${session.email}</code>\n\n`;
 
   const inlineButtons = [];
 
@@ -302,13 +302,13 @@ async function handleCheckInbox(chatId) {
     listText += `🔹 <b>From:</b> ${fromSender}\n📝 <b>Subject:</b> ${subj}\n⏰ <b>Time:</b> ${date}\n\n`;
 
     inlineButtons.push([
-      { text: `📖 পড়ুন: ${subj.substring(0, 25)}`, callback_data: `READ_MSG_${m.id}` }
+      { text: `📖 Read: ${subj.substring(0, 25)}`, callback_data: `READ_MSG_${m.id}` }
     ]);
   }
 
   inlineButtons.push([
-    { text: '🔄 রিফ্রেশ ইনবক্স', callback_data: 'CHECK_INBOX' },
-    { text: '⚡ নতুন ইমেইল', callback_data: 'GEN_NEW_MAIL' }
+    { text: '🔄 Refresh Inbox', callback_data: 'CHECK_INBOX' },
+    { text: '⚡ New Email', callback_data: 'GEN_NEW_MAIL' }
   ]);
 
   await bot.sendMessage(chatId, listText, {
@@ -321,13 +321,13 @@ async function handleCheckInbox(chatId) {
 async function handleReadMessage(chatId, msgId) {
   const session = userSessions.get(chatId);
   if (!session) {
-    await bot.sendMessage(chatId, '⚠️ সেশন পাওয়া যায়নি। অনুগ্রহ করে নতুন ইমেইল তৈরি করুন।');
+    await bot.sendMessage(chatId, '⚠️ Active session not found. Please create a new temporary mailbox.');
     return;
   }
 
   const detail = await getMessageDetails(session.login, session.domain, msgId);
   if (!detail) {
-    await bot.sendMessage(chatId, '❌ বার্তা লোড করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।');
+    await bot.sendMessage(chatId, '❌ Failed to load message content. Please try again.');
     return;
   }
 
@@ -337,33 +337,33 @@ async function handleReadMessage(chatId, msgId) {
   const otp = extractOtp(bodyText) || extractOtp(subject);
 
   let fullMsg = `
-📬 <b>Temp Mail Pro — ইমেইল বিস্তারিত</b>
+📬 <b>Temp Mail Pro — Message Details</b>
 
-👤 <b>প্রেরক:</b> <code>${sender}</code>
-📝 <b>বিষয়:</b> <b>${subject}</b>
-⏰ <b>তারিখ:</b> ${detail.date || 'N/A'}
+👤 <b>From:</b> <code>${sender}</code>
+📝 <b>Subject:</b> <b>${subject}</b>
+⏰ <b>Date:</b> ${detail.date || 'N/A'}
 `;
 
   if (otp) {
     fullMsg += `
 ⚡━━━━━━━━━━━━━━━━━━━━⚡
-🔑 <b>শনাক্তকৃত ওটিপি / সিকিউরিটি কোড:</b>
-👉 <code>${otp}</code> 👈 <i>(ট্যাপ করে কপি করুন)</i>
+🔑 <b>DETECTED OTP / SECURITY CODE:</b>
+👉 <code>${otp}</code> 👈 <i>(Tap code to copy)</i>
 ⚡━━━━━━━━━━━━━━━━━━━━⚡
 `;
   }
 
   // Trim long text for telegram limits
   const cleanBody = bodyText.replace(/<[^>]*>?/gm, '').trim();
-  const previewBody = cleanBody.length > 800 ? cleanBody.substring(0, 800) + '...\n<i>(বাকি অংশ বড় হওয়ার কারণে সংক্ষেপ করা হয়েছে)</i>' : cleanBody;
+  const previewBody = cleanBody.length > 800 ? cleanBody.substring(0, 800) + '...\n<i>(Truncated for length)</i>' : cleanBody;
 
-  fullMsg += `\n📄 <b>বার্তার বিষয়বস্তু:</b>\n${previewBody || '<i>কোনো টেক্সট পাওয়া যায়নি</i>'}`;
+  fullMsg += `\n📄 <b>Message Content:</b>\n${previewBody || '<i>No text content found</i>'}`;
 
   const keyboard = {
     inline_keyboard: [
       [
-        { text: '⬅️ ইনবক্সে ফিরে যান', callback_data: 'CHECK_INBOX' },
-        { text: '🔄 রিফ্রেশ', callback_data: 'CHECK_INBOX' }
+        { text: '⬅️ Back to Inbox', callback_data: 'CHECK_INBOX' },
+        { text: '🔄 Refresh', callback_data: 'CHECK_INBOX' }
       ]
     ]
   };
