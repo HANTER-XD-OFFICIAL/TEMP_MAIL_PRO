@@ -35,7 +35,7 @@ WHY CHOOSE TEMP MAIL PRO?
 * SMART OTP DETECTION: Real-time algorithm automatically scans, highlights, and lets you copy verification codes in 1 tap.
 * GMAIL-STYLE READER: Clean, modern, and intuitive Material 3 interface with rendered HTML and raw source preview.
 * 10-MINUTE ACTIVE COUNTDOWN TIMER: Includes fast extensions (+10 Min, +5 Min, Reset) to keep your temporary session under your control.
-* TELEGRAM BOT INTEGRATION: Create and receive emails directly via our official Telegram bot (@TEMPMAIL8234_bot) and sync them with your phone.
+* TELEGRAM BOT INTEGRATION: Create and receive emails directly via our official Telegram bot (@TEMPMAILPRO34_bot) and sync them with your phone.
 * MULTIPLE ACCOUNT MANAGEMENT: Switch, save, restore, or wipe temporary mail accounts effortlessly with encrypted Room DB.
 * MULTI-LANGUAGE SUPPORT: Fully localized in English, Bengali (বাংলা), Hindi (हिन्दी), Arabic (العربية), and Spanish (Español).
 
@@ -73,7 +73,7 @@ DEVELOPER & OFFICIAL CHANNELS:
 
 * Lead Developer: MD RASEL (Hanter XD Official)
 * Official Release APK (v2.6.0): https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO/releases/tag/v2.6.0TempMailPro
-* Official Telegram Bot: https://t.me/TEMPMAIL8234_bot
+* Official Telegram Bot: https://t.me/TEMPMAILPRO34_bot (@TEMPMAILPRO34_bot)
 * Official Telegram Channel: https://t.me/HANTER_XD_OFFICIAL
 * Official Facebook Profile: https://www.facebook.com/md.rasel.7.8.2.3.4
 * WhatsApp Support Chat: https://wa.me/8801882278234

@@ -1,0 +1,27 @@
+{
+  "name": "temp-mail-pro-telegram-bot",
+  "version": "1.0.0",
+  "description": "24/7 Telegram Bot for Temp Mail Pro & OTP Verification by MD RASEL (Hanter XD Official)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "telegram-bot",
+    "temp-mail",
+    "otp",
+    "render",
+    "hanter-xd-official"
+  ],
+  "author": "MD RASEL (Hanter XD Official)",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.7.7",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "node-telegram-bot-api": "^0.66.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

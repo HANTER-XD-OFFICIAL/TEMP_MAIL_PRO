@@ -9,7 +9,7 @@
   [![Kotlin](https://img.shields.io/badge/Language-Kotlin%20100%25-7F52FF.svg?style=for-the-badge&logo=kotlin)](https://kotlinlang.org)
   [![Jetpack Compose](https://img.shields.io/badge/UI-Jetpack%20Compose%20M3-4285F4.svg?style=for-the-badge&logo=jetpackcompose)](https://developer.android.com/jetpack/compose)
   [![Privacy Shield](https://img.shields.io/badge/Privacy-100%25%20Guaranteed-10B981.svg?style=for-the-badge&logo=shield)](https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO)
-  [![Telegram Bot](https://img.shields.io/badge/Telegram%20Bot-%40TEMPMAIL8234__bot-229ED9.svg?style=for-the-badge&logo=telegram)](https://t.me/TEMPMAIL8234_bot)
+  [![Telegram Bot](https://img.shields.io/badge/Telegram%20Bot-%40TEMPMAILPRO34__bot-229ED9.svg?style=for-the-badge&logo=telegram)](https://t.me/TEMPMAILPRO34_bot)
   [![Download Android APK](https://img.shields.io/badge/Download-Android%20APK-2ea44f?style=for-the-badge&logo=android&logoColor=white)](https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO/releases/tag/v2.5.0TempMailPro)
   
   <br/>
@@ -75,8 +75,8 @@ Whether registering on untrusted platforms, testing SaaS pipelines, bypassing re
 - Dedicated highlighted **OTP Action Card** in the Gmail-style email reader for single-tap code copying.
 
 ### 4. 🤖 Full Telegram Bot Ecosystem Integration
-- Integrated with the **`@TEMPMAIL8234_bot`** Telegram Bot.
-- Create and check mailboxes directly from Telegram, with cross-device sync capability in the Android client.
+- Integrated with the official **`@TEMPMAILPRO34_bot`** Telegram Bot (Authenticated Token: `8659662216:AAHfx...EXwI`).
+- Create and check mailboxes directly from Telegram, auto-detect chat IDs, forward OTP codes, and sync inboxes seamlessly with the Android app.
 
 ### 5. 🎨 Modern Gmail-Style UI/UX
 - Material 3 dynamic color scheme, fluid edge-to-edge support, and responsive layouts.
@@ -149,7 +149,8 @@ Direct APK download is available on GitHub Releases:
 Connect directly with the official team for updates, support, and community discussions:
 
 - 📥 **[Download Latest APK v2.6.0](https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO/releases/tag/v2.6.0TempMailPro)**
-- 🤖 **[Official Telegram Bot](https://t.me/TEMPMAIL8234_bot)**
+- 🤖 **[Official Telegram Bot](https://t.me/TEMPMAILPRO34_bot)** (@TEMPMAILPRO34_bot)
+- 🚀 **[24/7 Render Deployment Guide (বাংলা)](telegram-bot/DEPLOY_RENDER_GUIDE.md)**
 - 📢 **[Official Telegram Channel](https://t.me/HANTER_XD_OFFICIAL)**
 - 💬 **[Developer WhatsApp Support](https://wa.me/8801882278234)**
 - 📘 **[Developer Facebook Profile](https://www.facebook.com/md.rasel.7.8.2.3.4)**

@@ -75,7 +75,7 @@ import com.example.R
 
 private const val WHATSAPP_URL = "https://wa.me/8801882278234"
 private const val TELEGRAM_CHANNEL_URL = "https://t.me/HANTER_XD_OFFICIAL"
-private const val TELEGRAM_BOT_URL = "https://t.me/TEMPMAIL8234_bot"
+private const val TELEGRAM_BOT_URL = "https://t.me/TEMPMAILPRO34_bot"
 private const val GITHUB_REPO_URL = "https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO"
 private const val FACEBOOK_PROFILE_URL = "https://www.facebook.com/md.rasel.7.8.2.3.4"
 private const val SUPPORT_EMAIL = "alexraselchodhury@gmail.com"

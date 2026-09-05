@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: temp-mail-pro-telegram-bot
+    env: node
+    plan: free
+    region: singapore # or frankfurt / oregon
+    rootDir: telegram-bot
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeploy: true
+    healthCheckPath: /health
+    envVars:
+      - key: BOT_TOKEN
+        value: 8659662216:AAHfxsv6-XG3k2K75lMWfidI10T2KeGEXwI
+      - key: NODE_ENV
+        value: production

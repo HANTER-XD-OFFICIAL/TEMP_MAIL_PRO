@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.text.Html
 import android.widget.TextView
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -33,6 +34,7 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -54,12 +56,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
@@ -71,6 +75,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.example.data.api.MessageDetailResponse
+import com.example.util.TelegramBotManager
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -87,6 +93,7 @@ fun EmailDetailDialog(
     onCopyContent: (String) -> Unit
 ) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     var viewMode by remember { mutableIntStateOf(0) } // 0: Clean View, 1: Raw HTML/Code
     var showRecipientDetails by remember { mutableStateOf(false) }
 
@@ -187,6 +194,54 @@ fun EmailDetailDialog(
                                     imageVector = Icons.Default.ContentCopy,
                                     contentDescription = "Copy Content",
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+
+                            // Forward to Telegram Bot
+                            IconButton(
+                                onClick = {
+                                    val linkedChat = TelegramBotManager.getLinkedChatId(context)
+                                    if (linkedChat.isNotBlank()) {
+                                        coroutineScope.launch {
+                                            val otp = detectedOtp
+                                            val res = if (!otp.isNullOrBlank()) {
+                                                TelegramBotManager.sendOtpAlertToTelegram(
+                                                    chatId = linkedChat,
+                                                    emailAddress = message.to.firstOrNull()?.address ?: "",
+                                                    sender = message.from.name ?: message.from.address,
+                                                    subject = message.subject ?: "Verification",
+                                                    otpCode = otp
+                                                )
+                                            } else {
+                                                TelegramBotManager.sendEmailToTelegram(
+                                                    chatId = linkedChat,
+                                                    emailAddress = message.to.firstOrNull()?.address ?: "",
+                                                    domain = "Received Message"
+                                                )
+                                            }
+                                            if (res.isSuccess) {
+                                                Toast.makeText(context, "Forwarded to Telegram (@${TelegramBotManager.BOT_USERNAME})! ✅", Toast.LENGTH_SHORT).show()
+                                            } else {
+                                                Toast.makeText(context, "Telegram: ${res.exceptionOrNull()?.message}", Toast.LENGTH_SHORT).show()
+                                            }
+                                        }
+                                    } else {
+                                        try {
+                                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/${TelegramBotManager.BOT_USERNAME}")).apply {
+                                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                            }
+                                            context.startActivity(intent)
+                                        } catch (e: Exception) {
+                                            // Ignored
+                                        }
+                                    }
+                                },
+                                modifier = Modifier.testTag("telegram_forward_btn")
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.SmartToy,
+                                    contentDescription = "Forward to Telegram",
+                                    tint = Color(0xFF229ED9)
                                 )
                             }
 
@@ -395,11 +450,54 @@ fun EmailDetailDialog(
                                         }
                                     }
 
-                                    FilledTonalButton(
-                                        onClick = { onCopyContent(detectedOtp) },
-                                        shape = RoundedCornerShape(12.dp)
-                                    ) {
-                                        Text("Copy Code")
+                                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                        FilledTonalButton(
+                                            onClick = { onCopyContent(detectedOtp) },
+                                            shape = RoundedCornerShape(12.dp)
+                                        ) {
+                                            Text("Copy")
+                                        }
+
+                                        FilledTonalButton(
+                                            onClick = {
+                                                val linkedChat = TelegramBotManager.getLinkedChatId(context)
+                                                if (linkedChat.isNotBlank()) {
+                                                    coroutineScope.launch {
+                                                        val res = TelegramBotManager.sendOtpAlertToTelegram(
+                                                            chatId = linkedChat,
+                                                            emailAddress = message.to.firstOrNull()?.address ?: "",
+                                                            sender = message.from.name ?: message.from.address,
+                                                            subject = message.subject ?: "Verification Code",
+                                                            otpCode = detectedOtp
+                                                        )
+                                                        if (res.isSuccess) {
+                                                            Toast.makeText(context, "OTP sent to Telegram! ✅", Toast.LENGTH_SHORT).show()
+                                                        } else {
+                                                            Toast.makeText(context, "Failed: ${res.exceptionOrNull()?.message}", Toast.LENGTH_SHORT).show()
+                                                        }
+                                                    }
+                                                } else {
+                                                    try {
+                                                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/${TelegramBotManager.BOT_USERNAME}")).apply {
+                                                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                                        }
+                                                        context.startActivity(intent)
+                                                    } catch (e: Exception) {
+                                                        // Ignored
+                                                    }
+                                                }
+                                            },
+                                            shape = RoundedCornerShape(12.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.SmartToy,
+                                                contentDescription = null,
+                                                tint = Color(0xFF229ED9),
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(4.dp))
+                                            Text("Bot")
+                                        }
                                     }
                                 }
                             }

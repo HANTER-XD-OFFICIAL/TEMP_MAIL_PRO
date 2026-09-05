@@ -270,6 +270,21 @@ fun HomeScreen(
                         )
                     }
 
+                    // Telegram Bot Action Button (compact)
+                    IconButton(
+                        onClick = { showTelegramWelcomeDialog = true },
+                        modifier = Modifier
+                            .size(36.dp)
+                            .testTag("telegram_bot_top_btn")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Send,
+                            contentDescription = "Telegram Bot (@TEMPMAILPRO34_bot)",
+                            tint = Color(0xFF229ED9),
+                            modifier = Modifier.size(19.dp)
+                        )
+                    }
+
                     // Developer Support Action Button (compact)
                     IconButton(
                         onClick = { showDeveloperDialog = true },
@@ -801,7 +816,7 @@ fun HomeScreen(
     // Telegram Bot Welcome Dialog (Auto-pops on start & on tap)
     if (showTelegramWelcomeDialog) {
         TelegramBotWelcomeDialog(
-            botUsername = "TEMPMAIL8234_bot",
+            botUsername = "TEMPMAILPRO34_bot",
             onDismiss = { showTelegramWelcomeDialog = false }
         )
     }

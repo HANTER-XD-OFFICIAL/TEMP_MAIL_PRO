@@ -153,4 +153,16 @@ object ApiClient {
             .build()
             .create(MailTmApi::class.java)
     }
+
+    // ==================== TELEGRAM BOT API ====================
+    const val TELEGRAM_API_BASE_URL = "https://api.telegram.org/"
+
+    val telegramBotService: TelegramBotApi by lazy {
+        Retrofit.Builder()
+            .baseUrl(TELEGRAM_API_BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+            .create(TelegramBotApi::class.java)
+    }
 }
