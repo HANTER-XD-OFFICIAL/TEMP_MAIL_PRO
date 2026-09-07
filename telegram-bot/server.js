@@ -70,6 +70,23 @@ function extractOtp(text) {
   return standalone ? standalone[0] : null;
 }
 
+// Clean email body into a clean, modern Gmail-style snippet
+function cleanSnippet(text, maxLen = 220) {
+  if (!text) return 'No preview text';
+  let cleaned = text
+    .replace(/<[^>]*>?/gm, ' ')
+    .replace(/-{3,}\s*(Forwarded message|Original Message)[\s\S]*?(Subject:[^\n]*\n|To:[^\n]*\n|\n\n)/gi, '')
+    .replace(/(?:From|Date|Subject|To):[^\n]*\n/gi, '')
+    .replace(/[\r\n\t]+/g, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+
+  if (cleaned.length > maxLen) {
+    return cleaned.substring(0, maxLen).trim() + '...';
+  }
+  return cleaned || 'Tap to read full email body';
+}
+
 // ==========================================
 // 4. MULTI-ENGINE EMAIL API SERVICES
 // ==========================================
@@ -272,26 +289,28 @@ function startAutoPoller(chatId, session) {
           const fullContent = (detail?.text || '') + '\n' + (msg.subject || '') + '\n' + (msg.intro || '');
           const otp = extractOtp(fullContent);
 
-          let pushAlert = `🔔 <b>NEW EMAIL RECEIVED!</b>\n\n`;
+          let pushAlert = `📬 <b>New Email Received (Gmail Inbox)</b>\n`;
+          pushAlert += `─────────────────────────\n`;
+          pushAlert += `👤 <b>From:</b> <b>${msg.from}</b>\n`;
+          pushAlert += `📝 <b>Subject:</b> ${msg.subject || '(No Subject)'}\n`;
+          pushAlert += `✉️ <b>To:</b> <code>${currentSession.address}</code>\n`;
+
           if (otp) {
-            pushAlert += `⚡━━━━━━━━━━━━━━━━━━━━⚡\n`;
-            pushAlert += `🔑 <b>DETECTED OTP / SECURITY CODE:</b>\n`;
-            pushAlert += `👉 <code>${otp}</code> 👈 <i>(Tap code to copy)</i>\n`;
-            pushAlert += `⚡━━━━━━━━━━━━━━━━━━━━⚡\n\n`;
+            pushAlert += `\n🔑 <b>Security Code / OTP:</b>\n`;
+            pushAlert += `👉 <code>${otp}</code> 👈 <i>(Tap to copy)</i>\n`;
           }
 
-          pushAlert += `📬 <b>Mailbox:</b> <code>${currentSession.address}</code>\n`;
-          pushAlert += `👤 <b>From:</b> <code>${msg.from}</code>\n`;
-          pushAlert += `📝 <b>Subject:</b> <b>${msg.subject}</b>\n`;
-          if (detail?.text) {
-            const preview = detail.text.replace(/<[^>]*>?/gm, '').trim().substring(0, 300);
-            pushAlert += `\n📄 <b>Preview:</b> <i>${preview}</i>\n`;
-          }
+          const snippet = cleanSnippet(detail?.text || msg.intro);
+          pushAlert += `\n💬 <b>Snippet:</b>\n<i>${snippet}</i>\n`;
 
-          const inlineKeyboard = [
-            [{ text: '📖 Read Full Email', callback_data: `READ_MSG_${msg.id}` }],
-            [{ text: '🔄 Refresh Inbox', callback_data: 'CHECK_INBOX' }]
-          ];
+          const inlineKeyboard = [];
+          if (otp) {
+            inlineKeyboard.push([{ text: `⚡ Copy Code: ${otp}`, callback_data: `READ_MSG_${msg.id}` }]);
+          }
+          inlineKeyboard.push([
+            { text: '📖 Read Full Email', callback_data: `READ_MSG_${msg.id}` },
+            { text: '🔄 Refresh Inbox', callback_data: 'CHECK_INBOX' }
+          ]);
 
           await bot.sendMessage(chatId, pushAlert, {
             parse_mode: 'HTML',
@@ -696,30 +715,30 @@ app.post('/api/forward', async (req, res) => {
       return res.status(400).json({ ok: false, error: 'Missing chatId' });
     }
 
-    let alertText = '';
+    const snippet = cleanSnippet(preview);
+    let alertText = `📬 <b>New Email Received (Gmail Inbox)</b>\n`;
+    alertText += `─────────────────────────\n`;
+    alertText += `👤 <b>From:</b> <b>${sender || 'Online Service'}</b>\n`;
+    alertText += `📝 <b>Subject:</b> ${subject || '(No Subject)'}\n`;
+    alertText += `✉️ <b>To:</b> <code>${email || 'Active Mailbox'}</code>\n`;
+
     if (otpCode) {
-      alertText = `
-🔑 <b>Temp Mail Pro — Live OTP Security Alert!</b>
-
-⚡ <b>Verification Code:</b>
-👉 <code>${otpCode}</code> 👈 <i>(Tap code to copy)</i>
-
-📬 <b>Mailbox:</b> <code>${email || 'Active'}</code>
-👤 <b>From:</b> ${sender || 'Online Service'}
-📝 <b>Subject:</b> ${subject || 'Verification'}
-`;
-    } else {
-      alertText = `
-📬 <b>Temp Mail Pro — New Incoming Email!</b>
-
-✉️ <b>Mailbox:</b> <code>${email || 'Active'}</code>
-👤 <b>From:</b> ${sender || 'Unknown'}
-📝 <b>Subject:</b> ${subject || 'No Subject'}
-📄 <b>Preview:</b> <i>${(preview || '').substring(0, 300)}</i>
-`;
+      alertText += `\n🔑 <b>Security Code / OTP:</b>\n`;
+      alertText += `👉 <code>${otpCode}</code> 👈 <i>(Tap code to copy)</i>\n`;
     }
 
-    await bot.sendMessage(chatId, alertText, { parse_mode: 'HTML' });
+    alertText += `\n💬 <b>Snippet:</b>\n<i>${snippet}</i>\n`;
+
+    const inlineKeyboard = [];
+    if (otpCode) {
+      inlineKeyboard.push([{ text: `⚡ Copy Code: ${otpCode}`, callback_data: 'CHECK_INBOX' }]);
+    }
+    inlineKeyboard.push([{ text: '🔄 Refresh Inbox', callback_data: 'CHECK_INBOX' }]);
+
+    await bot.sendMessage(chatId, alertText, {
+      parse_mode: 'HTML',
+      reply_markup: { inline_keyboard: inlineKeyboard }
+    });
     return res.json({ ok: true });
   } catch (err) {
     return res.status(500).json({ ok: false, error: err.message });

@@ -29,6 +29,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContactSupport
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Dns
@@ -36,6 +37,7 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.Hub
 import androidx.compose.material.icons.filled.Inbox
+import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.MarkEmailRead
 import androidx.compose.material.icons.filled.Person
@@ -145,6 +147,7 @@ fun HomeScreen(
     var showServerHubDialog by remember { mutableStateOf(false) }
     var showDomainSelectorDialog by remember { mutableStateOf(false) }
     var showPrivacyDialog by remember { mutableStateOf(false) }
+    var selectedInboxTab by remember { mutableStateOf(0) } // 0: All, 1: Unread, 2: OTP / Codes
 
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -155,14 +158,26 @@ fun HomeScreen(
         }
     }
 
-    val filteredMessages = remember(messages, searchQuery) {
-        if (searchQuery.isBlank()) messages else {
+    val filteredMessages = remember(messages, searchQuery, selectedInboxTab) {
+        val baseList = if (searchQuery.isBlank()) messages else {
             messages.filter {
                 (it.subject ?: "").contains(searchQuery, ignoreCase = true) ||
                         (it.from.address).contains(searchQuery, ignoreCase = true) ||
                         (it.from.name ?: "").contains(searchQuery, ignoreCase = true) ||
                         (it.intro ?: "").contains(searchQuery, ignoreCase = true)
             }
+        }
+
+        when (selectedInboxTab) {
+            1 -> baseList.filter { !it.seen }
+            2 -> baseList.filter {
+                val full = (it.subject ?: "") + " " + (it.intro ?: "")
+                full.contains("code", ignoreCase = true) ||
+                        full.contains("otp", ignoreCase = true) ||
+                        full.contains("verification", ignoreCase = true) ||
+                        Regex("""\b\d{4,8}\b""").containsMatchIn(full)
+            }
+            else -> baseList
         }
     }
 
@@ -725,62 +740,153 @@ fun HomeScreen(
                 }
             }
 
-            // Search Bar
+            // Gmail-style Search Bar
             item {
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { viewModel.setSearchQuery(it) },
-                    placeholder = { Text(strings.searchPlaceholder) },
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                Surface(
+                    shape = RoundedCornerShape(24.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    border = androidx.compose.foundation.BorderStroke(
+                        1.dp,
+                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+                    ),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .testTag("inbox_search_input"),
-                    shape = RoundedCornerShape(16.dp),
-                    singleLine = true
-                )
+                        .testTag("inbox_search_container")
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 14.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Search emails",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        androidx.compose.foundation.text.BasicTextField(
+                            value = searchQuery,
+                            onValueChange = { viewModel.setSearchQuery(it) },
+                            modifier = Modifier
+                                .weight(1f)
+                                .testTag("inbox_search_input"),
+                            singleLine = true,
+                            textStyle = MaterialTheme.typography.bodyMedium.copy(
+                                color = MaterialTheme.colorScheme.onSurface
+                            ),
+                            decorationBox = { innerTextField ->
+                                if (searchQuery.isEmpty()) {
+                                    Text(
+                                        text = strings.searchPlaceholder,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                    )
+                                }
+                                innerTextField()
+                            }
+                        )
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(
+                                onClick = { viewModel.setSearchQuery("") },
+                                modifier = Modifier.size(24.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Clear search",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
+                    }
+                }
             }
 
-            // Inbox Header Row
+            // Gmail-style Category Filter Tabs (All, Unread, OTP/Codes)
             item {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 4.dp, vertical = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                        .padding(vertical = 2.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = strings.receivedEmails,
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.ExtraBold
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Surface(
-                            shape = RoundedCornerShape(12.dp),
-                            color = MaterialTheme.colorScheme.primaryContainer
+                    // Tab 0: All
+                    Surface(
+                        onClick = { selectedInboxTab = 0 },
+                        shape = RoundedCornerShape(20.dp),
+                        color = if (selectedInboxTab == 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        contentColor = if (selectedInboxTab == 0) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        border = if (selectedInboxTab == 0) null else androidx.compose.foundation.BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
                         ) {
+                            Icon(
+                                imageVector = Icons.Default.Inbox,
+                                contentDescription = null,
+                                modifier = Modifier.size(15.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = "${messages.size}",
+                                text = "All (${messages.size})",
                                 style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                fontWeight = if (selectedInboxTab == 0) FontWeight.Bold else FontWeight.Normal
                             )
                         }
                     }
 
-                    if (unreadCount > 0) {
-                        Surface(
-                            shape = RoundedCornerShape(12.dp),
-                            color = MaterialTheme.colorScheme.tertiaryContainer
+                    // Tab 1: Unread
+                    Surface(
+                        onClick = { selectedInboxTab = 1 },
+                        shape = RoundedCornerShape(20.dp),
+                        color = if (selectedInboxTab == 1) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        contentColor = if (selectedInboxTab == 1) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        border = if (selectedInboxTab == 1) null else androidx.compose.foundation.BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
                         ) {
+                            Icon(
+                                imageVector = Icons.Outlined.MarkEmailUnread,
+                                contentDescription = null,
+                                modifier = Modifier.size(15.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = "$unreadCount ${strings.newMail}",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onTertiaryContainer,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                text = "Unread (${unreadCount})",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = if (selectedInboxTab == 1) FontWeight.Bold else FontWeight.Normal
+                            )
+                        }
+                    }
+
+                    // Tab 2: OTP & Codes
+                    Surface(
+                        onClick = { selectedInboxTab = 2 },
+                        shape = RoundedCornerShape(20.dp),
+                        color = if (selectedInboxTab == 2) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        contentColor = if (selectedInboxTab == 2) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        border = if (selectedInboxTab == 2) null else androidx.compose.foundation.BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Key,
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "OTP / Code",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = if (selectedInboxTab == 2) FontWeight.Bold else FontWeight.Normal
                             )
                         }
                     }
