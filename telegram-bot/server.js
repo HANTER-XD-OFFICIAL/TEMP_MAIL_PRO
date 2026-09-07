@@ -17,12 +17,12 @@ const APK_DOWNLOAD_URL = 'https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO/re
 
 // Supported High-Reliability Working Domains (Matches Temp Mail Pro App)
 const DOMAINS_CONFIG = [
-  { domain: 'uberip.com', type: 'mailtm', provider: 'Mail.tm', icon: '⚡' },
-  { domain: 'westcast-systems.com', type: 'mailgw', provider: 'Mail.gw', icon: '⚡' },
-  { domain: 'sharklasers.com', type: 'guerrilla', provider: 'Guerrilla', icon: '🛡️' },
-  { domain: 'guerrillamail.com', type: 'guerrilla', provider: 'Guerrilla', icon: '🛡️' },
+  { domain: 'sharklasers.com', type: 'guerrilla', provider: 'Guerrilla (Recommended for Meta/FB)', icon: '⭐' },
+  { domain: 'guerrillamail.com', type: 'guerrilla', provider: 'Guerrilla (High Reputation)', icon: '🛡️' },
   { domain: 'grr.la', type: 'guerrilla', provider: 'Guerrilla', icon: '🛡️' },
-  { domain: 'guerrillamailblock.com', type: 'guerrilla', provider: 'Guerrilla', icon: '🛡️' }
+  { domain: 'guerrillamailblock.com', type: 'guerrilla', provider: 'Guerrilla', icon: '🛡️' },
+  { domain: 'uberip.com', type: 'mailtm', provider: 'Mail.tm (Fast)', icon: '⚡' },
+  { domain: 'westcast-systems.com', type: 'mailgw', provider: 'Mail.gw', icon: '⚡' }
 ];
 
 // In-Memory Storage for Active User Sessions (ChatId -> Mail Data)
@@ -580,7 +580,10 @@ async function handleCheckInbox(chatId) {
 🌐 <b>Domain:</b> <code>@${session.domain}</code>
 🔔 <b>Live Listener:</b> Active (Waiting for emails)
 
-<i>No incoming messages or OTP codes received yet. Please submit the verification code request on your website/app.</i>
+<i>No incoming messages or OTP codes received yet.</i>
+
+💡 <b>Tip for Meta / Facebook / WhatsApp / Google:</b>
+If Meta or other platforms don't send the code to this domain, tap <b>🌐 Change Domain</b> below and select <b>@sharklasers.com</b> or <b>@guerrillamail.com</b>. They have the highest bypass rate for Meta verification!
 `;
     await bot.sendMessage(chatId, emptyText, {
       parse_mode: 'HTML',
