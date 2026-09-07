@@ -61,12 +61,28 @@ function generateRandomString(length = 8) {
 
 function extractOtp(text) {
   if (!text) return null;
+
+  // 1. Meta / Facebook specific: "Confirmation code234571" or "code 234571" or "code: 234571"
+  const metaMatch = text.match(/(?:confirmation\s*code|security\s*code|verification\s*code)\s*[:=-]?\s*(\b\d{4,8}\b)/i);
+  if (metaMatch && metaMatch[1]) {
+    return metaMatch[1];
+  }
+
+  // 1b. Combined word without space e.g. "code234571"
+  const combinedMatch = text.match(/(?:code|otp|pin)(\d{5,8})/i);
+  if (combinedMatch && combinedMatch[1]) {
+    return combinedMatch[1];
+  }
+
+  // 2. Standard pattern: "OTP is 123456", "verification code: 12345"
   const otpRegex = /(?:code|otp|verification|pin|passcode|confirm|security)[\s\w:]{0,25}?(\b\d{4,8}\b)/i;
   const match = text.match(otpRegex);
   if (match && match[1]) {
     return match[1];
   }
-  const standalone = text.match(/\b\d{6}\b/);
+
+  // 3. Standalone 6-digit or 5-digit number
+  const standalone = text.match(/\b\d{6}\b/) || text.match(/\b\d{5}\b/);
   return standalone ? standalone[0] : null;
 }
 
@@ -289,15 +305,17 @@ function startAutoPoller(chatId, session) {
           const fullContent = (detail?.text || '') + '\n' + (msg.subject || '') + '\n' + (msg.intro || '');
           const otp = extractOtp(fullContent);
 
-          let pushAlert = `📬 <b>New Email Received (Gmail Inbox)</b>\n`;
+          let pushAlert = `📬 <b>NEW EMAIL RECEIVED</b>\n`;
           pushAlert += `─────────────────────────\n`;
           pushAlert += `👤 <b>From:</b> <b>${msg.from}</b>\n`;
           pushAlert += `📝 <b>Subject:</b> ${msg.subject || '(No Subject)'}\n`;
           pushAlert += `✉️ <b>To:</b> <code>${currentSession.address}</code>\n`;
 
           if (otp) {
-            pushAlert += `\n🔑 <b>Security Code / OTP:</b>\n`;
-            pushAlert += `👉 <code>${otp}</code> 👈 <i>(Tap to copy)</i>\n`;
+            pushAlert += `\n⚡━━━━━━━━━━━━━━━━━━━━⚡\n`;
+            pushAlert += `🔑 <b>VERIFICATION CODE:</b>\n`;
+            pushAlert += `👉 <code>${otp}</code> 👈 <i>(Tap code to copy)</i>\n`;
+            pushAlert += `⚡━━━━━━━━━━━━━━━━━━━━⚡\n`;
           }
 
           const snippet = cleanSnippet(detail?.text || msg.intro);
@@ -305,7 +323,7 @@ function startAutoPoller(chatId, session) {
 
           const inlineKeyboard = [];
           if (otp) {
-            inlineKeyboard.push([{ text: `⚡ Copy Code: ${otp}`, callback_data: `READ_MSG_${msg.id}` }]);
+            inlineKeyboard.push([{ text: `⚡ One-Click Copy Code (${otp})`, callback_data: `COPY_CODE_${otp}` }]);
           }
           inlineKeyboard.push([
             { text: '📖 Read Full Email', callback_data: `READ_MSG_${msg.id}` },
@@ -503,6 +521,12 @@ bot.on('callback_query', async (query) => {
       const msgId = data.replace('READ_MSG_', '');
       await bot.answerCallbackQuery(query.id, { text: 'Loading message...' });
       await handleReadMessage(chatId, msgId);
+    } else if (data.startsWith('COPY_CODE_')) {
+      const code = data.replace('COPY_CODE_', '');
+      await bot.answerCallbackQuery(query.id, {
+        text: `✅ Code Copied: ${code}`,
+        show_alert: true
+      });
     }
   } catch (err) {
     console.error('[Callback Error]', err.message);
@@ -599,27 +623,37 @@ If Meta or other platforms don't send the code to this domain, tap <b>🌐 Chang
   }
 
   // Found messages
-  let listText = `📬 <b>Found ${messages.length} Message(s)!</b>\n✉️ <b>Mailbox:</b> <code>${session.address}</code>\n\n`;
+  let listText = `📬 <b>INBOX — ${messages.length} MESSAGE(S) RECEIVED</b>\n`;
+  listText += `─────────────────────────\n`;
+  listText += `✉️ <b>Mailbox:</b> <code>${session.address}</code>\n\n`;
   const inlineButtons = [];
 
-  for (const m of messages.slice(0, 5)) {
+  for (let i = 0; i < Math.min(messages.length, 5); i++) {
+    const m = messages[i];
     const fromSender = m.from || 'Unknown';
     const subj = m.subject || 'No Subject';
     const otp = extractOtp(subj) || extractOtp(m.intro);
 
-    listText += `🔹 <b>From:</b> ${fromSender}\n📝 <b>Subject:</b> ${subj}\n`;
+    listText += `📩 <b>#${i + 1} — ${subj}</b>\n`;
+    listText += `👤 <b>From:</b> <code>${fromSender}</code>\n`;
     if (otp) {
-      listText += `🔑 <b>OTP:</b> <code>${otp}</code> <i>(Tap to copy)</i>\n`;
+      listText += `🔑 <b>Verification Code:</b> <code>${otp}</code> <i>(Tap to copy)</i>\n`;
     }
-    listText += `\n`;
+    listText += `─────────────────────────\n`;
 
-    inlineButtons.push([
-      { text: `📖 Read: ${subj.substring(0, 25)}`, callback_data: `READ_MSG_${m.id}` }
-    ]);
+    const rowBtns = [];
+    if (otp) {
+      rowBtns.push({ text: `⚡ Copy Code (${otp})`, callback_data: `COPY_CODE_${otp}` });
+    }
+    rowBtns.push({ text: `📖 Read #${i + 1}`, callback_data: `READ_MSG_${m.id}` });
+    inlineButtons.push(rowBtns);
   }
 
   inlineButtons.push([
     { text: '🔄 Refresh Inbox', callback_data: 'CHECK_INBOX' },
+    { text: '🌐 Change Domain', callback_data: 'SELECT_DOMAIN' }
+  ]);
+  inlineButtons.push([
     { text: '⚡ New Email', callback_data: 'GEN_NEW_MAIL' }
   ]);
 
@@ -648,40 +682,52 @@ async function handleReadMessage(chatId, msgId) {
   const bodyText = detail.text || '';
   const otp = extractOtp(bodyText) || extractOtp(subject);
 
-  let fullMsg = `
-📬 <b>Temp Mail Pro — Message Details</b>
-
-👤 <b>From:</b> <code>${sender}</code>
-📝 <b>Subject:</b> <b>${subject}</b>
-⏰ <b>Date:</b> ${detail.date || 'Just now'}
-`;
+  let fullMsg = `📬 <b>EMAIL DETAILS</b>\n`;
+  fullMsg += `─────────────────────────\n`;
+  fullMsg += `👤 <b>From:</b> <b>${sender}</b>\n`;
+  fullMsg += `📝 <b>Subject:</b> ${subject}\n`;
+  fullMsg += `⏰ <b>Date:</b> ${detail.date || 'Just now'}\n`;
+  fullMsg += `✉️ <b>To:</b> <code>${session.address}</code>\n`;
 
   if (otp) {
-    fullMsg += `
-⚡━━━━━━━━━━━━━━━━━━━━⚡
-🔑 <b>DETECTED OTP / SECURITY CODE:</b>
-👉 <code>${otp}</code> 👈 <i>(Tap code to copy)</i>
-⚡━━━━━━━━━━━━━━━━━━━━⚡
-`;
+    fullMsg += `\n⚡━━━━━━━━━━━━━━━━━━━━⚡\n`;
+    fullMsg += `🔑 <b>VERIFICATION CODE / OTP:</b>\n`;
+    fullMsg += `👉 <code>${otp}</code> 👈 <i>(Tap code to copy)</i>\n`;
+    fullMsg += `⚡━━━━━━━━━━━━━━━━━━━━⚡\n`;
   }
 
-  const cleanBody = bodyText.replace(/<[^>]*>?/gm, '').trim();
-  const previewBody = cleanBody.length > 900 ? cleanBody.substring(0, 900) + '...\n<i>(Truncated)</i>' : cleanBody;
+  // Format clean readable body text
+  let cleanBody = bodyText
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<[^>]*>?/gm, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/[\r\n]{3,}/g, '\n\n')
+    .trim();
 
-  fullMsg += `\n📄 <b>Message Content:</b>\n${previewBody || '<i>No text body available</i>'}`;
+  // If body has the weird concatenated "code234571", make it clean
+  if (otp && cleanBody.includes(`code${otp}`)) {
+    cleanBody = cleanBody.replace(new RegExp(`code${otp}`, 'g'), `code: ${otp}`);
+  }
 
-  const keyboard = {
-    inline_keyboard: [
-      [
-        { text: '⬅️ Back to Inbox', callback_data: 'CHECK_INBOX' },
-        { text: '🔄 Refresh', callback_data: 'CHECK_INBOX' }
-      ]
-    ]
-  };
+  const previewBody = cleanBody.length > 1100 ? cleanBody.substring(0, 1100) + '...\n<i>(Truncated for length)</i>' : cleanBody;
+
+  fullMsg += `\n📄 <b>Message Body:</b>\n<i>${previewBody || 'No text content available'}</i>\n`;
+
+  const inlineKeyboard = [];
+  if (otp) {
+    inlineKeyboard.push([
+      { text: `⚡ One-Click Copy Code (${otp})`, callback_data: `COPY_CODE_${otp}` }
+    ]);
+  }
+  inlineKeyboard.push([
+    { text: '⬅️ Back to Inbox', callback_data: 'CHECK_INBOX' },
+    { text: '🔄 Refresh Inbox', callback_data: 'CHECK_INBOX' }
+  ]);
 
   await bot.sendMessage(chatId, fullMsg, {
     parse_mode: 'HTML',
-    reply_markup: keyboard
+    reply_markup: { inline_keyboard: inlineKeyboard }
   });
 }
 
@@ -719,22 +765,24 @@ app.post('/api/forward', async (req, res) => {
     }
 
     const snippet = cleanSnippet(preview);
-    let alertText = `📬 <b>New Email Received (Gmail Inbox)</b>\n`;
+    let alertText = `📬 <b>NEW EMAIL RECEIVED</b>\n`;
     alertText += `─────────────────────────\n`;
     alertText += `👤 <b>From:</b> <b>${sender || 'Online Service'}</b>\n`;
     alertText += `📝 <b>Subject:</b> ${subject || '(No Subject)'}\n`;
     alertText += `✉️ <b>To:</b> <code>${email || 'Active Mailbox'}</code>\n`;
 
     if (otpCode) {
-      alertText += `\n🔑 <b>Security Code / OTP:</b>\n`;
+      alertText += `\n⚡━━━━━━━━━━━━━━━━━━━━⚡\n`;
+      alertText += `🔑 <b>VERIFICATION CODE:</b>\n`;
       alertText += `👉 <code>${otpCode}</code> 👈 <i>(Tap code to copy)</i>\n`;
+      alertText += `⚡━━━━━━━━━━━━━━━━━━━━⚡\n`;
     }
 
     alertText += `\n💬 <b>Snippet:</b>\n<i>${snippet}</i>\n`;
 
     const inlineKeyboard = [];
     if (otpCode) {
-      inlineKeyboard.push([{ text: `⚡ Copy Code: ${otpCode}`, callback_data: 'CHECK_INBOX' }]);
+      inlineKeyboard.push([{ text: `⚡ One-Click Copy Code (${otpCode})`, callback_data: `COPY_CODE_${otpCode}` }]);
     }
     inlineKeyboard.push([{ text: '🔄 Refresh Inbox', callback_data: 'CHECK_INBOX' }]);
 

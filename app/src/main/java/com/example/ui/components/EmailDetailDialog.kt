@@ -671,7 +671,29 @@ fun EmailDetailDialog(
 
 private fun extractOtpCode(subject: String?, body: String?): String? {
     val textToSearch = "${subject.orEmpty()} ${body.orEmpty()}"
-    val pattern = Pattern.compile("\\b(\\d{4,8})\\b")
+    // 1. Meta / Facebook confirmation code (e.g. Confirmation code234571 or Confirmation code: 234571)
+    val metaPattern = Pattern.compile("(?i)(?:confirmation\\s*code|security\\s*code|verification\\s*code)\\s*[:=-]?\\s*(\\b\\d{4,8}\\b)")
+    val metaMatcher = metaPattern.matcher(textToSearch)
+    if (metaMatcher.find()) {
+        return metaMatcher.group(1)
+    }
+
+    // 1b. Combined format e.g. "code234571"
+    val combinedPattern = Pattern.compile("(?i)(?:code|otp|pin)(\\d{5,8})")
+    val combinedMatcher = combinedPattern.matcher(textToSearch)
+    if (combinedMatcher.find()) {
+        return combinedMatcher.group(1)
+    }
+
+    // 2. Standard OTP regex
+    val otpPattern = Pattern.compile("(?i)(?:code|otp|verification|pin|passcode|confirm|security)[\\s\\w:]{0,25}?(\\b\\d{4,8}\\b)")
+    val otpMatcher = otpPattern.matcher(textToSearch)
+    if (otpMatcher.find()) {
+        return otpMatcher.group(1)
+    }
+
+    // 3. Fallback standalone 6 or 5 digit code
+    val pattern = Pattern.compile("\\b(\\d{5,6})\\b")
     val matcher = pattern.matcher(textToSearch)
     return if (matcher.find()) {
         matcher.group(1)

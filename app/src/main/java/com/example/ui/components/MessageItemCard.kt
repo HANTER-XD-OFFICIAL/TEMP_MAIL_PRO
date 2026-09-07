@@ -38,7 +38,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.AnnotatedString
+import android.widget.Toast
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -70,6 +74,8 @@ fun MessageItemCard(
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val clipboardManager = LocalClipboardManager.current
     var isStarred by remember { mutableStateOf(false) }
 
     val formattedTime = remember(message.createdAt) {
@@ -220,16 +226,22 @@ fun MessageItemCard(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        // Quick OTP Pill
+                        // Quick OTP Pill (1-Click Copy)
                         if (detectedOtp != null) {
                             Surface(
                                 shape = RoundedCornerShape(8.dp),
                                 color = MaterialTheme.colorScheme.primary,
-                                tonalElevation = 2.dp
+                                tonalElevation = 2.dp,
+                                modifier = Modifier
+                                    .clickable {
+                                        clipboardManager.setText(AnnotatedString(detectedOtp))
+                                        Toast.makeText(context, "Code Copied: $detectedOtp ✅", Toast.LENGTH_SHORT).show()
+                                    }
+                                    .testTag("otp_chip_${message.id}")
                             ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Key,
@@ -239,7 +251,7 @@ fun MessageItemCard(
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
                                     Text(
-                                        text = "OTP: $detectedOtp",
+                                        text = "Code: $detectedOtp (Tap to Copy)",
                                         style = MaterialTheme.typography.labelSmall,
                                         fontFamily = FontFamily.Monospace,
                                         fontWeight = FontWeight.Bold,
@@ -323,12 +335,23 @@ fun MessageItemCard(
 // Extract OTP helper
 private fun extractQuickOtp(text: String): String? {
     if (text.isBlank()) return null
+    // 1. Meta / Facebook specific: "Confirmation code234571" or "code 234571"
+    val metaMatch = Regex("""(?:confirmation\s*code|security\s*code|verification\s*code)\s*[:=-]?\s*(\b\d{4,8}\b)""", RegexOption.IGNORE_CASE).find(text)
+    if (metaMatch != null && metaMatch.groupValues.size > 1) {
+        return metaMatch.groupValues[1]
+    }
+
+    val combinedMatch = Regex("""(?:code|otp|pin)(\d{5,8})""", RegexOption.IGNORE_CASE).find(text)
+    if (combinedMatch != null && combinedMatch.groupValues.size > 1) {
+        return combinedMatch.groupValues[1]
+    }
+
     val otpRegex = Regex("""(?:code|otp|verification|pin|passcode|confirm|security)[\s\w:]{0,25}?(\b\d{4,8}\b)""", RegexOption.IGNORE_CASE)
     val match = otpRegex.find(text)
     if (match != null && match.groupValues.size > 1) {
         return match.groupValues[1]
     }
-    val standalone = Regex("""\b\d{6}\b""").find(text)
+    val standalone = Regex("""\b\d{6}\b""").find(text) ?: Regex("""\b\d{5}\b""").find(text)
     return standalone?.value
 }
 
