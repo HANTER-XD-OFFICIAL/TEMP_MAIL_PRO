@@ -670,15 +670,25 @@ fun EmailDetailDialog(
 }
 
 private fun extractOtpCode(subject: String?, body: String?): String? {
-    val textToSearch = "${subject.orEmpty()} ${body.orEmpty()}"
-    // 1. Meta / Facebook confirmation code (e.g. Confirmation code234571 or Confirmation code: 234571)
-    val metaPattern = Pattern.compile("(?i)(?:confirmation\\s*code|security\\s*code|verification\\s*code)\\s*[:=-]?\\s*(\\b\\d{4,8}\\b)")
+    val rawText = "${subject.orEmpty()} ${body.orEmpty()}"
+    // Strip HTML tags and style blocks first so hex colors like #141823 are never matched
+    val textToSearch = rawText
+        .replace(Regex("""<style[^>]*>[\s\S]*?</style>""", RegexOption.IGNORE_CASE), " ")
+        .replace(Regex("""<script[^>]*>[\s\S]*?</script>""", RegexOption.IGNORE_CASE), " ")
+        .replace(Regex("""<[^>]*>"""), " ")
+        .replace(Regex("""&nbsp;""", RegexOption.IGNORE_CASE), " ")
+        .replace(Regex("""[\r\n\t]+"""), " ")
+        .replace(Regex("""\s{2,}"""), " ")
+        .trim()
+
+    // 1. Meta / Facebook confirmation code (e.g. Confirmation code 446457, Confirmation code: 446457, Confirmation code446457)
+    val metaPattern = Pattern.compile("(?i)(?:confirmation\\s*code|security\\s*code|verification\\s*code|login\\s*code|access\\s*code)\\s*[:=-]?\\s*(\\b\\d{4,8}\\b)")
     val metaMatcher = metaPattern.matcher(textToSearch)
     if (metaMatcher.find()) {
         return metaMatcher.group(1)
     }
 
-    // 1b. Combined format e.g. "code234571"
+    // 1b. Combined format e.g. "code446457"
     val combinedPattern = Pattern.compile("(?i)(?:code|otp|pin)(\\d{5,8})")
     val combinedMatcher = combinedPattern.matcher(textToSearch)
     if (combinedMatcher.find()) {

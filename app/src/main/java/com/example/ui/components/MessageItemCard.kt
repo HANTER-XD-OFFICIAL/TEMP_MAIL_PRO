@@ -333,10 +333,20 @@ fun MessageItemCard(
 }
 
 // Extract OTP helper
-private fun extractQuickOtp(text: String): String? {
-    if (text.isBlank()) return null
-    // 1. Meta / Facebook specific: "Confirmation code234571" or "code 234571"
-    val metaMatch = Regex("""(?:confirmation\s*code|security\s*code|verification\s*code)\s*[:=-]?\s*(\b\d{4,8}\b)""", RegexOption.IGNORE_CASE).find(text)
+private fun extractQuickOtp(rawText: String): String? {
+    if (rawText.isBlank()) return null
+    // Strip HTML and styles first to avoid capturing hex colors like #141823
+    val text = rawText
+        .replace(Regex("""<style[^>]*>[\s\S]*?</style>""", RegexOption.IGNORE_CASE), " ")
+        .replace(Regex("""<script[^>]*>[\s\S]*?</script>""", RegexOption.IGNORE_CASE), " ")
+        .replace(Regex("""<[^>]*>"""), " ")
+        .replace(Regex("""&nbsp;""", RegexOption.IGNORE_CASE), " ")
+        .replace(Regex("""[\r\n\t]+"""), " ")
+        .replace(Regex("""\s{2,}"""), " ")
+        .trim()
+
+    // 1. Meta / Facebook specific: "Confirmation code 446457" or "code 446457"
+    val metaMatch = Regex("""(?:confirmation\s*code|security\s*code|verification\s*code|login\s*code|access\s*code)\s*[:=-]?\s*(\b\d{4,8}\b)""", RegexOption.IGNORE_CASE).find(text)
     if (metaMatch != null && metaMatch.groupValues.size > 1) {
         return metaMatch.groupValues[1]
     }

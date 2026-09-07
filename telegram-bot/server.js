@@ -59,16 +59,36 @@ function generateRandomString(length = 8) {
   return result;
 }
 
-function extractOtp(text) {
-  if (!text) return null;
+function stripHtml(html) {
+  if (!html) return '';
+  return html
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&#039;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/[\r\n\t]+/g, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
 
-  // 1. Meta / Facebook specific: "Confirmation code234571" or "code 234571" or "code: 234571"
-  const metaMatch = text.match(/(?:confirmation\s*code|security\s*code|verification\s*code)\s*[:=-]?\s*(\b\d{4,8}\b)/i);
+function extractOtp(rawText) {
+  if (!rawText) return null;
+  // Always clean HTML tags & inline CSS (like color:#141823) first
+  const text = stripHtml(rawText);
+
+  // 1. Meta / Facebook / WhatsApp specific:
+  // "Confirmation code 446457", "Confirmation code: 446457", "Security code 123456", "Verification code 123456"
+  const metaMatch = text.match(/(?:confirmation\s*code|security\s*code|verification\s*code|login\s*code|access\s*code)\s*[:=-]?\s*(\b\d{4,8}\b)/i);
   if (metaMatch && metaMatch[1]) {
     return metaMatch[1];
   }
 
-  // 1b. Combined word without space e.g. "code234571"
+  // 1b. Combined word without space e.g. "code446457"
   const combinedMatch = text.match(/(?:code|otp|pin)(\d{5,8})/i);
   if (combinedMatch && combinedMatch[1]) {
     return combinedMatch[1];
