@@ -29,8 +29,6 @@ const DEVELOPER_NAME = 'MD RASEL';
 const DEVELOPER_PROFILE = 'https://www.facebook.com/md.rasel.7.8.2.3.4';
 const WHATSAPP_CONTACT = 'https://wa.me/8801882278234';
 const TELEGRAM_CHANNEL = 'https://t.me/HANTER_XD_OFFICIAL';
-const GITHUB_REPO = 'https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO';
-const APK_DOWNLOAD_URL = 'https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO/releases/tag/v2.6.0TempMailPro';
 
 // Supported High-Reliability Working Domains (Matches Temp Mail Pro App)
 const DOMAINS_CONFIG = [
@@ -580,7 +578,10 @@ function getBottomMenuBarKeyboard(isAdminUser = false) {
       { text: '🔄 Refresh' }
     ],
     [
-      { text: '🆔 My ID' },
+      { text: '📥 Download APK' },
+      { text: '🆔 My ID' }
+    ],
+    [
       { text: '👨‍💻 Developer' }
     ]
   ];
@@ -620,12 +621,9 @@ function getMainInlineKeyboard(hasSession = false) {
     { text: '📢 Telegram Channel', url: TELEGRAM_CHANNEL },
     { text: '💬 WhatsApp Support', url: WHATSAPP_CONTACT }
   ];
-  const row4 = [
-    { text: '📥 Download Android APK (v2.6.0)', url: APK_DOWNLOAD_URL }
-  ];
 
   return {
-    inline_keyboard: [row1, row2, row3, row4]
+    inline_keyboard: [row1, row2, row3]
   };
 }
 
@@ -859,12 +857,10 @@ bot.onText(/\/start/, async (msg) => {
 
 🛡️ <b>Developed by:</b> <a href="${DEVELOPER_PROFILE}">${DEVELOPER_NAME}</a> (Hanter XD Official)
 🤖 <b>Bot Username:</b> @TEMPMAILPRO34_bot
-📱 <b>Android App v2.6.0:</b> <a href="${APK_DOWNLOAD_URL}">Download APK Here</a>
 
 With this bot, you can generate 100% free anonymous disposable email addresses on high-speed verified domains (<b>@uberip.com</b>, <b>@sharklasers.com</b>, <b>@guerrillamail.com</b>, <b>@westcast-systems.com</b>) and receive instant <b>live OTP codes & verification emails</b> 24/7!
 
 💡 <b>Your Telegram Chat ID:</b> <code>${chatId}</code>
-<i>(Link this Chat ID in the Android App for auto-forwarding)</i>
 `;
 
   const isAdminUser = isAdmin(chatId);
@@ -1007,6 +1003,11 @@ bot.onText(/\/(id|myid)/, async (msg) => {
   });
 });
 
+// /apk or /download Command - Direct in-chat APK delivery
+bot.onText(/\/(apk|download|app)/, async (msg) => {
+  await handleSendApk(msg.chat.id);
+});
+
 // /developer Command
 bot.onText(/\/developer/, async (msg) => {
   const chatId = msg.chat.id;
@@ -1017,8 +1018,6 @@ bot.onText(/\/developer/, async (msg) => {
 🌐 <b>Facebook:</b> <a href="${DEVELOPER_PROFILE}">MD RASEL Profile</a>
 💬 <b>WhatsApp:</b> <a href="${WHATSAPP_CONTACT}">+8801882278234</a>
 📢 <b>Telegram Channel:</b> <a href="${TELEGRAM_CHANNEL}">@HANTER_XD_OFFICIAL</a>
-📂 <b>GitHub:</b> <a href="${GITHUB_REPO}">Hanter XD Repositories</a>
-📱 <b>Temp Mail Pro APK:</b> <a href="${APK_DOWNLOAD_URL}">Download v2.6.0 APK</a>
 `;
   await bot.sendMessage(chatId, devText, {
     parse_mode: 'HTML',
@@ -1059,6 +1058,10 @@ bot.on('message', async (msg) => {
     await renderAdminDashboard(chatId);
     return;
   }
+  if (rawText.includes('Download APK') || rawText === '📥 Download APK' || rawText.toLowerCase() === 'apk' || rawText.toLowerCase() === 'app') {
+    await handleSendApk(chatId);
+    return;
+  }
   if (rawText.includes('Generate Email') || rawText === '⚡ Generate Email') {
     await handleGenerateEmail(chatId, 'uberip.com');
     return;
@@ -1089,8 +1092,6 @@ bot.on('message', async (msg) => {
 🌐 <b>Facebook:</b> <a href="${DEVELOPER_PROFILE}">MD RASEL Profile</a>
 💬 <b>WhatsApp:</b> <a href="${WHATSAPP_CONTACT}">+8801882278234</a>
 📢 <b>Telegram Channel:</b> <a href="${TELEGRAM_CHANNEL}">@HANTER_XD_OFFICIAL</a>
-📂 <b>GitHub:</b> <a href="${GITHUB_REPO}">Hanter XD Repositories</a>
-📱 <b>Temp Mail Pro APK:</b> <a href="${APK_DOWNLOAD_URL}">Download v2.6.0 APK</a>
 `;
     await bot.sendMessage(chatId, devText, {
       parse_mode: 'HTML',
@@ -1231,6 +1232,9 @@ bot.on('callback_query', async (query) => {
       const msgId = data.replace('READ_MSG_', '');
       await bot.answerCallbackQuery(query.id, { text: 'Loading message...' });
       await handleReadMessage(chatId, msgId);
+    } else if (data === 'SEND_APK_FILE') {
+      await bot.answerCallbackQuery(query.id, { text: '📤 Sending APK file directly...' });
+      await handleSendApk(chatId);
     } else if (data.startsWith('COPY_CODE_')) {
       const code = data.replace('COPY_CODE_', '');
       await bot.answerCallbackQuery(query.id, {
@@ -1242,6 +1246,97 @@ bot.on('callback_query', async (query) => {
     console.error('[Callback Error]', err.message);
   }
 });
+
+// ==========================================
+// 8.1 DIRECT IN-CHAT APK SENDER
+// ==========================================
+async function handleSendApk(chatId) {
+  const statusMsg = await bot.sendMessage(chatId, '⏳ <b>Preparing Temp Mail Pro APK file for you...</b>\nPlease wait a moment while the package is being prepared.', {
+    parse_mode: 'HTML'
+  });
+
+  const caption = `
+📱 <b>Temp Mail Pro v2.6.0 (Official Android App)</b>
+
+⚡ <b>Features:</b>
+• 100% Free Disposable Temporary Emails
+• High-Speed Working Mail Servers (@uberip.com, @sharklasers.com)
+• Instant Live OTP Code Detection & Push Notifications
+• Dark / Light Theme & Direct Mailbox Sync
+
+👑 <b>Lead Developer:</b> ${DEVELOPER_NAME}
+📢 <b>Official Channel:</b> @HANTER_XD_OFFICIAL
+💬 <b>WhatsApp Support:</b> +8801882278234
+
+<i>💡 Directly tap below to download and install this APK on your Android device!</i>
+`;
+
+  try {
+    // 1. If we have a cached Telegram file_id, sending is instantaneous
+    if (db.cachedApkFileId) {
+      try {
+        await bot.sendDocument(chatId, db.cachedApkFileId, {
+          caption,
+          parse_mode: 'HTML'
+        });
+        await bot.deleteMessage(chatId, statusMsg.message_id).catch(() => {});
+        return;
+      } catch (err) {
+        console.warn('[APK Cached file_id expired, falling back to local file]', err.message);
+        db.cachedApkFileId = null;
+      }
+    }
+
+    // 2. Look for local build APK
+    let localApk = null;
+    const candidates = [
+      path.resolve(__dirname, '../app/build/outputs/apk/debug/app-debug.apk'),
+      path.resolve(__dirname, '../.build-outputs/app-debug.apk'),
+      path.resolve(process.cwd(), 'app/build/outputs/apk/debug/app-debug.apk'),
+      path.resolve(process.cwd(), '.build-outputs/app-debug.apk')
+    ];
+    for (const cand of candidates) {
+      if (fs.existsSync(cand)) {
+        localApk = cand;
+        break;
+      }
+    }
+
+    let sentMsg;
+    if (localApk) {
+      sentMsg = await bot.sendDocument(chatId, localApk, {
+        caption,
+        parse_mode: 'HTML'
+      }, {
+        filename: 'TempMailPro_v2.6.0.apk',
+        contentType: 'application/vnd.android.package-archive'
+      });
+    } else {
+      // 3. Fallback direct stream via server-side URL without exposing any link to user
+      const streamUrl = 'https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO/releases/download/v2.6.0TempMailPro/app-debug.apk';
+      sentMsg = await bot.sendDocument(chatId, streamUrl, {
+        caption,
+        parse_mode: 'HTML'
+      }, {
+        filename: 'TempMailPro_v2.6.0.apk',
+        contentType: 'application/vnd.android.package-archive'
+      });
+    }
+
+    if (sentMsg?.document?.file_id) {
+      db.cachedApkFileId = sentMsg.document.file_id;
+      saveDb();
+    }
+
+    await bot.deleteMessage(chatId, statusMsg.message_id).catch(() => {});
+  } catch (err) {
+    console.error('[Send APK Error]', err.message);
+    await bot.editMessageText('❌ Failed to deliver the APK file. Please try again or contact support: @HANTER_XD_OFFICIAL', {
+      chat_id: chatId,
+      message_id: statusMsg.message_id
+    }).catch(() => {});
+  }
+}
 
 // Generate email action
 async function handleGenerateEmail(chatId, domain = 'uberip.com') {
@@ -1286,7 +1381,7 @@ async function handleGenerateEmail(chatId, domain = 'uberip.com') {
         { text: '🔄 New Email', callback_data: 'GEN_NEW_MAIL' }
       ],
       [
-        { text: '📥 Android App v2.6.0', url: APK_DOWNLOAD_URL }
+        { text: '📥 Download Android App (Direct APK)', callback_data: 'SEND_APK_FILE' }
       ]
     ]
   };
