@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const express = require('express');
 const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios');
@@ -46,6 +48,174 @@ const userSessions = new Map();
 const activePollers = new Map();
 
 // ==========================================
+// 1.1 PERSISTENT DATABASE & ADMIN MANAGEMENT
+// ==========================================
+const DB_FILE = path.join(__dirname, 'bot_data.json');
+let db = {
+  admins: ['6204875999'],
+  users: {},
+  blockedUsers: [],
+  stats: {
+    totalMailboxesCreated: 0
+  }
+};
+
+function loadDb() {
+  try {
+    if (fs.existsSync(DB_FILE)) {
+      const data = fs.readFileSync(DB_FILE, 'utf8');
+      const parsed = JSON.parse(data);
+      db = {
+        admins: Array.isArray(parsed.admins) ? parsed.admins : ['6204875999'],
+        users: parsed.users || {},
+        blockedUsers: Array.isArray(parsed.blockedUsers) ? parsed.blockedUsers : [],
+        stats: parsed.stats || { totalMailboxesCreated: 0 }
+      };
+    } else {
+      saveDb();
+    }
+  } catch (err) {
+    console.error('[Database Load Error]', err.message);
+  }
+}
+
+function saveDb() {
+  try {
+    fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), 'utf8');
+  } catch (err) {
+    console.error('[Database Save Error]', err.message);
+  }
+}
+
+loadDb();
+
+function getAdminIds() {
+  const list = new Set(['6204875999']);
+  if (process.env.ADMIN_CHAT_ID) {
+    list.add(String(process.env.ADMIN_CHAT_ID).trim());
+  }
+  if (process.env.ADMIN_IDS) {
+    process.env.ADMIN_IDS.split(',').forEach(id => {
+      const c = id.trim();
+      if (c) list.add(c);
+    });
+  }
+  if (db && Array.isArray(db.admins)) {
+    db.admins.forEach(id => {
+      const c = String(id).trim();
+      if (c) list.add(c);
+    });
+  }
+  return Array.from(list);
+}
+
+function isAdmin(chatId) {
+  return getAdminIds().includes(String(chatId));
+}
+
+function isUserBlocked(chatId) {
+  const idStr = String(chatId);
+  return db.blockedUsers.includes(idStr) || (db.users[idStr] && db.users[idStr].status === 'blocked');
+}
+
+function blockUser(chatId) {
+  const idStr = String(chatId);
+  if (!db.blockedUsers.includes(idStr)) {
+    db.blockedUsers.push(idStr);
+  }
+  if (db.users[idStr]) {
+    db.users[idStr].status = 'blocked';
+  } else {
+    db.users[idStr] = {
+      chatId: idStr,
+      firstName: 'User',
+      lastName: '',
+      username: '',
+      joinedAt: new Date().toISOString(),
+      lastActive: new Date().toISOString(),
+      status: 'blocked',
+      emailsGenerated: 0
+    };
+  }
+  saveDb();
+}
+
+function unblockUser(chatId) {
+  const idStr = String(chatId);
+  db.blockedUsers = db.blockedUsers.filter(id => id !== idStr);
+  if (db.users[idStr]) {
+    db.users[idStr].status = 'active';
+  }
+  saveDb();
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+async function trackUserAndNotifyAdmins(msg) {
+  if (!msg || !msg.chat) return;
+  const chatId = String(msg.chat.id);
+  const isNew = !db.users[chatId];
+  const now = new Date().toISOString();
+
+  if (isNew) {
+    db.users[chatId] = {
+      chatId,
+      firstName: msg.from?.first_name || '',
+      lastName: msg.from?.last_name || '',
+      username: msg.from?.username || '',
+      joinedAt: now,
+      lastActive: now,
+      status: 'active',
+      emailsGenerated: 0
+    };
+    saveDb();
+
+    // Alert all admins in real-time about the new user joining
+    const totalUsers = Object.keys(db.users).length;
+    const adminNotification = `
+🔔 <b>NEW USER JOINED THE BOT!</b>
+─────────────────────────
+👤 <b>Name:</b> ${escapeHtml(msg.from?.first_name || 'User')} ${escapeHtml(msg.from?.last_name || '')}
+🆔 <b>Chat ID:</b> <code>${chatId}</code>
+🔗 <b>Username:</b> ${msg.from?.username ? '@' + msg.from.username : '<i>None</i>'}
+📅 <b>Joined:</b> ${new Date().toLocaleString()}
+📊 <b>Total Bot Users:</b> <b>${totalUsers}</b>
+─────────────────────────
+<i>1-Click Quick Action:</i>
+`;
+    const adminKeyboard = {
+      inline_keyboard: [
+        [
+          { text: '🚫 Block This User (1-Click)', callback_data: `ADMIN_TOGGLE_BLOCK_${chatId}_PAGE_0` }
+        ]
+      ]
+    };
+
+    const adminIds = getAdminIds();
+    for (const adminId of adminIds) {
+      if (adminId !== chatId) {
+        bot.sendMessage(adminId, adminNotification, {
+          parse_mode: 'HTML',
+          reply_markup: adminKeyboard
+        }).catch(() => {});
+      }
+    }
+  } else {
+    db.users[chatId].lastActive = now;
+    if (msg.from?.first_name) db.users[chatId].firstName = msg.from.first_name;
+    if (msg.from?.last_name) db.users[chatId].lastName = msg.from.last_name;
+    if (msg.from?.username) db.users[chatId].username = msg.from.username;
+    saveDb();
+  }
+}
+
+// ==========================================
 // 2. INITIALIZE TELEGRAM BOT (POLLING MODE)
 // ==========================================
 const bot = new TelegramBot(BOT_TOKEN, {
@@ -56,6 +226,20 @@ const bot = new TelegramBot(BOT_TOKEN, {
       timeout: 10
     }
   }
+});
+
+// Configure Telegram Menu Button (Commands Menu)
+bot.setMyCommands([
+  { command: 'start', description: '⚡ Start Bot & View Status' },
+  { command: 'generate', description: '📧 Generate New Temp Email' },
+  { command: 'inbox', description: '📬 Check Inbox & OTP Codes' },
+  { command: 'domains', description: '🌐 Select Domain Server' },
+  { command: 'id', description: '🆔 View Your Telegram Chat ID' },
+  { command: 'developer', description: '👨‍💻 Developer & Support Info' }
+]).then(() => {
+  console.log('[Telegram Bot] Menu Commands registered successfully.');
+}).catch((err) => {
+  console.error('[Telegram Bot] Failed to register menu commands:', err.message);
 });
 
 bot.on('polling_error', (error) => {
@@ -382,6 +566,39 @@ function startAutoPoller(chatId, session) {
 // ==========================================
 // 6. MAIN MENUS & KEYBOARDS
 // ==========================================
+
+// Persistent Bottom Menu Bar Keyboard (Reply Keyboard)
+// Only administrators will receive the 🛡️ Admin Panel button
+function getBottomMenuBarKeyboard(isAdminUser = false) {
+  const keyboard = [
+    [
+      { text: '⚡ Generate Email' },
+      { text: '📬 Check Inbox' }
+    ],
+    [
+      { text: '🌐 Select Domain' },
+      { text: '🔄 Refresh' }
+    ],
+    [
+      { text: '🆔 My ID' },
+      { text: '👨‍💻 Developer' }
+    ]
+  ];
+
+  // Dynamically attach Admin Panel button ONLY if user is authorized Admin
+  if (isAdminUser) {
+    keyboard.push([
+      { text: '🛡️ Admin Panel' }
+    ]);
+  }
+
+  return {
+    keyboard,
+    resize_keyboard: true,
+    persistent: true
+  };
+}
+
 function getDomainSelectionKeyboard() {
   const buttons = DOMAINS_CONFIG.map(d => [
     { text: `${d.icon} @${d.domain} (${d.provider})`, callback_data: `SET_DOMAIN_${d.domain}` }
@@ -413,6 +630,213 @@ function getMainInlineKeyboard(hasSession = false) {
 }
 
 // ==========================================
+// 6.1 ADMIN PANEL INTERFACES & CONTROL
+// ==========================================
+
+async function renderAdminDashboard(chatId, messageId = null) {
+  if (!isAdmin(chatId)) {
+    return bot.sendMessage(chatId, '⛔ <b>Access Denied:</b> This area is strictly restricted to the bot administrator.', { parse_mode: 'HTML' });
+  }
+
+  const usersList = Object.values(db.users || {});
+  const totalUsers = usersList.length;
+  const blockedCount = db.blockedUsers.length;
+  const activeCount = Math.max(0, totalUsers - blockedCount);
+  const uptimeHours = Math.floor(process.uptime() / 3600);
+  const uptimeMins = Math.floor((process.uptime() % 3600) / 60);
+
+  const text = `
+🛡️ <b>TEMP MAIL PRO — MASTER ADMIN PANEL</b>
+─────────────────────────
+👑 <b>Master Admin ID:</b> <code>${chatId}</code>
+⚡ <b>Server Status:</b> 🟢 24/7 Polling Operational
+⏱️ <b>Bot Uptime:</b> ${uptimeHours}h ${uptimeMins}m
+💾 <b>Active Live Listeners:</b> ${activePollers.size}
+
+📊 <b>REAL-TIME USER & BOT METRICS:</b>
+👥 <b>Total Users Joined:</b> <b>${totalUsers}</b>
+🟢 <b>Active Users:</b> <b>${activeCount}</b>
+🔴 <b>Blocked Users:</b> <b>${blockedCount}</b>
+📧 <b>Total Mailboxes Created:</b> <b>${db.stats?.totalMailboxesCreated || 0}</b>
+─────────────────────────
+<i>1-Click User Management & Full Control:</i>
+`;
+
+  const keyboard = {
+    inline_keyboard: [
+      [
+        { text: '👥 Manage Users (1-Click Block/Unblock)', callback_data: 'ADMIN_USERS_PAGE_0' }
+      ],
+      [
+        { text: `🚫 View Blocked Users (${blockedCount})`, callback_data: 'ADMIN_LIST_BLOCKED' },
+        { text: '🔄 Refresh Statistics', callback_data: 'ADMIN_REFRESH' }
+      ],
+      [
+        { text: '📢 Broadcast Announcement', callback_data: 'ADMIN_BROADCAST_HELP' }
+      ],
+      [
+        { text: '⬅️ Close Admin Panel', callback_data: 'ADMIN_CLOSE' }
+      ]
+    ]
+  };
+
+  if (messageId) {
+    try {
+      await bot.editMessageText(text, {
+        chat_id: chatId,
+        message_id: messageId,
+        parse_mode: 'HTML',
+        reply_markup: keyboard
+      });
+      return;
+    } catch (e) {}
+  }
+
+  await bot.sendMessage(chatId, text, {
+    parse_mode: 'HTML',
+    reply_markup: keyboard
+  });
+}
+
+// Paginated Users List with 1-Click Block/Unblock
+async function renderUsersPage(chatId, messageId, page = 0) {
+  if (!isAdmin(chatId)) return;
+
+  const usersList = Object.values(db.users || {}).sort((a, b) => {
+    return new Date(b.lastActive || 0) - new Date(a.lastActive || 0);
+  });
+
+  const PAGE_SIZE = 5;
+  const totalPages = Math.ceil(usersList.length / PAGE_SIZE) || 1;
+  const currentPage = Math.max(0, Math.min(page, totalPages - 1));
+  const slice = usersList.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
+
+  let text = `👥 <b>User Management (Page ${currentPage + 1}/${totalPages})</b>\n`;
+  text += `─────────────────────────\n`;
+
+  if (usersList.length === 0) {
+    text += `<i>No registered users found yet.</i>\n`;
+  } else {
+    slice.forEach((u, index) => {
+      const isBlocked = isUserBlocked(u.chatId);
+      const icon = isBlocked ? '🔴' : '🟢';
+      const statusStr = isBlocked ? 'BLOCKED' : 'ACTIVE';
+      const name = escapeHtml(u.firstName || 'User') + (u.lastName ? ' ' + escapeHtml(u.lastName) : '');
+      const userTag = u.username ? `@${u.username}` : 'No username';
+      const joinDate = u.joinedAt ? new Date(u.joinedAt).toLocaleDateString() : 'N/A';
+
+      text += `${icon} <b>#${currentPage * PAGE_SIZE + index + 1} ${name}</b>\n`;
+      text += `   ├ 🆔 ID: <code>${u.chatId}</code> (${userTag})\n`;
+      text += `   ├ 📅 Joined: ${joinDate} | ✉️ Mails: ${u.emailsGenerated || 0}\n`;
+      text += `   └ 🛡️ Status: <b>${statusStr}</b>\n\n`;
+    });
+  }
+
+  text += `─────────────────────────\n<i>Tap 🔴 Block or 🟢 Unblock to toggle user status in 1 click:</i>`;
+
+  const inlineKeyboard = [];
+
+  // Action buttons for each user in this page
+  slice.forEach(u => {
+    const isBlocked = isUserBlocked(u.chatId);
+    const shortName = (u.firstName || u.chatId).substring(0, 10);
+    if (isBlocked) {
+      inlineKeyboard.push([
+        { text: `🟢 Unblock ${shortName} (${u.chatId})`, callback_data: `ADMIN_TOGGLE_UNBLOCK_${u.chatId}_PAGE_${currentPage}` }
+      ]);
+    } else {
+      inlineKeyboard.push([
+        { text: `🔴 Block ${shortName} (${u.chatId})`, callback_data: `ADMIN_TOGGLE_BLOCK_${u.chatId}_PAGE_${currentPage}` }
+      ]);
+    }
+  });
+
+  // Navigation row
+  const navRow = [];
+  if (currentPage > 0) {
+    navRow.push({ text: '◀️ Prev', callback_data: `ADMIN_USERS_PAGE_${currentPage - 1}` });
+  }
+  navRow.push({ text: `📄 ${currentPage + 1}/${totalPages}`, callback_data: 'ADMIN_REFRESH' });
+  if (currentPage < totalPages - 1) {
+    navRow.push({ text: 'Next ▶️', callback_data: `ADMIN_USERS_PAGE_${currentPage + 1}` });
+  }
+  if (navRow.length > 0) {
+    inlineKeyboard.push(navRow);
+  }
+
+  inlineKeyboard.push([
+    { text: '⬅️ Back to Admin Panel', callback_data: 'ADMIN_HOME' }
+  ]);
+
+  if (messageId) {
+    try {
+      await bot.editMessageText(text, {
+        chat_id: chatId,
+        message_id: messageId,
+        parse_mode: 'HTML',
+        reply_markup: { inline_keyboard: inlineKeyboard }
+      });
+      return;
+    } catch (e) {}
+  }
+
+  await bot.sendMessage(chatId, text, {
+    parse_mode: 'HTML',
+    reply_markup: { inline_keyboard: inlineKeyboard }
+  });
+}
+
+// Blocked users view
+async function renderBlockedUsers(chatId, messageId) {
+  if (!isAdmin(chatId)) return;
+
+  const blocked = db.blockedUsers;
+  let text = `🚫 <b>Blocked Users List (${blocked.length})</b>\n─────────────────────────\n`;
+
+  if (blocked.length === 0) {
+    text += `<i>No users are currently blocked. All users have active access.</i>\n`;
+  } else {
+    blocked.forEach((id, idx) => {
+      const u = db.users[id];
+      const name = u ? escapeHtml(u.firstName || 'User') : 'Unknown';
+      text += `${idx + 1}. <b>${name}</b> (ID: <code>${id}</code>)\n`;
+    });
+  }
+
+  text += `─────────────────────────\n<i>Tap 🟢 Unblock to instantly restore user access:</i>`;
+
+  const buttons = [];
+  blocked.slice(0, 10).forEach(id => {
+    const u = db.users[id];
+    const name = u ? (u.firstName || id).substring(0, 10) : id;
+    buttons.push([
+      { text: `🟢 Unblock ${name} (${id})`, callback_data: `ADMIN_TOGGLE_UNBLOCK_${id}_PAGE_0` }
+    ]);
+  });
+
+  buttons.push([
+    { text: '⬅️ Back to Admin Panel', callback_data: 'ADMIN_HOME' }
+  ]);
+
+  if (messageId) {
+    try {
+      await bot.editMessageText(text, {
+        chat_id: chatId,
+        message_id: messageId,
+        parse_mode: 'HTML',
+        reply_markup: { inline_keyboard: buttons }
+      });
+      return;
+    } catch (e) {}
+  }
+
+  await bot.sendMessage(chatId, text, {
+    parse_mode: 'HTML',
+    reply_markup: { inline_keyboard: buttons }
+  });
+}
+
+// ==========================================
 // 7. BOT COMMANDS & INTERACTION
 // ==========================================
 
@@ -420,6 +844,15 @@ function getMainInlineKeyboard(hasSession = false) {
 bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id;
   const firstName = msg.from?.first_name || 'User';
+
+  await trackUserAndNotifyAdmins(msg);
+
+  if (isUserBlocked(chatId)) {
+    return bot.sendMessage(chatId, `🚫 <b>ACCESS SUSPENDED</b>\n\nYour account has been blocked by the bot administrator.\n\nFor support, contact: <a href="${TELEGRAM_CHANNEL}">@HANTER_XD_OFFICIAL</a>`, {
+      parse_mode: 'HTML',
+      disable_web_page_preview: true
+    });
+  }
 
   const welcomeMessage = `
 ⚡ <b>Welcome ${firstName} to Temp Mail Pro Official Bot!</b>
@@ -434,10 +867,121 @@ With this bot, you can generate 100% free anonymous disposable email addresses o
 <i>(Link this Chat ID in the Android App for auto-forwarding)</i>
 `;
 
+  // First send welcome message with inline action buttons
   await bot.sendMessage(chatId, welcomeMessage, {
     parse_mode: 'HTML',
     disable_web_page_preview: true,
     reply_markup: getMainInlineKeyboard()
+  });
+
+  const isAdminUser = isAdmin(chatId);
+  // Then ensure bottom menu bar keyboard is visible (admin gets Admin Panel button)
+  await bot.sendMessage(chatId, '👇 <b>Quick Menu Bar:</b> Use the menu buttons below anytime for instant access:', {
+    parse_mode: 'HTML',
+    reply_markup: getBottomMenuBarKeyboard(isAdminUser)
+  });
+});
+
+// /admin Command
+bot.onText(/\/admin/, async (msg) => {
+  const chatId = msg.chat.id;
+  await trackUserAndNotifyAdmins(msg);
+  if (!isAdmin(chatId)) {
+    return bot.sendMessage(chatId, '⛔ <b>Access Denied:</b> This command is restricted to the administrator.', { parse_mode: 'HTML' });
+  }
+  await renderAdminDashboard(chatId);
+});
+
+// /block <chatId> Command
+bot.onText(/\/block(?:\s+(\d+))?/, async (msg, match) => {
+  const chatId = msg.chat.id;
+  if (!isAdmin(chatId)) return;
+
+  const targetId = match[1];
+  if (!targetId) {
+    return bot.sendMessage(chatId, '⚠️ <b>Usage:</b> <code>/block &lt;chat_id&gt;</code>\nExample: <code>/block 123456789</code>', { parse_mode: 'HTML' });
+  }
+
+  blockUser(targetId);
+  await bot.sendMessage(chatId, `🚫 <b>User Blocked in 1-Click!</b>\n\nChat ID: <code>${targetId}</code> is now blocked from using the bot.`, {
+    parse_mode: 'HTML',
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: `🟢 Unblock User (${targetId})`, callback_data: `ADMIN_TOGGLE_UNBLOCK_${targetId}_PAGE_0` }]
+      ]
+    }
+  });
+});
+
+// /unblock <chatId> Command
+bot.onText(/\/unblock(?:\s+(\d+))?/, async (msg, match) => {
+  const chatId = msg.chat.id;
+  if (!isAdmin(chatId)) return;
+
+  const targetId = match[1];
+  if (!targetId) {
+    return bot.sendMessage(chatId, '⚠️ <b>Usage:</b> <code>/unblock &lt;chat_id&gt;</code>\nExample: <code>/unblock 123456789</code>', { parse_mode: 'HTML' });
+  }
+
+  unblockUser(targetId);
+  await bot.sendMessage(chatId, `🟢 <b>User Unblocked!</b>\n\nChat ID: <code>${targetId}</code> has been unblocked. Access restored.`, {
+    parse_mode: 'HTML'
+  });
+});
+
+// /claimadmin <secret> Command (allows developer to claim admin access anytime)
+bot.onText(/\/claimadmin(?:\s+(.+))?/, async (msg, match) => {
+  const chatId = String(msg.chat.id);
+  const secret = match[1]?.trim();
+
+  if (secret === 'TempMailAdmin2026') {
+    if (!db.admins.includes(chatId)) {
+      db.admins.push(chatId);
+      saveDb();
+    }
+    await bot.sendMessage(chatId, `👑 <b>Admin Registered Successfully!</b>\n\nYour Chat ID (<code>${chatId}</code>) is now recognized as Master Administrator.\n\nYou now have full 1-click access to the 🛡️ <b>Admin Panel</b>!`, {
+      parse_mode: 'HTML',
+      reply_markup: getBottomMenuBarKeyboard(true)
+    });
+    await renderAdminDashboard(chatId);
+  } else {
+    await bot.sendMessage(chatId, '🔒 Invalid admin passcode.');
+  }
+});
+
+// /broadcast <message> Command
+bot.onText(/\/broadcast(?:\s+([\s\S]+))?/, async (msg, match) => {
+  const chatId = msg.chat.id;
+  if (!isAdmin(chatId)) return;
+
+  const content = match[1]?.trim();
+  if (!content) {
+    return bot.sendMessage(chatId, '📢 <b>Usage:</b> <code>/broadcast &lt;your message&gt;</code>\n\nSends an announcement to all registered users.', { parse_mode: 'HTML' });
+  }
+
+  const allUsers = Object.values(db.users || {});
+  let successCount = 0;
+  let failCount = 0;
+
+  const statusMsg = await bot.sendMessage(chatId, `⏳ Broadcasting message to ${allUsers.length} users...`);
+
+  for (const user of allUsers) {
+    if (isUserBlocked(user.chatId)) continue;
+    try {
+      await bot.sendMessage(user.chatId, `📢 <b>Official Announcement:</b>\n\n${content}`, {
+        parse_mode: 'HTML',
+        disable_web_page_preview: true
+      });
+      successCount++;
+    } catch (e) {
+      failCount++;
+    }
+  }
+
+  await bot.editMessageText(`📢 <b>Broadcast Completed!</b>\n\n✅ Delivered: <b>${successCount}</b> users\n❌ Failed: <b>${failCount}</b> users`, {
+    chat_id: chatId,
+    message_id: statusMsg.message_id,
+    parse_mode: 'HTML'
   });
 });
 
@@ -487,12 +1031,80 @@ bot.onText(/\/developer/, async (msg) => {
   });
 });
 
-// Universal Catch-All for Any Regular Text Message
+// Universal Catch-All for Any Regular Text Message or Bottom Menu Bar Button Clicks
 bot.on('message', async (msg) => {
   // Ignore commands (they start with /)
   if (!msg.text || msg.text.startsWith('/')) return;
 
   const chatId = msg.chat.id;
+  const rawText = msg.text.trim();
+
+  // Track all user interactions & alert admin on new user
+  await trackUserAndNotifyAdmins(msg);
+
+  // Check if user is blocked
+  if (isUserBlocked(chatId)) {
+    await bot.sendMessage(chatId, `🚫 <b>ACCESS SUSPENDED</b>\n\nYour account (ID: <code>${chatId}</code>) has been blocked by the bot administrator.\n\nFor support, contact:\n👑 <a href="${DEVELOPER_PROFILE}">${DEVELOPER_NAME}</a>\n📢 <a href="${TELEGRAM_CHANNEL}">@HANTER_XD_OFFICIAL</a>`, {
+      parse_mode: 'HTML',
+      disable_web_page_preview: true
+    });
+    return;
+  }
+
+  const isAdminUser = isAdmin(chatId);
+
+  // Bottom Menu Bar Buttons Handler
+  if (rawText.includes('Admin Panel') || rawText === '🛡️ Admin Panel') {
+    if (!isAdminUser) {
+      await bot.sendMessage(chatId, '⛔ <b>Access Denied:</b> This section is strictly restricted to the bot owner/administrator.', {
+        parse_mode: 'HTML'
+      });
+      return;
+    }
+    await renderAdminDashboard(chatId);
+    return;
+  }
+  if (rawText.includes('Generate Email') || rawText === '⚡ Generate Email') {
+    await handleGenerateEmail(chatId, 'uberip.com');
+    return;
+  }
+  if (rawText.includes('Check Inbox') || rawText === '📬 Check Inbox' || rawText.includes('Refresh') || rawText === '🔄 Refresh') {
+    await handleCheckInbox(chatId);
+    return;
+  }
+  if (rawText.includes('Select Domain') || rawText === '🌐 Select Domain') {
+    await bot.sendMessage(chatId, '🌐 <b>Choose your preferred mail server domain:</b>', {
+      parse_mode: 'HTML',
+      reply_markup: getDomainSelectionKeyboard()
+    });
+    return;
+  }
+  if (rawText.includes('My ID') || rawText === '🆔 My ID') {
+    await bot.sendMessage(chatId, `🆔 <b>Your Telegram Chat ID:</b> <code>${chatId}</code>\n\nLink this ID inside the Temp Mail Pro Android App to receive instant push alerts for all your emails!`, {
+      parse_mode: 'HTML',
+      reply_markup: getBottomMenuBarKeyboard(isAdminUser)
+    });
+    return;
+  }
+  if (rawText.includes('Developer') || rawText === '👨‍💻 Developer') {
+    const devText = `
+👨‍💻 <b>Developer Information:</b>
+
+👑 <b>Lead Developer:</b> ${DEVELOPER_NAME}
+🌐 <b>Facebook:</b> <a href="${DEVELOPER_PROFILE}">MD RASEL Profile</a>
+💬 <b>WhatsApp:</b> <a href="${WHATSAPP_CONTACT}">+8801882278234</a>
+📢 <b>Telegram Channel:</b> <a href="${TELEGRAM_CHANNEL}">@HANTER_XD_OFFICIAL</a>
+📂 <b>GitHub:</b> <a href="${GITHUB_REPO}">Hanter XD Repositories</a>
+📱 <b>Temp Mail Pro APK:</b> <a href="${APK_DOWNLOAD_URL}">Download v2.6.0 APK</a>
+`;
+    await bot.sendMessage(chatId, devText, {
+      parse_mode: 'HTML',
+      disable_web_page_preview: true,
+      reply_markup: getBottomMenuBarKeyboard(isAdminUser)
+    });
+    return;
+  }
+
   const session = userSessions.get(chatId);
 
   if (session) {
@@ -507,13 +1119,16 @@ bot.on('message', async (msg) => {
 
 <i>Checking your inbox now for any incoming messages...</i>
 `;
-    await bot.sendMessage(chatId, text, { parse_mode: 'HTML' });
+    await bot.sendMessage(chatId, text, {
+      parse_mode: 'HTML',
+      reply_markup: getBottomMenuBarKeyboard(isAdminUser)
+    });
     await handleCheckInbox(chatId);
   } else {
     const text = `
 ⚡ <b>Temp Mail Pro Bot Ready!</b>
 
-You don't have an active disposable email yet. Tap below to generate one with <b>@uberip.com</b> or select your preferred domain:
+You don't have an active disposable email yet. Tap below or use the bottom menu bar to generate one with <b>@uberip.com</b>:
 `;
     await bot.sendMessage(chatId, text, {
       parse_mode: 'HTML',
@@ -530,6 +1145,70 @@ bot.on('callback_query', async (query) => {
   const data = query.data;
 
   try {
+    // Check if user is blocked
+    if (isUserBlocked(chatId)) {
+      await bot.answerCallbackQuery(query.id, {
+        text: '🚫 Your account is blocked by the bot administrator.',
+        show_alert: true
+      });
+      return;
+    }
+
+    // Admin-specific actions
+    if (data.startsWith('ADMIN_')) {
+      if (!isAdmin(chatId)) {
+        await bot.answerCallbackQuery(query.id, {
+          text: '⛔ Access Denied: Admin privileges required.',
+          show_alert: true
+        });
+        return;
+      }
+
+      if (data === 'ADMIN_HOME') {
+        await bot.answerCallbackQuery(query.id);
+        await renderAdminDashboard(chatId, query.message.message_id);
+      } else if (data === 'ADMIN_REFRESH') {
+        await bot.answerCallbackQuery(query.id, { text: '🔄 Statistics Refreshed!' });
+        await renderAdminDashboard(chatId, query.message.message_id);
+      } else if (data.startsWith('ADMIN_USERS_PAGE_')) {
+        const page = parseInt(data.replace('ADMIN_USERS_PAGE_', ''), 10) || 0;
+        await bot.answerCallbackQuery(query.id);
+        await renderUsersPage(chatId, query.message.message_id, page);
+      } else if (data.startsWith('ADMIN_TOGGLE_BLOCK_')) {
+        const parts = data.replace('ADMIN_TOGGLE_BLOCK_', '').split('_PAGE_');
+        const targetId = parts[0];
+        const page = parseInt(parts[1], 10) || 0;
+        blockUser(targetId);
+        await bot.answerCallbackQuery(query.id, {
+          text: `🔴 User ${targetId} Blocked in 1-Click!`,
+          show_alert: true
+        });
+        await renderUsersPage(chatId, query.message.message_id, page);
+      } else if (data.startsWith('ADMIN_TOGGLE_UNBLOCK_')) {
+        const parts = data.replace('ADMIN_TOGGLE_UNBLOCK_', '').split('_PAGE_');
+        const targetId = parts[0];
+        const page = parseInt(parts[1], 10) || 0;
+        unblockUser(targetId);
+        await bot.answerCallbackQuery(query.id, {
+          text: `🟢 User ${targetId} Unblocked Successfully!`,
+          show_alert: true
+        });
+        await renderUsersPage(chatId, query.message.message_id, page);
+      } else if (data === 'ADMIN_LIST_BLOCKED') {
+        await bot.answerCallbackQuery(query.id);
+        await renderBlockedUsers(chatId, query.message.message_id);
+      } else if (data === 'ADMIN_BROADCAST_HELP') {
+        await bot.answerCallbackQuery(query.id);
+        await bot.sendMessage(chatId, '📢 <b>How to Broadcast an Announcement:</b>\n\nSimply send the command:\n<code>/broadcast Your message text here</code>\n\nExample:\n<code>/broadcast ⚡ We added new ultra-fast servers for instant OTPs!</code>\n\nEvery registered active user will receive it instantly!', { parse_mode: 'HTML' });
+      } else if (data === 'ADMIN_CLOSE') {
+        await bot.answerCallbackQuery(query.id, { text: 'Admin Panel Closed' });
+        try {
+          await bot.deleteMessage(chatId, query.message.message_id);
+        } catch (e) {}
+      }
+      return;
+    }
+
     if (data === 'GEN_NEW_MAIL') {
       await bot.answerCallbackQuery(query.id, { text: '⚡ Generating high-speed email...' });
       await handleGenerateEmail(chatId, 'uberip.com');
@@ -578,6 +1257,14 @@ async function handleGenerateEmail(chatId, domain = 'uberip.com') {
 
   userSessions.set(chatId, mailbox);
   startAutoPoller(chatId, mailbox);
+
+  // Update real-time statistics
+  db.stats.totalMailboxesCreated = (db.stats.totalMailboxesCreated || 0) + 1;
+  const idStr = String(chatId);
+  if (db.users[idStr]) {
+    db.users[idStr].emailsGenerated = (db.users[idStr].emailsGenerated || 0) + 1;
+  }
+  saveDb();
 
   const text = `
 ⚡ <b>Your Active Disposable Email is Ready!</b>
