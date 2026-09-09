@@ -867,17 +867,12 @@ With this bot, you can generate 100% free anonymous disposable email addresses o
 <i>(Link this Chat ID in the Android App for auto-forwarding)</i>
 `;
 
-  // First send welcome message with inline action buttons
+  const isAdminUser = isAdmin(chatId);
+
+  // Send single clean welcome message with the fixed bottom keyboard directly attached
   await bot.sendMessage(chatId, welcomeMessage, {
     parse_mode: 'HTML',
     disable_web_page_preview: true,
-    reply_markup: getMainInlineKeyboard()
-  });
-
-  const isAdminUser = isAdmin(chatId);
-  // Then ensure bottom menu bar keyboard is visible (admin gets Admin Panel button)
-  await bot.sendMessage(chatId, '👇 <b>Quick Menu Bar:</b> Use the menu buttons below anytime for instant access:', {
-    parse_mode: 'HTML',
     reply_markup: getBottomMenuBarKeyboard(isAdminUser)
   });
 });
@@ -1128,11 +1123,11 @@ bot.on('message', async (msg) => {
     const text = `
 ⚡ <b>Temp Mail Pro Bot Ready!</b>
 
-You don't have an active disposable email yet. Tap below or use the bottom menu bar to generate one with <b>@uberip.com</b>:
+You don't have an active disposable email yet. Tap <b>⚡ Generate Email</b> on the menu bar below to create one:
 `;
     await bot.sendMessage(chatId, text, {
       parse_mode: 'HTML',
-      reply_markup: getMainInlineKeyboard()
+      reply_markup: getBottomMenuBarKeyboard(isAdminUser)
     });
   }
 });
@@ -1227,9 +1222,10 @@ bot.on('callback_query', async (query) => {
       await handleCheckInbox(chatId);
     } else if (data === 'MENU_MAIN') {
       await bot.answerCallbackQuery(query.id);
-      await bot.sendMessage(chatId, '⚡ <b>Temp Mail Pro Main Menu</b>', {
+      const isAdminUser = isAdmin(chatId);
+      await bot.sendMessage(chatId, '👇 <b>Use the bottom menu bar buttons to manage your email and inbox:</b>', {
         parse_mode: 'HTML',
-        reply_markup: getMainInlineKeyboard()
+        reply_markup: getBottomMenuBarKeyboard(isAdminUser)
       });
     } else if (data.startsWith('READ_MSG_')) {
       const msgId = data.replace('READ_MSG_', '');
