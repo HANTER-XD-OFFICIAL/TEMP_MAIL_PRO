@@ -1,5 +1,8 @@
 const fs = require('fs');
 const path = require('path');
+const https = require('https');
+const http = require('http');
+const { URL } = require('url');
 const express = require('express');
 const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios');
@@ -642,6 +645,8 @@ async function renderAdminDashboard(chatId, messageId = null) {
   const activeCount = Math.max(0, totalUsers - blockedCount);
   const uptimeHours = Math.floor(process.uptime() / 3600);
   const uptimeMins = Math.floor((process.uptime() % 3600) / 60);
+  const currentApkTag = db.latestApkCache?.tag || 'Dynamic Check on Request';
+  const currentApkVer = db.latestApkCache?.version ? `v${db.latestApkCache.version}` : 'Latest Tag';
 
   const text = `
 🛡️ <b>TEMP MAIL PRO — MASTER ADMIN PANEL</b>
@@ -650,6 +655,10 @@ async function renderAdminDashboard(chatId, messageId = null) {
 ⚡ <b>Server Status:</b> 🟢 24/7 Polling Operational
 ⏱️ <b>Bot Uptime:</b> ${uptimeHours}h ${uptimeMins}m
 💾 <b>Active Live Listeners:</b> ${activePollers.size}
+
+📱 <b>APK Auto-Delivery Status:</b>
+   ├ 🏷️ <b>Active Tag:</b> <code>${currentApkTag}</code>
+   └ 📦 <b>Version:</b> <b>${currentApkVer}</b> (Auto-synced with GitHub)
 
 📊 <b>REAL-TIME USER & BOT METRICS:</b>
 👥 <b>Total Users Joined:</b> <b>${totalUsers}</b>
@@ -670,6 +679,7 @@ async function renderAdminDashboard(chatId, messageId = null) {
         { text: '🔄 Refresh Statistics', callback_data: 'ADMIN_REFRESH' }
       ],
       [
+        { text: '🔄 Check & Sync Latest APK Tag', callback_data: 'ADMIN_SYNC_APK' },
         { text: '📢 Broadcast Announcement', callback_data: 'ADMIN_BROADCAST_HELP' }
       ],
       [
@@ -1166,6 +1176,18 @@ bot.on('callback_query', async (query) => {
       } else if (data === 'ADMIN_REFRESH') {
         await bot.answerCallbackQuery(query.id, { text: '🔄 Statistics Refreshed!' });
         await renderAdminDashboard(chatId, query.message.message_id);
+      } else if (data === 'ADMIN_SYNC_APK') {
+        releaseCache.data = null;
+        releaseCache.timestamp = 0;
+        await bot.answerCallbackQuery(query.id, { text: '🔄 Checking latest GitHub tag...' });
+        try {
+          const rel = await fetchLatestGithubRelease();
+          const sizeMb = Math.round((rel.apkAsset?.size || 0) / 1024 / 1024);
+          await bot.sendMessage(chatId, `✅ <b>GitHub Release Synced:</b>\n\n🏷️ <b>Latest Tag:</b> <code>${rel.tag}</code>\n📱 <b>Version:</b> <code>v${rel.version}</code>\n📦 <b>Asset:</b> <code>${rel.apkAsset.name}</code> (${sizeMb} MB)\n\n<i>Next time any user requests the APK, this latest version will be delivered automatically!</i>`, { parse_mode: 'HTML' });
+        } catch (e) {
+          await bot.sendMessage(chatId, `❌ <b>GitHub Tag Sync Failed:</b> ${e.message}`, { parse_mode: 'HTML' });
+        }
+        await renderAdminDashboard(chatId, query.message.message_id);
       } else if (data.startsWith('ADMIN_USERS_PAGE_')) {
         const page = parseInt(data.replace('ADMIN_USERS_PAGE_', ''), 10) || 0;
         await bot.answerCallbackQuery(query.id);
@@ -1248,15 +1270,156 @@ bot.on('callback_query', async (query) => {
 });
 
 // ==========================================
-// 8.1 DIRECT IN-CHAT APK SENDER
+// 8.1 DYNAMIC RELEASES & DIRECT IN-CHAT APK SENDER
 // ==========================================
+let releaseCache = {
+  data: null,
+  timestamp: 0
+};
+
+// Query GitHub Releases dynamically to always detect the latest version & tag
+function fetchLatestGithubRelease() {
+  return new Promise((resolve, reject) => {
+    // Cache for 60 seconds to prevent hitting GitHub rate limits
+    if (releaseCache.data && (Date.now() - releaseCache.timestamp < 60000)) {
+      return resolve(releaseCache.data);
+    }
+
+    const options = {
+      hostname: 'api.github.com',
+      path: '/repos/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO/releases',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) TempMailPro-Bot'
+      }
+    };
+
+    https.get(options, (res) => {
+      let body = '';
+      res.on('data', chunk => body += chunk);
+      res.on('end', () => {
+        try {
+          const list = JSON.parse(body);
+          if (!Array.isArray(list) || list.length === 0) {
+            return reject(new Error('No releases found in GitHub repository'));
+          }
+          const latest = list[0];
+          const apkAssets = (latest.assets || []).filter(a => a.name.toLowerCase().endsWith('.apk'));
+          const apkAsset = apkAssets.find(a => a.name.toLowerCase().includes('tempmail')) || apkAssets[0] || null;
+
+          if (!apkAsset) {
+            return reject(new Error('No APK asset attached to latest tag: ' + latest.tag_name));
+          }
+
+          const tag = latest.tag_name || '';
+          const match = tag.match(/v?(\d+(\.\d+)+)/i);
+          const version = match ? match[1] : tag;
+
+          const result = {
+            tag: latest.tag_name,
+            version: version,
+            releaseName: latest.name || `TempMail Pro v${version}`,
+            apkAsset: {
+              name: apkAsset.name,
+              size: apkAsset.size,
+              downloadUrl: apkAsset.browser_download_url
+            }
+          };
+
+          releaseCache.data = result;
+          releaseCache.timestamp = Date.now();
+          resolve(result);
+        } catch (e) {
+          reject(e);
+        }
+      });
+    }).on('error', reject);
+  });
+}
+
+// Robust streaming downloader that follows redirects and writes to local file
+function downloadFileWithRedirects(initialUrl, destPath) {
+  return new Promise((resolve, reject) => {
+    function fetchUrl(currentUrl, redirectCount = 0) {
+      if (redirectCount > 10) {
+        return reject(new Error('Too many redirects while downloading APK'));
+      }
+      const parsed = new URL(currentUrl);
+      const client = parsed.protocol === 'https:' ? https : http;
+
+      const req = client.get(currentUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': '*/*'
+        }
+      }, (res) => {
+        if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+          const nextUrl = new URL(res.headers.location, currentUrl).href;
+          res.resume();
+          return fetchUrl(nextUrl, redirectCount + 1);
+        }
+
+        if (res.statusCode !== 200) {
+          res.resume();
+          return reject(new Error('HTTP status ' + res.statusCode + ' for ' + currentUrl));
+        }
+
+        const fileStream = fs.createWriteStream(destPath);
+        res.pipe(fileStream);
+        fileStream.on('finish', () => {
+          fileStream.close(() => resolve(destPath));
+        });
+        fileStream.on('error', (err) => {
+          fs.unlink(destPath, () => {});
+          reject(err);
+        });
+      });
+
+      req.on('error', (err) => {
+        fs.unlink(destPath, () => {});
+        reject(err);
+      });
+      req.setTimeout(120000, () => {
+        req.destroy(new Error('Download connection timed out'));
+      });
+    }
+
+    fetchUrl(initialUrl);
+  });
+}
+
 async function handleSendApk(chatId) {
-  const statusMsg = await bot.sendMessage(chatId, '⏳ <b>Preparing Temp Mail Pro APK file for you...</b>\nPlease wait a moment while the package is being prepared.', {
+  const statusMsg = await bot.sendMessage(chatId, '🔍 <b>Checking latest APK release...</b>\nPlease wait a moment.', {
     parse_mode: 'HTML'
   });
 
-  const caption = `
-📱 <b>Temp Mail Pro v2.6.0 (Official Android App)</b>
+  try {
+    // 1. Fetch latest release info dynamically from GitHub tag list
+    let latestInfo;
+    try {
+      latestInfo = await fetchLatestGithubRelease();
+    } catch (err) {
+      console.warn('[GitHub Release Check Failed, using fallback]', err.message);
+      latestInfo = {
+        tag: 'v2.6.0TempMailPro',
+        version: '2.6.0',
+        releaseName: 'Temp Mail Pro v2.6.0',
+        apkAsset: {
+          name: 'TempMailPro_v2.6.0.apk',
+          downloadUrl: 'https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO/releases/download/v2.6.0TempMailPro/app-debug.apk'
+        }
+      };
+    }
+
+    const version = latestInfo.version || '2.6.0';
+    const tag = latestInfo.tag;
+    const cleanFileName = `TempMailPro_v${version}.apk`;
+
+    const caption = `
+📱 <b>Temp Mail Pro v${version} (Official Android App)</b>
+
+⚡ <b>Latest Version:</b> <code>v${version}</code>
+🛡️ <b>Release Tag:</b> <code>${tag}</code>
+🔄 <b>Status:</b> Official Latest Release
 
 ⚡ <b>Features:</b>
 • 100% Free Disposable Temporary Emails
@@ -1271,67 +1434,88 @@ async function handleSendApk(chatId) {
 <i>💡 Directly tap below to download and install this APK on your Android device!</i>
 `;
 
-  try {
-    // 1. If we have a cached Telegram file_id, sending is instantaneous
-    if (db.cachedApkFileId) {
+    // 2. Check if we already have a cached Telegram file_id for THIS EXACT TAG
+    if (db.latestApkCache && db.latestApkCache.tag === tag && db.latestApkCache.fileId) {
       try {
-        await bot.sendDocument(chatId, db.cachedApkFileId, {
+        await bot.sendDocument(chatId, db.latestApkCache.fileId, {
           caption,
           parse_mode: 'HTML'
         });
         await bot.deleteMessage(chatId, statusMsg.message_id).catch(() => {});
         return;
       } catch (err) {
-        console.warn('[APK Cached file_id expired, falling back to local file]', err.message);
-        db.cachedApkFileId = null;
+        console.warn('[Cached file_id expired or invalid, will re-upload]', err.message);
+        db.latestApkCache = null;
       }
     }
 
-    // 2. Look for local build APK
-    let localApk = null;
-    const candidates = [
-      path.resolve(__dirname, '../app/build/outputs/apk/debug/app-debug.apk'),
-      path.resolve(__dirname, '../.build-outputs/app-debug.apk'),
-      path.resolve(process.cwd(), 'app/build/outputs/apk/debug/app-debug.apk'),
-      path.resolve(process.cwd(), '.build-outputs/app-debug.apk')
-    ];
-    for (const cand of candidates) {
-      if (fs.existsSync(cand)) {
-        localApk = cand;
-        break;
+    // 3. Ensure local APK cache directory exists
+    const cacheDir = path.join(__dirname, 'apk_cache');
+    if (!fs.existsSync(cacheDir)) {
+      fs.mkdirSync(cacheDir, { recursive: true });
+    }
+    const localCachedFile = path.join(cacheDir, `${tag}.apk`);
+
+    // 4. If file is not yet cached locally, check local build or download from GitHub
+    if (!fs.existsSync(localCachedFile) || fs.statSync(localCachedFile).size < 1000000) {
+      // Check if there's a local container build first
+      const localCandidates = [
+        path.resolve(__dirname, '../app/build/outputs/apk/debug/app-debug.apk'),
+        path.resolve(__dirname, '../.build-outputs/app-debug.apk'),
+        path.resolve(process.cwd(), 'app/build/outputs/apk/debug/app-debug.apk'),
+        path.resolve(process.cwd(), '.build-outputs/app-debug.apk')
+      ];
+      let foundLocal = false;
+      for (const cand of localCandidates) {
+        if (fs.existsSync(cand) && fs.statSync(cand).size > 1000000) {
+          fs.copyFileSync(cand, localCachedFile);
+          foundLocal = true;
+          break;
+        }
+      }
+
+      if (!foundLocal) {
+        await bot.editMessageText(`⬇️ <b>Downloading latest APK (v${version}) from release server...</b>\nPlease wait, sending directly to your chat...`, {
+          chat_id: chatId,
+          message_id: statusMsg.message_id,
+          parse_mode: 'HTML'
+        }).catch(() => {});
+
+        await downloadFileWithRedirects(latestInfo.apkAsset.downloadUrl, localCachedFile);
       }
     }
 
-    let sentMsg;
-    if (localApk) {
-      sentMsg = await bot.sendDocument(chatId, localApk, {
-        caption,
-        parse_mode: 'HTML'
-      }, {
-        filename: 'TempMailPro_v2.6.0.apk',
-        contentType: 'application/vnd.android.package-archive'
-      });
-    } else {
-      // 3. Fallback direct stream via server-side URL without exposing any link to user
-      const streamUrl = 'https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO/releases/download/v2.6.0TempMailPro/app-debug.apk';
-      sentMsg = await bot.sendDocument(chatId, streamUrl, {
-        caption,
-        parse_mode: 'HTML'
-      }, {
-        filename: 'TempMailPro_v2.6.0.apk',
-        contentType: 'application/vnd.android.package-archive'
-      });
-    }
+    // 5. Send document directly as multipart stream from local file (supports up to 50MB)
+    await bot.editMessageText(`📤 <b>Sending Temp Mail Pro v${version} directly to your chat...</b>`, {
+      chat_id: chatId,
+      message_id: statusMsg.message_id,
+      parse_mode: 'HTML'
+    }).catch(() => {});
 
+    const fileStream = fs.createReadStream(localCachedFile);
+    const sentMsg = await bot.sendDocument(chatId, fileStream, {
+      caption,
+      parse_mode: 'HTML'
+    }, {
+      filename: cleanFileName,
+      contentType: 'application/vnd.android.package-archive'
+    });
+
+    // 6. Cache the new Telegram file_id for this tag!
     if (sentMsg?.document?.file_id) {
-      db.cachedApkFileId = sentMsg.document.file_id;
+      db.latestApkCache = {
+        tag: tag,
+        version: version,
+        fileId: sentMsg.document.file_id,
+        cachedAt: Date.now()
+      };
       saveDb();
     }
 
     await bot.deleteMessage(chatId, statusMsg.message_id).catch(() => {});
   } catch (err) {
     console.error('[Send APK Error]', err.message);
-    await bot.editMessageText('❌ Failed to deliver the APK file. Please try again or contact support: @HANTER_XD_OFFICIAL', {
+    await bot.editMessageText(`❌ Failed to deliver the APK file: ${err.message}\nPlease try again or contact support: @HANTER_XD_OFFICIAL`, {
       chat_id: chatId,
       message_id: statusMsg.message_id
     }).catch(() => {});
