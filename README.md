@@ -75,7 +75,7 @@ Whether registering on untrusted platforms, testing SaaS pipelines, bypassing re
 - Dedicated highlighted **OTP Action Card** in the Gmail-style email reader for single-tap code copying.
 
 ### 4. 🤖 Full Telegram Bot Ecosystem Integration
-- Integrated with the official **`@TEMPMAILPRO34_bot`** Telegram Bot (Authenticated Token: `8659662216:AAHfx...EXwI`).
+- Integrated with the official **`@TEMPMAILPRO34_bot`** Telegram Bot (Authenticated via Encrypted Dynamic Key Vault).
 - Create and check mailboxes directly from Telegram, auto-detect chat IDs, forward OTP codes, and sync inboxes seamlessly with the Android app.
 
 ### 5. 🎨 Modern Gmail-Style UI/UX
@@ -154,7 +154,7 @@ Connect directly with the official team for updates, support, and community disc
 - 📢 **[Official Telegram Channel](https://t.me/HANTER_XD_OFFICIAL)**
 - 💬 **[Developer WhatsApp Support](https://wa.me/8801882278234)**
 - 📘 **[Developer Facebook Profile](https://www.facebook.com/md.rasel.7.8.2.3.4)**
-- ✉️ **[Developer Direct Email](mailto:alexraselchodhury@gmail.com)**
+- ✉️ **[Developer Direct Email](mailto:hanterxdofficial@gmail.com)** (hanterxdofficial@gmail.com)
 - 🐙 **[Official GitHub Repository](https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO)**
 
 ---

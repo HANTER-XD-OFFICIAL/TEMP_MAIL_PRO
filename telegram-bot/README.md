@@ -1,8 +1,9 @@
 # Temp Mail Pro — 24/7 Telegram Bot & Web Service
 **Lead Developer:** MD RASEL (Hanter XD Official)  
+**Support Email:** [hanterxdofficial@gmail.com](mailto:hanterxdofficial@gmail.com)  
 **Bot Username:** `@TEMPMAILPRO34_bot`  
 **Direct Link:** [https://t.me/TEMPMAILPRO34_bot](https://t.me/TEMPMAILPRO34_bot)  
-**Token:** `8659662216:AAHfxsv6-XG3k2K75lMWfidI10T2KeGEXwI`
+**Token:** `[PROTECTED - Encrypted in Runtime Vault / Managed via Render ENV]`
 
 ---
 
@@ -41,8 +42,8 @@ Fill in the configuration fields:
 
 ### Step 4: Add Environment Variables
 Under **Environment Variables**, click **Add Environment Variable** and add:
-- **Key:** `BOT_TOKEN`  
-  **Value:** `8659662216:AAHfxsv6-XG3k2K75lMWfidI10T2KeGEXwI`
+- **Key:** `BOT_TOKEN` *(Optional: code already includes encrypted token fallback, or paste your secret token here)*  
+  **Value:** `[Your Secret Telegram Bot Token]`
 - **Key:** `PORT`  
   **Value:** `3000`
 

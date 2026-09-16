@@ -11,6 +11,6 @@ services:
     healthCheckPath: /health
     envVars:
       - key: BOT_TOKEN
-        value: 8659662216:AAHfxsv6-XG3k2K75lMWfidI10T2KeGEXwI
+        sync: false # Set privately in Render Dashboard Environment, or uses internal encrypted vault
       - key: NODE_ENV
         value: production

@@ -1,7 +1,7 @@
 # Temp Mail Pro — 24/7 Telegram Bot Deployment Guide on Render.com
 **বিকাশকারী:** MD RASEL (Hanter XD Official)  
 **বট ইউজারনেম:** `@TEMPMAILPRO34_bot`  
-**টোকেন:** `8659662216:AAHfxsv6-XG3k2K75lMWfidI10T2KeGEXwI`
+**টোকেন:** `[সুরক্ষিত ও এনক্রিপ্ট করা - Private Vault]`
 
 ---
 
@@ -38,8 +38,8 @@
 
 ### ধাপ ৫: Environment Variables (সিক্রেট টোকেন) যোগ করুন
 নিচে **Environment Variables** সেকশনে যান এবং **Add Environment Variable** এ ক্লিক করুন:
-1. **Key:** `BOT_TOKEN`  
-   **Value:** `8659662216:AAHfxsv6-XG3k2K75lMWfidI10T2KeGEXwI`
+1. **Key:** `BOT_TOKEN` *(অপশনাল: কোডে আগে থেকেই এনক্রিপ্টেড ব্যাকআপ আছে, চাইলে এখানে আপনার গোপন টোকেনও বসাতে পারেন)*  
+   **Value:** `[আপনার সিক্রেট বট টোকেন]`
 2. **Key:** `PORT`  
    **Value:** `3000`
 

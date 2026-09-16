@@ -88,7 +88,7 @@ private const val TELEGRAM_CHANNEL_URL = "https://t.me/HANTER_XD_OFFICIAL"
 private const val TELEGRAM_BOT_URL = "https://t.me/TEMPMAILPRO34_bot"
 private const val GITHUB_REPO_URL = "https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO"
 private const val FACEBOOK_PROFILE_URL = "https://www.facebook.com/md.rasel.7.8.2.3.4"
-private const val SUPPORT_EMAIL = "alexraselchodhury@gmail.com"
+private const val SUPPORT_EMAIL = "hanterxdofficial@gmail.com"
 
 @Composable
 fun DeveloperContactDialog(
@@ -574,10 +574,10 @@ fun DeveloperContactDialog(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // 5. Direct Email Card (Email address is hidden from text, opens on tap)
+                    // 5. Direct Email Card (Official Support Email)
                     ProfessionalChannelCard(
                         title = "Direct Support Email",
-                        subtitle = "Official Help Desk • Tap to compose email",
+                        subtitle = "hanterxdofficial@gmail.com • Tap to compose",
                         actionBadge = "Email",
                         icon = Icons.Default.Email,
                         brandColor = Color(0xFFEA4335),

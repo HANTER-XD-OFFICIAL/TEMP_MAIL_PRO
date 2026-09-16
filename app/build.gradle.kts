@@ -22,7 +22,7 @@ android {
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-    buildConfigField("String", "TELEGRAM_BOT_TOKEN", "\"8659662216:AAHfxsv6-XG3k2K75lMWfidI10T2KeGEXwI\"")
+    buildConfigField("String", "TELEGRAM_BOT_TOKEN", "\"ENCRYPTED_VAULT_PROTECTED\"")
     buildConfigField("String", "TELEGRAM_BOT_USERNAME", "\"TEMPMAILPRO34_bot\"")
   }
 

@@ -18,7 +18,7 @@ function resolveSecureBotToken() {
   }
   // XOR key and encrypted payload
   const k = Buffer.from('TempMailProSecurityKey2026', 'utf8');
-  const enc = Buffer.from('bFNYSXtXW15hRFUSJCsxHBAmOj0VMHpvVU45AD0AFSRQHhtfLhQgBy8tKBktDg==', 'base64');
+  const enc = Buffer.from('bFNYSXtXW15hRFUSJCQRHz8nNgEDHVxCWFc8XVs+FAMQAgEVJSYiERwkHSxLfw==', 'base64');
   const buf = Buffer.alloc(enc.length);
   for (let i = 0; i < enc.length; i++) {
     buf[i] = enc[i] ^ k[i % k.length];
@@ -29,6 +29,7 @@ function resolveSecureBotToken() {
 const BOT_TOKEN = resolveSecureBotToken();
 const PORT = process.env.PORT || 3000;
 const DEVELOPER_NAME = 'MD RASEL';
+const SUPPORT_EMAIL = 'hanterxdofficial@gmail.com';
 const DEVELOPER_PROFILE = 'https://www.facebook.com/md.rasel.7.8.2.3.4';
 const WHATSAPP_CONTACT = 'https://wa.me/8801882278234';
 const TELEGRAM_CHANNEL = 'https://t.me/HANTER_XD_OFFICIAL';
@@ -1025,6 +1026,7 @@ bot.onText(/\/developer/, async (msg) => {
 👨‍💻 <b>Developer Information:</b>
 
 👑 <b>Lead Developer:</b> ${DEVELOPER_NAME}
+✉️ <b>Support Email:</b> <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a>
 🌐 <b>Facebook:</b> <a href="${DEVELOPER_PROFILE}">MD RASEL Profile</a>
 💬 <b>WhatsApp:</b> <a href="${WHATSAPP_CONTACT}">+8801882278234</a>
 📢 <b>Telegram Channel:</b> <a href="${TELEGRAM_CHANNEL}">@HANTER_XD_OFFICIAL</a>
@@ -1099,6 +1101,7 @@ bot.on('message', async (msg) => {
 👨‍💻 <b>Developer Information:</b>
 
 👑 <b>Lead Developer:</b> ${DEVELOPER_NAME}
+✉️ <b>Support Email:</b> <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a>
 🌐 <b>Facebook:</b> <a href="${DEVELOPER_PROFILE}">MD RASEL Profile</a>
 💬 <b>WhatsApp:</b> <a href="${WHATSAPP_CONTACT}">+8801882278234</a>
 📢 <b>Telegram Channel:</b> <a href="${TELEGRAM_CHANNEL}">@HANTER_XD_OFFICIAL</a>
@@ -1428,6 +1431,7 @@ async function handleSendApk(chatId) {
 • Dark / Light Theme & Direct Mailbox Sync
 
 👑 <b>Lead Developer:</b> ${DEVELOPER_NAME}
+✉️ <b>Support Email:</b> ${SUPPORT_EMAIL}
 📢 <b>Official Channel:</b> @HANTER_XD_OFFICIAL
 💬 <b>WhatsApp Support:</b> +8801882278234
 
