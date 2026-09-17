@@ -33,6 +33,7 @@ const SUPPORT_EMAIL = 'hanterxdofficial@gmail.com';
 const DEVELOPER_PROFILE = 'https://www.facebook.com/md.rasel.7.8.2.3.4';
 const WHATSAPP_CONTACT = 'https://wa.me/8801882278234';
 const TELEGRAM_CHANNEL = 'https://t.me/HANTER_XD_OFFICIAL';
+const OFFICIAL_WEBSITE = 'https://hanter-xd-official.github.io/TEMP_MAIL_PRO/';
 
 // Supported High-Reliability Working Domains (Matches Temp Mail Pro App)
 const DOMAINS_CONFIG = [
@@ -628,12 +629,16 @@ function getMainInlineKeyboard(hasSession = false) {
     { text: '🔄 Auto Refresh', callback_data: 'CHECK_INBOX' }
   ];
   const row3 = [
-    { text: '📢 Telegram Channel', url: TELEGRAM_CHANNEL },
+    { text: '🌐 Web App', url: OFFICIAL_WEBSITE },
+    { text: '📥 Download APK', callback_data: 'SEND_APK_FILE' }
+  ];
+  const row4 = [
+    { text: '📢 Channel', url: TELEGRAM_CHANNEL },
     { text: '💬 WhatsApp Support', url: WHATSAPP_CONTACT }
   ];
 
   return {
-    inline_keyboard: [row1, row2, row3]
+    inline_keyboard: [row1, row2, row3, row4]
   };
 }
 
@@ -874,18 +879,36 @@ bot.onText(/\/start/, async (msg) => {
 
 🛡️ <b>Developed by:</b> <a href="${DEVELOPER_PROFILE}">${DEVELOPER_NAME}</a> (Hanter XD Official)
 🤖 <b>Bot Username:</b> @TEMPMAILPRO34_bot
+🌐 <b>Official Website:</b> <a href="${OFFICIAL_WEBSITE}">Temp Mail Pro Web App</a>
 
-With this bot, you can generate 100% free anonymous disposable email addresses on high-speed verified domains (<b>@uberip.com</b>, <b>@sharklasers.com</b>, <b>@guerrillamail.com</b>, <b>@westcast-systems.com</b>) and receive instant <b>live OTP codes & verification emails</b> 24/7!
+With this bot, you can generate 100% free anonymous disposable email addresses on high-speed verified domains (<b>@uberip.com</b>, <b>@sharklasers.com</b>, <b>@guerrillamail.com</b>, <b>@westcast-systems.com</b>) and receive instant <b>live OTP codes & verification emails</b> 24/7! You can also use our official web app directly in your browser without installing anything.
 
 💡 <b>Your Telegram Chat ID:</b> <code>${chatId}</code>
 `;
 
   const isAdminUser = isAdmin(chatId);
 
-  // Send single clean welcome message with the fixed bottom keyboard directly attached
+  // Send single clean welcome message with website button & fixed bottom keyboard
   await bot.sendMessage(chatId, welcomeMessage, {
     parse_mode: 'HTML',
     disable_web_page_preview: true,
+    reply_markup: {
+      inline_keyboard: [
+        [
+          { text: '🌐 Open Official Website', url: OFFICIAL_WEBSITE },
+          { text: '⚡ Generate Email', callback_data: 'GEN_NEW_MAIL' }
+        ],
+        [
+          { text: '📥 Download Android APK', callback_data: 'SEND_APK_FILE' },
+          { text: '👨‍💻 Developer Profile', url: DEVELOPER_PROFILE }
+        ]
+      ]
+    }
+  });
+
+  // Attach persistent bottom keyboard menu
+  await bot.sendMessage(chatId, '👇 <b>Use the menu buttons below to manage your temporary mailboxes:</b>', {
+    parse_mode: 'HTML',
     reply_markup: getBottomMenuBarKeyboard(isAdminUser)
   });
 });
@@ -1108,6 +1131,7 @@ bot.on('message', async (msg) => {
 
 👑 <b>Lead Developer:</b> ${DEVELOPER_NAME}
 ✉️ <b>Support Email:</b> <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a>
+🌐 <b>Official Website:</b> <a href="${OFFICIAL_WEBSITE}">Temp Mail Pro Web</a>
 🌐 <b>Facebook:</b> <a href="${DEVELOPER_PROFILE}">MD RASEL Profile</a>
 💬 <b>WhatsApp:</b> <a href="${WHATSAPP_CONTACT}">+8801882278234</a>
 📢 <b>Telegram Channel:</b> <a href="${TELEGRAM_CHANNEL}">@HANTER_XD_OFFICIAL</a>
@@ -1115,7 +1139,14 @@ bot.on('message', async (msg) => {
     await bot.sendMessage(chatId, devText, {
       parse_mode: 'HTML',
       disable_web_page_preview: true,
-      reply_markup: getBottomMenuBarKeyboard(isAdminUser)
+      reply_markup: {
+        inline_keyboard: [
+          [
+            { text: '🌐 Visit Website', url: OFFICIAL_WEBSITE },
+            { text: '👤 Developer Profile', url: DEVELOPER_PROFILE }
+          ]
+        ]
+      }
     });
     return;
   }

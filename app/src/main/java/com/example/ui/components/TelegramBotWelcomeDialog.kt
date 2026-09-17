@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Person
@@ -83,6 +84,7 @@ import kotlinx.coroutines.launch
 fun TelegramBotWelcomeDialog(
     botUsername: String = TelegramBotManager.BOT_USERNAME,
     facebookUrl: String = "https://www.facebook.com/md.rasel.7.8.2.3.4",
+    websiteUrl: String = "https://hanter-xd-official.github.io/TEMP_MAIL_PRO/",
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
@@ -572,6 +574,20 @@ fun TelegramBotWelcomeDialog(
                         testTag = "welcome_view_facebook_btn",
                         onClick = {
                             openUrl(context, facebookUrl)
+                        }
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // 3. Official Web App Button
+                    QuickChannelButton(
+                        title = "Official Web App (Online)",
+                        subtitle = "Use Temp Mail Pro directly in your browser",
+                        icon = Icons.Default.Language,
+                        primaryColor = Color(0xFF10B981),
+                        testTag = "welcome_view_website_btn",
+                        onClick = {
+                            openUrl(context, websiteUrl)
                         }
                     )
                 }
