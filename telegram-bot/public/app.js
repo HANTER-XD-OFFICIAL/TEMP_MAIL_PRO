@@ -576,7 +576,117 @@ function populateDomainSelects() {
     opt.textContent = `@${d.domain} • ${providerClean}`;
     sel.appendChild(opt);
   });
+  
+  // Sync in-app custom domain picker
+  const activeDom = (sel.value || 'sharklasers.com');
+  const dObj = state.domains.find(d => d.domain === activeDom) || state.domains[0];
+  if (dObj) {
+    updateCustomDomainTriggerDisplay(dObj.domain, dObj.provider || 'Guerrilla');
+  }
+  renderCustomDomainDropdown();
   updateCustomPreview();
+}
+
+function updateCustomDomainTriggerDisplay(domain, provider) {
+  const txt = document.getElementById('custom-domain-text');
+  const badge = document.getElementById('custom-domain-provider-badge');
+  const icon = document.getElementById('custom-domain-icon');
+  if (txt) txt.textContent = `@${domain}`;
+  if (badge) badge.textContent = (provider || 'Mail Node').replace(/\(.*?\)/g, '').trim();
+  if (icon) {
+    if (domain.includes('shark') || domain.includes('guerrilla')) icon.textContent = '⭐';
+    else if (domain.includes('mail')) icon.textContent = '⚡';
+    else icon.textContent = '🛡️';
+  }
+}
+
+function toggleCustomDomainMenu() {
+  const panel = document.getElementById('custom-domain-dropdown-panel');
+  const trigger = document.getElementById('custom-domain-trigger');
+  if (!panel) return;
+  const isHidden = panel.style.display === 'none' || !panel.style.display;
+  if (isHidden) {
+    panel.style.display = 'flex';
+    if (trigger) trigger.classList.add('active');
+    renderCustomDomainDropdown();
+    const filterInput = document.getElementById('custom-domain-filter-input');
+    if (filterInput) {
+      filterInput.value = '';
+      setTimeout(() => filterInput.focus(), 60);
+    }
+  } else {
+    panel.style.display = 'none';
+    if (trigger) trigger.classList.remove('active');
+  }
+}
+
+function renderCustomDomainDropdown(filterText = '') {
+  const container = document.getElementById('custom-domain-dropdown-items');
+  const sel = document.getElementById('custom-domain-select');
+  if (!container) return;
+  container.innerHTML = '';
+  
+  const currentVal = sel ? sel.value : 'sharklasers.com';
+  const query = (filterText || '').toLowerCase().trim();
+  
+  const filtered = state.domains.filter(d => {
+    if (!query) return true;
+    return d.domain.toLowerCase().includes(query) || (d.provider && d.provider.toLowerCase().includes(query));
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div style="padding: 10px; text-align: center; color: var(--text-dim); font-size: 0.8rem;">No matching domains</div>';
+    return;
+  }
+
+  filtered.forEach(d => {
+    const item = document.createElement('div');
+    const isSelected = d.domain === currentVal;
+    item.className = 'custom-domain-item' + (isSelected ? ' selected' : '');
+    
+    let domainIcon = '🌐';
+    if (d.domain.includes('shark') || d.domain.includes('guerrilla')) domainIcon = '⭐';
+    else if (d.domain.includes('mail')) domainIcon = '⚡';
+    else if (d.domain.includes('poke') || d.domain.includes('spam')) domainIcon = '🛡️';
+
+    const providerClean = d.provider ? d.provider.replace(/\(.*?\)/g, '').trim() : 'Mail Node';
+
+    item.innerHTML = `
+      <div class="custom-domain-item-left">
+        <span>${domainIcon}</span>
+        <span class="custom-domain-item-host">@${escapeHtml(d.domain)}</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:6px;">
+        <span class="custom-domain-item-badge">${escapeHtml(providerClean)}</span>
+        ${isSelected ? '<span style="color:#818cf8; font-size:0.88rem; font-weight:bold;">✓</span>' : ''}
+      </div>
+    `;
+
+    item.onclick = (e) => {
+      e.stopPropagation();
+      selectCustomDomain(d.domain, d.provider);
+    };
+
+    container.appendChild(item);
+  });
+}
+
+function filterCustomDropdownDomains(val) {
+  renderCustomDomainDropdown(val);
+}
+
+function selectCustomDomain(domain, provider) {
+  const sel = document.getElementById('custom-domain-select');
+  if (sel) {
+    sel.value = domain;
+  }
+  updateCustomDomainTriggerDisplay(domain, provider);
+  updateCustomPreview();
+  
+  const panel = document.getElementById('custom-domain-dropdown-panel');
+  const trigger = document.getElementById('custom-domain-trigger');
+  if (panel) panel.style.display = 'none';
+  if (trigger) trigger.classList.remove('active');
 }
 
 async function generateNewRandomEmail(selectedDomain = null) {
@@ -1195,6 +1305,10 @@ function filterDomainsList(val) {
 function openCustomModal() {
   populateDomainSelects();
   updateCustomPreview();
+  const panel = document.getElementById('custom-domain-dropdown-panel');
+  const trigger = document.getElementById('custom-domain-trigger');
+  if (panel) panel.style.display = 'none';
+  if (trigger) trigger.classList.remove('active');
   openModal('modal-custom');
 }
 
@@ -1570,7 +1684,7 @@ async function checkIncomingOtpNow() {
   const btn = document.querySelector('.btn-check-otp');
   if (btn) btn.style.opacity = '0.6';
 
-  showToast('🔄 Checking server for incoming social media OTP...');
+  showToast('🔄 Checking server for incoming OTP...');
   const countBefore = state.messages.length;
   await fetchInboxMessages(false);
 
@@ -1579,9 +1693,9 @@ async function checkIncomingOtpNow() {
   const countAfter = state.messages.length;
   if (countAfter > countBefore) {
     playNotificationChime();
-    showToast('📬 Social media verification email received!');
+    showToast('📬 New OTP verification email received!');
   } else if (countAfter === 0) {
-    showToast('⏳ No OTP email yet. Sign up on Facebook, Telegram, Google, etc., and your code will arrive here!');
+    showToast('⏳ No OTP email yet — waiting for incoming codes');
   } else {
     showToast('✅ Mailbox checked — up to date.');
   }
@@ -1666,3 +1780,15 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
 }
+
+// Global click listener to close custom domain dropdown when clicking outside
+document.addEventListener('click', (e) => {
+  const group = document.querySelector('.custom-domain-picker-group');
+  if (group && !group.contains(e.target)) {
+    const panel = document.getElementById('custom-domain-dropdown-panel');
+    const trigger = document.getElementById('custom-domain-trigger');
+    if (panel) panel.style.display = 'none';
+    if (trigger) trigger.classList.remove('active');
+  }
+});
+

@@ -8,25 +8,25 @@
   <meta name="theme-color" content="#0b0f19">
   
   <!-- App Icons -->
-  <link rel="icon" type="image/webp" href="./app_icon.webp">
-  <link rel="apple-touch-icon" href="./app_icon.webp">
+  <link rel="icon" type="image/png" href="./app_icon.png">
+  <link rel="apple-touch-icon" href="./app_icon.png">
 
   <!-- Open Graph & Social Sharing -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="Temp Mail Pro — Free Disposable Temporary Email &amp; Live OTP Verification">
   <meta property="og:description" content="Generate instant disposable temporary email addresses across 30+ domains. Live OTP extraction, auto-refresh inbox, 10-minute timer extensions, privacy shield, and Telegram Bot integration by MD RASEL.">
-  <meta property="og:image" content="./app_icon.webp">
+  <meta property="og:image" content="./app_icon.png">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Temp Mail Pro — Free Disposable Email &amp; OTP">
   <meta name="twitter:description" content="Instant temporary email addresses with real-time OTP detection. 100% Free &amp; Unlimited.">
-  <meta name="twitter:image" content="./app_icon.webp">
+  <meta name="twitter:image" content="./app_icon.png">
 
   <!-- Inter & Roboto Mono Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="./style.css?v=2.6.2">
+  <link rel="stylesheet" href="./style.css?v=2.6.3">
 </head>
 <body>
 
@@ -35,10 +35,7 @@
     <div class="nav-container">
       <div class="brand-group">
         <div class="brand-logo-wrap" title="Temp Mail Pro">
-          <img src="./app_icon.webp" alt="Temp Mail Pro" class="brand-logo" onerror="this.style.display='none'; const fb=document.getElementById('brand-svg-fallback'); if(fb) fb.style.display='flex';">
-          <div class="brand-logo-fallback" id="brand-svg-fallback" style="display:none;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-          </div>
+          <img src="./app_icon.png" srcset="./app_icon.webp 1x, ./app_icon.png 2x" alt="Temp Mail Pro Logo" class="brand-logo" onerror="this.onerror=null; this.src='./app_icon.webp';">
         </div>
         <div class="brand-info-wrap">
           <div class="brand-title-wrap">
@@ -371,9 +368,30 @@
           </div>
         </div>
 
-        <div class="form-group">
-          <label for="custom-domain-select" class="form-label" id="txt-select-domain-label">Select Domain:</label>
-          <select id="custom-domain-select" class="form-select" onchange="updateCustomPreview()">
+        <div class="form-group custom-domain-picker-group">
+          <label class="form-label" id="txt-select-domain-label">Select Domain:</label>
+          <div class="custom-domain-trigger" id="custom-domain-trigger" onclick="toggleCustomDomainMenu()">
+            <div class="custom-domain-trigger-content">
+              <span class="custom-domain-icon" id="custom-domain-icon">⭐</span>
+              <span class="custom-domain-text" id="custom-domain-text">@sharklasers.com</span>
+              <span class="custom-domain-badge" id="custom-domain-provider-badge">Guerrilla</span>
+            </div>
+            <span class="custom-domain-arrow">▼</span>
+          </div>
+
+          <!-- In-app sleek custom dropdown menu -->
+          <div class="custom-domain-dropdown-panel" id="custom-domain-dropdown-panel" style="display: none;">
+            <div class="dropdown-filter-wrap">
+              <span class="dropdown-search-icon">🔍</span>
+              <input type="text" id="custom-domain-filter-input" placeholder="Search domain..." oninput="filterCustomDropdownDomains(this.value)">
+            </div>
+            <div class="custom-domain-dropdown-items" id="custom-domain-dropdown-items">
+              <!-- Dynamically populated by JS -->
+            </div>
+          </div>
+
+          <!-- Hidden select to keep complete synchronization with form & scripts -->
+          <select id="custom-domain-select" style="display: none;" onchange="updateCustomPreview()">
             <!-- Populated by JS -->
           </select>
         </div>
@@ -625,7 +643,7 @@
 
       <div class="modal-body">
         <div class="apk-hero-box">
-          <img src="app_icon.webp" alt="App Icon" class="apk-icon-large" onerror="this.onerror=null; this.src='./app_icon.webp';">
+          <img src="./app_icon.png" alt="App Icon" class="apk-icon-large" onerror="this.onerror=null; this.src='./app_icon.webp';">
           <div>
             <h4 class="apk-name">Temp Mail Pro v2.6.0</h4>
             <span class="apk-tag">Production Release • Android 8.0+</span>
