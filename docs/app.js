@@ -572,7 +572,8 @@ function populateDomainSelects() {
   state.domains.forEach(d => {
     const opt = document.createElement('option');
     opt.value = d.domain;
-    opt.textContent = `@${d.domain} (${d.provider})`;
+    const providerClean = d.provider ? d.provider.replace(/\(.*?\)/g, '').trim() : 'Mail Node';
+    opt.textContent = `@${d.domain} • ${providerClean}`;
     sel.appendChild(opt);
   });
   updateCustomPreview();
@@ -1161,12 +1162,25 @@ function renderDomainsModalList(filter = '') {
       generateNewRandomEmail(d.domain);
     };
 
+    const bText = d.badge || 'Verified';
+    let badgeClass = 'badge-verified';
+    if (bText.includes('Reputation') || bText.includes('High')) {
+      badgeClass = 'badge-gold';
+    } else if (bText.includes('Short')) {
+      badgeClass = 'badge-purple';
+    } else if (bText.includes('Guard') || bText.includes('Spam')) {
+      badgeClass = 'badge-blue';
+    }
+
     card.innerHTML = `
       <div class="domain-item-info">
-        <div class="domain-name-text">${d.icon || '🌐'} @${d.domain}</div>
-        <div class="domain-provider-text">${d.provider || 'High Speed Engine'}</div>
+        <div class="domain-name-text">
+          <span class="domain-item-icon">${d.icon || '🌐'}</span>
+          <span class="domain-item-host">@${escapeHtml(d.domain)}</span>
+        </div>
+        <div class="domain-provider-text">${escapeHtml(d.provider || 'High Speed Engine')}</div>
       </div>
-      <span class="domain-badge-pill">${d.badge || 'Verified'}</span>
+      <span class="domain-badge-pill ${badgeClass}">${escapeHtml(bText)}</span>
     `;
 
     container.appendChild(card);
@@ -1185,10 +1199,15 @@ function openCustomModal() {
 }
 
 function updateCustomPreview() {
-  const user = document.getElementById('custom-username-input').value.trim() || 'username';
-  const dom = document.getElementById('custom-domain-select').value || 'sharklasers.com';
+  const userInp = document.getElementById('custom-username-input');
+  const domSel = document.getElementById('custom-domain-select');
+  const user = (userInp ? userInp.value : '').trim();
+  const dom = (domSel ? domSel.value : '') || 'sharklasers.com';
   const cleanUser = user.toLowerCase().replace(/[^a-z0-9._-]/g, '');
-  document.getElementById('custom-address-preview').textContent = `${cleanUser}@${dom}`;
+  const preview = document.getElementById('custom-address-preview');
+  if (preview) {
+    preview.textContent = `${cleanUser || 'username'}@${dom}`;
+  }
 }
 
 async function submitCustomMailbox() {

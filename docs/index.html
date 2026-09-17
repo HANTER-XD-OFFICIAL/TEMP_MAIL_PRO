@@ -334,7 +334,8 @@
         <p class="modal-desc" id="txt-domain-hub-desc">Select any verified high-reputation domain. Powered by GuerrillaMail, Mail.tm, and Mail.gw enterprise mail nodes.</p>
 
         <div class="domain-filter-search">
-          <input type="text" id="domain-search-input" placeholder="Filter domains..." oninput="filterDomainsList(this.value)">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="domain-search-input" placeholder="Search 30+ enterprise domains..." oninput="filterDomainsList(this.value)">
         </div>
 
         <div class="domains-grid-list" id="domains-list-container">
@@ -365,21 +366,24 @@
         <div class="form-group">
           <label for="custom-username-input" class="form-label" id="txt-username-label">Username / Prefix:</label>
           <div class="custom-input-combo">
-            <input type="text" id="custom-username-input" placeholder="e.g. rasel.vip, alex2026" maxlength="32">
+            <input type="text" id="custom-username-input" placeholder="e.g. rasel.vip, alex2026" maxlength="32" oninput="updateCustomPreview()">
             <span class="at-sign">@</span>
           </div>
         </div>
 
         <div class="form-group">
           <label for="custom-domain-select" class="form-label" id="txt-select-domain-label">Select Domain:</label>
-          <select id="custom-domain-select" class="form-select">
+          <select id="custom-domain-select" class="form-select" onchange="updateCustomPreview()">
             <!-- Populated by JS -->
           </select>
         </div>
 
         <div class="custom-preview-box">
-          <span class="preview-label">Preview:</span>
-          <span class="preview-address" id="custom-address-preview">username@sharklasers.com</span>
+          <div class="preview-meta-row">
+            <span class="preview-label">⚡ Live Address Preview</span>
+            <span class="preview-live-badge"><span class="status-dot"></span> Ready</span>
+          </div>
+          <div class="preview-address" id="custom-address-preview">username@sharklasers.com</div>
         </div>
       </div>
 
@@ -491,27 +495,32 @@
       <div class="modal-body">
         <!-- Lead Developer Card -->
         <div class="dev-profile-card">
-          <div class="dev-avatar">👑</div>
-          <div class="dev-details">
-            <h4 class="dev-lead-name">MD RASEL</h4>
-            <div class="dev-badge-role">Lead Developer &amp; Creator (Hanter XD Official)</div>
-            <div class="dev-channels">
-              <a href="mailto:hanterxdofficial@gmail.com" class="dev-chip email-chip">
-                ✉️ hanterxdofficial@gmail.com
-              </a>
-              <a href="https://wa.me/8801882278234" target="_blank" rel="noopener" class="dev-chip wa-chip">
-                💬 WhatsApp (+8801882278234)
-              </a>
-              <a href="https://t.me/HANTER_XD_OFFICIAL" target="_blank" rel="noopener" class="dev-chip tg-chip">
-                📢 Telegram Channel
-              </a>
-              <a href="https://www.facebook.com/md.rasel.7.8.2.3.4" target="_blank" rel="noopener" class="dev-chip fb-chip">
-                🌐 Facebook Profile
-              </a>
-              <a href="https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO" target="_blank" rel="noopener" class="dev-chip gh-chip">
-                🐙 GitHub Repository
-              </a>
+          <div class="dev-profile-top">
+            <div class="dev-avatar">👑</div>
+            <div class="dev-details">
+              <div class="dev-name-row">
+                <h4 class="dev-lead-name">MD RASEL</h4>
+                <span class="dev-verified-chip">✓ Verified</span>
+              </div>
+              <div class="dev-badge-role">Lead Developer &amp; Creator (Hanter XD Official)</div>
             </div>
+          </div>
+          <div class="dev-channels">
+            <a href="mailto:hanterxdofficial@gmail.com" class="dev-chip email-chip" title="Send Email">
+              <span class="dev-chip-icon">✉️</span> <span class="dev-chip-text">hanterxdofficial@gmail.com</span>
+            </a>
+            <a href="https://wa.me/8801882278234" target="_blank" rel="noopener" class="dev-chip wa-chip" title="WhatsApp Chat">
+              <span class="dev-chip-icon">💬</span> <span class="dev-chip-text">WhatsApp: +8801882278234</span>
+            </a>
+            <a href="https://t.me/HANTER_XD_OFFICIAL" target="_blank" rel="noopener" class="dev-chip tg-chip" title="Telegram Channel">
+              <span class="dev-chip-icon">📢</span> <span class="dev-chip-text">Telegram Channel</span>
+            </a>
+            <a href="https://www.facebook.com/md.rasel.7.8.2.3.4" target="_blank" rel="noopener" class="dev-chip fb-chip" title="Facebook Profile">
+              <span class="dev-chip-icon">🌐</span> <span class="dev-chip-text">Facebook Profile</span>
+            </a>
+            <a href="https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO" target="_blank" rel="noopener" class="dev-chip gh-chip" title="GitHub Repository">
+              <span class="dev-chip-icon">🐙</span> <span class="dev-chip-text">GitHub Repository</span>
+            </a>
           </div>
         </div>
 
@@ -524,7 +533,7 @@
             <input type="text" id="contact-name" placeholder="Your Name" class="form-input">
           </div>
           <div class="form-group">
-            <input type="text" id="contact-email" placeholder="Your Contact (Email, Telegram, WhatsApp)" class="form-input">
+            <input type="text" id="contact-email" placeholder="Contact (Email, WhatsApp or Telegram)" class="form-input">
           </div>
           <div class="form-group">
             <select id="contact-category" class="form-select">
