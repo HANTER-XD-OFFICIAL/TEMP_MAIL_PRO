@@ -153,8 +153,8 @@ body {
 .brand-title-wrap {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 6px;
+  flex-wrap: nowrap;
 }
 
 .brand-title {
@@ -164,6 +164,7 @@ body {
   background: var(--primary-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  white-space: nowrap;
 }
 
 .version-badge {
@@ -377,9 +378,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: nowrap;
+  gap: 8px;
 }
 
 .shield-badge {
@@ -393,6 +394,7 @@ body {
   padding: 4px 10px;
   border-radius: var(--radius-full);
   border: 1px solid rgba(16, 185, 129, 0.3);
+  white-space: nowrap;
 }
 
 .domain-badge {
@@ -408,6 +410,7 @@ body {
   border: 1px solid var(--border-color);
   cursor: pointer;
   transition: var(--transition);
+  white-space: nowrap;
 }
 
 .domain-badge:hover {
@@ -416,35 +419,42 @@ body {
   transform: translateY(-1px);
 }
 
-/* Email Display Container */
+/* Email Display Container: Single Sleek Pill Container */
 .email-display-container {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-}
-
-.email-text-wrapper {
-  flex: 1;
-  min-width: 260px;
-  display: flex;
-  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  padding: 4px 14px;
+  padding: 4px 6px 4px 12px;
+  flex-wrap: nowrap;
+  width: 100%;
+  box-sizing: border-box;
   transition: var(--transition);
 }
 
-.email-text-wrapper:focus-within {
+.email-display-container:focus-within {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px var(--primary-light);
 }
 
+.email-text-wrapper {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
 .email-prefix-icon {
-  font-size: 1.2rem;
-  margin-right: 10px;
+  font-size: 1.1rem;
+  margin-right: 8px;
+  flex-shrink: 0;
 }
 
 #active-email-input {
@@ -453,16 +463,21 @@ body {
   border: none;
   color: var(--text-main);
   font-family: var(--font-mono);
-  font-size: 1.15rem;
+  font-size: clamp(0.85rem, 3.2vw, 1.12rem);
   font-weight: 700;
-  padding: 10px 0;
+  padding: 8px 0;
   cursor: pointer;
   outline: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .email-actions-wrap {
   display: flex;
-  gap: 8px;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
 /* Standard Buttons */
@@ -540,16 +555,18 @@ body {
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  padding: 12px 16px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  gap: 12px;
+  padding: 8px 12px;
+  margin-bottom: 14px;
+  flex-wrap: nowrap;
+  gap: 8px;
+  box-sizing: border-box;
 }
 
 .timer-display-box {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .timer-icon {
@@ -564,7 +581,7 @@ body {
 
 .timer-digits {
   font-family: var(--font-mono);
-  font-size: 1.4rem;
+  font-size: 1.25rem;
   font-weight: 800;
   color: var(--text-main);
   letter-spacing: -0.02em;
@@ -582,7 +599,7 @@ body {
 }
 
 .timer-label {
-  font-size: 0.72rem;
+  font-size: 0.64rem;
   color: var(--text-dim);
   font-weight: 600;
   text-transform: uppercase;
@@ -591,14 +608,15 @@ body {
 .timer-buttons-group {
   display: flex;
   align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
+  gap: 4px;
+  flex-shrink: 0;
+  flex-wrap: nowrap;
 }
 
 .timer-add-btn, .timer-reset-btn {
-  padding: 6px 12px;
-  font-size: 0.8rem;
-  min-height: 34px;
+  padding: 4px 8px;
+  font-size: 0.74rem;
+  min-height: 30px;
 }
 
 /* Quick Actions Grid (Matches Android App Grid) */

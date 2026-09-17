@@ -26,7 +26,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./style.css?v=2.6.2">
 </head>
 <body>
 
@@ -34,20 +34,17 @@
   <header class="top-nav">
     <div class="nav-container">
       <div class="brand-group">
-        <div class="brand-logo-wrap">
-          <img src="app_icon.webp" alt="Temp Mail Pro" class="brand-logo" onerror="this.onerror=null; this.src='./app_icon.webp'; if(!this.complete||this.naturalWidth===0){this.style.display='none'; const fb=document.getElementById('brand-svg-fallback'); if(fb) fb.style.display='flex';}">
+        <div class="brand-logo-wrap" title="Temp Mail Pro">
+          <img src="./app_icon.webp" alt="Temp Mail Pro" class="brand-logo" onerror="this.style.display='none'; const fb=document.getElementById('brand-svg-fallback'); if(fb) fb.style.display='flex';">
           <div class="brand-logo-fallback" id="brand-svg-fallback" style="display:none;">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
           </div>
         </div>
-        <div>
+        <div class="brand-info-wrap">
           <div class="brand-title-wrap">
             <h1 class="brand-title">Temp Mail Pro</h1>
-            <span class="version-badge">v2.6.0</span>
+            <span class="version-badge">v2.6</span>
             <span class="live-pill"><span class="live-dot"></span> LIVE</span>
-          </div>
-          <div class="developer-tagline" id="dev-tagline">
-            Developer: <strong class="dev-name" onclick="openDevModal()">MD RASEL</strong> (Hanter XD Official)
           </div>
         </div>
       </div>
@@ -654,6 +651,6 @@
   <div class="toast" id="toast-notification">Notification Message</div>
 
   <!-- Scripts -->
-  <script src="./app.js"></script>
+  <script src="./app.js?v=2.6.2"></script>
 </body>
 </html>
