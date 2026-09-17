@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Temp Mail Pro — 100% Free Disposable Temporary Email & Live OTP Verification</title>
+  <meta name="description" content="Generate instant disposable temporary email addresses across 30+ domains. Live OTP extraction, auto-refresh inbox, 10-minute timer extensions, privacy shield, and Telegram Bot integration by MD RASEL (Hanter XD Official).">
+  <meta name="theme-color" content="#0b0f19">
+  
+  <!-- App Icons -->
+  <link rel="icon" type="image/webp" href="./app_icon.webp">
+  <link rel="apple-touch-icon" href="./app_icon.webp">
+
+  <!-- Open Graph & Social Sharing -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Temp Mail Pro — Free Disposable Temporary Email &amp; Live OTP Verification">
+  <meta property="og:description" content="Generate instant disposable temporary email addresses across 30+ domains. Live OTP extraction, auto-refresh inbox, 10-minute timer extensions, privacy shield, and Telegram Bot integration by MD RASEL.">
+  <meta property="og:image" content="./app_icon.webp">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Temp Mail Pro — Free Disposable Email &amp; OTP">
+  <meta name="twitter:description" content="Instant temporary email addresses with real-time OTP detection. 100% Free &amp; Unlimited.">
+  <meta name="twitter:image" content="./app_icon.webp">
+
+  <!-- Inter & Roboto Mono Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+  <!-- Top App Bar -->
+  <header class="top-nav">
+    <div class="nav-container">
+      <div class="brand-group">
+        <img src="./app_icon.webp" alt="Temp Mail Pro Logo" class="brand-logo">
+        <div>
+          <div class="brand-title-wrap">
+            <h1 class="brand-title">Temp Mail Pro</h1>
+            <span class="version-badge">v2.6.0</span>
+            <span class="live-pill"><span class="live-dot"></span> LIVE</span>
+          </div>
+          <div class="developer-tagline" id="dev-tagline">
+            Developer: <strong class="dev-name" onclick="openDevModal()">MD RASEL</strong> (Hanter XD Official)
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-actions">
+        <!-- Language Picker -->
+        <div class="lang-dropdown-wrapper">
+          <button class="icon-button lang-btn" id="lang-btn" onclick="toggleLangMenu()" title="Change Language">
+            <span id="current-lang-flag">🇺🇸</span>
+            <span id="current-lang-code">EN</span>
+            <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="dropdown-menu" id="lang-menu">
+            <div class="dropdown-item" onclick="setLanguage('en')"><span>🇺🇸</span> English</div>
+            <div class="dropdown-item" onclick="setLanguage('bn')"><span>🇧🇩</span> বাংলা (Bengali)</div>
+            <div class="dropdown-item" onclick="setLanguage('es')"><span>🇪🇸</span> Español</div>
+            <div class="dropdown-item" onclick="setLanguage('ar')"><span>🇸🇦</span> العربية (Arabic)</div>
+            <div class="dropdown-item" onclick="setLanguage('hi')"><span>🇮🇳</span> हिन्दी (Hindi)</div>
+            <div class="dropdown-item" onclick="setLanguage('ru')"><span>🇷🇺</span> Русский</div>
+            <div class="dropdown-item" onclick="setLanguage('pt')"><span>🇵🇹</span> Português</div>
+            <div class="dropdown-item" onclick="setLanguage('ur')"><span>🇵🇰</span> اردو (Urdu)</div>
+          </div>
+        </div>
+
+        <!-- Sound Chime Toggle -->
+        <button class="icon-button" id="sound-toggle-btn" onclick="toggleSound()" title="Sound Notification">
+          <span id="sound-icon">🔊</span>
+        </button>
+
+        <!-- Theme Toggle -->
+        <button class="icon-button" id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
+          <span id="theme-icon">🌙</span>
+        </button>
+
+        <!-- Telegram Bot Link -->
+        <button class="action-button telegram-nav-btn" onclick="openTelegramModal()" title="Connect Telegram Bot">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.19-.08-.05-.19-.02-.27 0-.12.03-1.99 1.27-5.61 3.72-.53.36-1.01.54-1.44.53-.47-.01-1.38-.27-2.06-.49-.83-.27-1.49-.42-1.43-.88.03-.24.37-.49 1.02-.75 3.98-1.73 6.64-2.88 7.97-3.44 3.79-1.58 4.58-1.85 5.09-1.86.11 0 .37.03.53.17.14.12.18.28.2.45-.01.07.01.21-.01.35z"/></svg>
+          <span class="nav-btn-text">Bot</span>
+        </button>
+
+        <!-- Developer Contact Link -->
+        <button class="action-button dev-nav-btn" onclick="openDevModal()" title="Developer & Help Desk">
+          <span>👨‍💻</span>
+          <span class="nav-btn-text">Support</span>
+        </button>
+
+        <!-- APK Download Button -->
+        <button class="action-button apk-nav-btn" onclick="openApkModal()" title="Download Android APK">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16.67 13.13C16.04 13.13 15.54 12.63 15.54 12C15.54 11.37 16.04 10.87 16.67 10.87C17.3 10.87 17.8 11.37 17.8 12C17.8 12.63 17.3 13.13 16.67 13.13M7.33 13.13C6.7 13.13 6.2 12.63 6.2 12C6.2 11.37 6.7 10.87 7.33 10.87C7.96 10.87 8.46 11.37 8.46 12C8.46 12.63 7.96 13.13 7.33 13.13M17.58 8.44L19.5 5.11C19.64 4.87 19.56 4.56 19.32 4.42C19.08 4.28 18.77 4.36 18.63 4.6L16.66 8.01C15.26 7.37 13.68 7 12 7C10.32 7 8.74 7.37 7.34 8.01L5.37 4.6C5.23 4.36 4.92 4.28 4.68 4.42C4.44 4.56 4.36 4.87 4.5 5.11L6.42 8.44C3.78 9.87 2 12.71 2 16H22C22 12.71 20.22 9.87 17.58 8.44Z"/></svg>
+          <span class="nav-btn-text">Get App</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-content">
+    <div class="content-wrapper">
+
+      <!-- Active Mailbox Hero Card -->
+      <section class="card active-mailbox-card">
+        <div class="card-header-bar">
+          <div class="shield-badge">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-1 16l-4-4 1.41-1.41L11 14.17l6.59-6.59L19 9l-8 8z"/></svg>
+            <span id="txt-privacy-shield">Privacy Shield Active</span>
+          </div>
+
+          <div class="domain-badge" onclick="openDomainModal()" title="Tap to switch domain">
+            <span id="current-domain-icon">⭐</span>
+            <span id="current-domain-text">@sharklasers.com</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+          </div>
+        </div>
+
+        <!-- Email Address Box -->
+        <div class="email-display-container">
+          <div class="email-text-wrapper">
+            <span class="email-prefix-icon">✉️</span>
+            <input type="text" id="active-email-input" readonly value="Generating secure email..." onclick="copyEmailAddress()">
+          </div>
+
+          <div class="email-actions-wrap">
+            <button class="btn btn-primary copy-btn" id="btn-copy-address" onclick="copyEmailAddress()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+              <span id="txt-copy">Copy</span>
+            </button>
+            <button class="btn btn-secondary qr-btn" onclick="openQrModal()" title="Show QR Code">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- 10-Minute Timer & Extensions Row -->
+        <div class="timer-section-row">
+          <div class="timer-display-box" id="timer-box">
+            <svg class="timer-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <div class="timer-digits-wrap">
+              <span class="timer-digits" id="timer-digits">10:00</span>
+              <span class="timer-label" id="txt-expires-in">Expires In</span>
+            </div>
+          </div>
+
+          <div class="timer-buttons-group">
+            <button class="btn btn-outline timer-add-btn" onclick="extendTimer(600)" title="Add 10 Minutes">
+              <span class="btn-icon">⏳</span> +10m
+            </button>
+            <button class="btn btn-outline timer-add-btn" onclick="extendTimer(300)" title="Add 5 Minutes">
+              <span class="btn-icon">⏱️</span> +5m
+            </button>
+            <button class="btn btn-outline timer-reset-btn" onclick="resetTimer()" title="Reset to 10 Minutes">
+              <span class="btn-icon">🔄</span> Reset
+            </button>
+          </div>
+        </div>
+
+        <!-- Action Buttons Bar -->
+        <div class="actions-grid">
+          <button class="grid-btn btn-change" onclick="generateNewRandomEmail()" id="btn-change">
+            <span class="grid-btn-icon">🎲</span>
+            <span class="grid-btn-text" id="txt-random">Random</span>
+          </button>
+
+          <button class="grid-btn btn-custom" onclick="openCustomModal()" id="btn-custom">
+            <span class="grid-btn-icon">✏️</span>
+            <span class="grid-btn-text" id="txt-custom">Custom</span>
+          </button>
+
+          <button class="grid-btn btn-domain" onclick="openDomainModal()" id="btn-domain">
+            <span class="grid-btn-icon">🌐</span>
+            <span class="grid-btn-text" id="txt-domains">Domains (30+)</span>
+          </button>
+
+          <button class="grid-btn btn-refresh" onclick="manualRefreshInbox()" id="btn-refresh">
+            <span class="grid-btn-icon spin-on-refresh" id="refresh-icon">🔄</span>
+            <span class="grid-btn-text" id="txt-refresh">Refresh</span>
+          </button>
+
+          <button class="grid-btn btn-vault" onclick="openVaultModal()" id="btn-vault">
+            <span class="grid-btn-icon">📁</span>
+            <span class="grid-btn-text" id="txt-saved">Vault (<span id="saved-count-badge">0</span>)</span>
+          </button>
+
+          <button class="grid-btn btn-shred" onclick="openPanicModal()" id="btn-shred" title="Emergency Panic Shredder">
+            <span class="grid-btn-icon">💥</span>
+            <span class="grid-btn-text" id="txt-shred">Shred</span>
+          </button>
+        </div>
+
+        <!-- Live Status Footer -->
+        <div class="mailbox-status-footer">
+          <div class="status-indicator">
+            <span class="status-pulse-dot"></span>
+            <span id="txt-auto-refresh">Auto-refresh in <strong id="refresh-countdown">8s</strong></span>
+          </div>
+
+          <div class="quick-sim-wrap">
+            <button class="btn-test-otp" onclick="triggerTestOtpEmail()" title="Simulate Facebook/Google/Telegram verification code email">
+              ⚡ <span id="txt-test-email">Test OTP Email</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Messages & Inbox Section -->
+      <section class="inbox-section">
+        <div class="inbox-header-row">
+          <div class="inbox-title-wrap">
+            <h2 class="inbox-title" id="txt-inbox-title">Live Mailbox Inbox</h2>
+            <span class="inbox-count-pill" id="inbox-count-pill">0</span>
+          </div>
+
+          <!-- Inbox Search Field -->
+          <div class="search-input-wrap">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" id="search-input" placeholder="Search sender, subject, OTP..." oninput="handleSearch(this.value)">
+          </div>
+        </div>
+
+        <!-- Messages List Container -->
+        <div class="messages-container" id="messages-list">
+          <!-- Empty State (Default) -->
+          <div class="empty-inbox-state" id="empty-state">
+            <div class="empty-illustration">
+              <div class="radar-circle"></div>
+              <span class="empty-icon">📬</span>
+            </div>
+            <h3 class="empty-title" id="txt-empty-title">Waiting for incoming emails...</h3>
+            <p class="empty-desc" id="txt-empty-desc">Send an email or sign up on Facebook, Telegram, WhatsApp, TikTok, or Google using your active address above. Your message &amp; verification code will appear here in real time!</p>
+            
+            <div class="empty-action-box">
+              <button class="btn btn-outline" onclick="triggerTestOtpEmail()">
+                ⚡ Send Sample Verification Code
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- 1. Full Gmail-Style Email Reader Modal -->
+  <div class="modal-backdrop" id="modal-email-detail">
+    <div class="modal-card email-detail-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="detail-subject">Email Subject</h3>
+        <button class="modal-close-btn" onclick="closeModal('modal-email-detail')">✕</button>
+      </div>
+
+      <div class="modal-body email-detail-body">
+        <!-- Sender Header -->
+        <div class="detail-sender-row">
+          <div class="sender-avatar" id="detail-avatar">S</div>
+          <div class="sender-info">
+            <div class="sender-name-text" id="detail-sender-name">Sender Name</div>
+            <div class="sender-address-text" id="detail-sender-address">sender@domain.com</div>
+          </div>
+          <div class="detail-timestamp" id="detail-date">Just now</div>
+        </div>
+
+        <!-- Prominent OTP Code Hero Banner (if detected) -->
+        <div class="otp-hero-card" id="detail-otp-card" style="display: none;">
+          <div class="otp-hero-header">
+            <span class="otp-hero-icon">🔑</span>
+            <span class="otp-hero-title" id="txt-otp-detected">VERIFICATION CODE DETECTED</span>
+          </div>
+          <div class="otp-code-digits" id="detail-otp-code">------</div>
+          <button class="btn btn-primary otp-copy-btn" onclick="copyDetailOtp()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+            <span id="txt-copy-otp">One-Tap Copy OTP</span>
+          </button>
+        </div>
+
+        <!-- View Switcher (HTML vs Text) -->
+        <div class="view-switch-row">
+          <button class="tab-btn active" id="tab-html" onclick="switchDetailTab('html')">HTML View</button>
+          <button class="tab-btn" id="tab-text" onclick="switchDetailTab('text')">Plain Text</button>
+        </div>
+
+        <!-- Email Content Box -->
+        <div class="email-content-box">
+          <div id="detail-html-container" class="html-body-frame"></div>
+          <pre id="detail-text-container" class="plain-text-body" style="display: none;"></pre>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="copyDetailBody()">
+          📋 Copy Text
+        </button>
+        <button class="btn btn-outline" onclick="forwardCurrentEmailToTelegram()" id="btn-fwd-telegram">
+          ✈️ Forward to Telegram
+        </button>
+        <button class="btn btn-danger" onclick="deleteCurrentEmail()">
+          🗑️ Delete
+        </button>
+        <button class="btn btn-secondary" onclick="closeModal('modal-email-detail')">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Domain Selector Hub Modal -->
+  <div class="modal-backdrop" id="modal-domains">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-header-icon">🌐</span>
+          <h3 class="modal-title" id="txt-domain-hub-title">Enterprise Domain Hub</h3>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-domains')">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-desc" id="txt-domain-hub-desc">Select any verified high-reputation domain. Powered by GuerrillaMail, Mail.tm, and Mail.gw enterprise mail nodes.</p>
+
+        <div class="domain-filter-search">
+          <input type="text" id="domain-search-input" placeholder="Filter domains..." oninput="filterDomainsList(this.value)">
+        </div>
+
+        <div class="domains-grid-list" id="domains-list-container">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-domains')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Custom Mailbox Creator Modal -->
+  <div class="modal-backdrop" id="modal-custom">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-header-icon">✏️</span>
+          <h3 class="modal-title" id="txt-custom-title">Create Custom Mailbox</h3>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-custom')">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-desc" id="txt-custom-desc">Choose your preferred username and domain to create a customized burner email address.</p>
+
+        <div class="form-group">
+          <label for="custom-username-input" class="form-label" id="txt-username-label">Username / Prefix:</label>
+          <div class="custom-input-combo">
+            <input type="text" id="custom-username-input" placeholder="e.g. rasel.vip, alex2026" maxlength="32">
+            <span class="at-sign">@</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="custom-domain-select" class="form-label" id="txt-select-domain-label">Select Domain:</label>
+          <select id="custom-domain-select" class="form-select">
+            <!-- Populated by JS -->
+          </select>
+        </div>
+
+        <div class="custom-preview-box">
+          <span class="preview-label">Preview:</span>
+          <span class="preview-address" id="custom-address-preview">username@sharklasers.com</span>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-custom')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitCustomMailbox()" id="btn-create-custom">
+          ⚡ Create Mailbox
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Saved Accounts Vault Modal -->
+  <div class="modal-backdrop" id="modal-vault">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-header-icon">📁</span>
+          <h3 class="modal-title" id="txt-vault-title">Saved Accounts Vault</h3>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-vault')">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-desc" id="txt-vault-desc">Access, switch, or backup your saved burner email addresses securely stored in your browser.</p>
+
+        <div class="vault-top-actions">
+          <button class="btn btn-outline" onclick="saveCurrentAccountToVault()">
+            💾 Save Current Address
+          </button>
+          <button class="btn btn-outline" onclick="exportVaultAccounts()">
+            📥 Export All
+          </button>
+        </div>
+
+        <div class="vault-items-list" id="vault-items-list">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-danger" onclick="openPanicModal()">💥 Shred All</button>
+        <button class="btn btn-secondary" onclick="closeModal('modal-vault')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Telegram Bot Integration Modal -->
+  <div class="modal-backdrop" id="modal-telegram">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-header-icon">✈️</span>
+          <h3 class="modal-title">Official Telegram Bot Sync</h3>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-telegram')">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="telegram-banner-box">
+          <div class="telegram-bot-badge">@TEMPMAILPRO34_bot</div>
+          <p class="telegram-banner-desc">Connect with our official 24/7 Telegram bot to automatically receive instant push notifications &amp; OTP codes on your phone!</p>
+          <a href="https://t.me/TEMPMAILPRO34_bot" target="_blank" rel="noopener" class="btn btn-primary tg-open-btn">
+            🚀 Open @TEMPMAILPRO34_bot in Telegram
+          </a>
+        </div>
+
+        <div class="form-group">
+          <label for="telegram-chat-id-input" class="form-label">Your Telegram Chat ID:</label>
+          <input type="text" id="telegram-chat-id-input" placeholder="e.g. 6204875999" class="form-input">
+          <small class="form-hint">Tip: Send <code>/myid</code> or <code>/start</code> to @TEMPMAILPRO34_bot to get your Chat ID.</small>
+        </div>
+
+        <div class="tg-auto-forward-row">
+          <label class="switch-label">
+            <input type="checkbox" id="tg-auto-forward-toggle" checked>
+            <span class="switch-slider"></span>
+          </label>
+          <span>Auto-forward new emails &amp; OTPs to Telegram</span>
+        </div>
+
+        <div class="form-group" style="margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border-color);">
+          <label for="custom-backend-url-input" class="form-label">Backend API URL (Optional for GitHub Pages):</label>
+          <input type="url" id="custom-backend-url-input" placeholder="e.g. https://your-app.onrender.com" class="form-input">
+          <small class="form-hint" style="font-size: 0.75rem; color: var(--text-dim); margin-top: 4px; display: block;">
+            💡 Leave blank to run <strong>100% Standalone on GitHub Pages</strong> using direct browser APIs.
+          </small>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="sendTestTelegramAlert()">⚡ Send Test Alert</button>
+        <button class="btn btn-primary" onclick="saveTelegramSettings()">Save Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Developer Contact & Support Hub Modal -->
+  <div class="modal-backdrop" id="modal-dev">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-header-icon">👨‍💻</span>
+          <h3 class="modal-title">Developer &amp; Help Desk</h3>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-dev')">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Lead Developer Card -->
+        <div class="dev-profile-card">
+          <div class="dev-avatar">👑</div>
+          <div class="dev-details">
+            <h4 class="dev-lead-name">MD RASEL</h4>
+            <div class="dev-badge-role">Lead Developer &amp; Creator (Hanter XD Official)</div>
+            <div class="dev-channels">
+              <a href="mailto:hanterxdofficial@gmail.com" class="dev-chip email-chip">
+                ✉️ hanterxdofficial@gmail.com
+              </a>
+              <a href="https://wa.me/8801882278234" target="_blank" rel="noopener" class="dev-chip wa-chip">
+                💬 WhatsApp (+8801882278234)
+              </a>
+              <a href="https://t.me/HANTER_XD_OFFICIAL" target="_blank" rel="noopener" class="dev-chip tg-chip">
+                📢 Telegram Channel
+              </a>
+              <a href="https://www.facebook.com/md.rasel.7.8.2.3.4" target="_blank" rel="noopener" class="dev-chip fb-chip">
+                🌐 Facebook Profile
+              </a>
+              <a href="https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO" target="_blank" rel="noopener" class="dev-chip gh-chip">
+                🐙 GitHub Repository
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Direct Contact Form -->
+        <div class="contact-form-section">
+          <h4 class="form-section-title">Send Direct Message to MD RASEL:</h4>
+          <p class="form-section-desc">Have a question, feedback, or need help? Submit below and it will deliver directly to the developer's Telegram in real time!</p>
+
+          <div class="form-group">
+            <input type="text" id="contact-name" placeholder="Your Name" class="form-input">
+          </div>
+          <div class="form-group">
+            <input type="text" id="contact-email" placeholder="Your Contact (Email, Telegram, WhatsApp)" class="form-input">
+          </div>
+          <div class="form-group">
+            <select id="contact-category" class="form-select">
+              <option value="General Inquiry">General Inquiry</option>
+              <option value="Bug Report">Bug Report</option>
+              <option value="Feature Request">Feature Request</option>
+              <option value="Domain Suggestion">Domain Suggestion</option>
+              <option value="Partnership / Support">Partnership / Support</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <textarea id="contact-message" rows="3" placeholder="Write your message here..." class="form-textarea"></textarea>
+          </div>
+          <button class="btn btn-primary full-width" onclick="submitContactMessage()" id="btn-send-contact">
+            🚀 Send Message to Developer
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-dev')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. QR Code Modal -->
+  <div class="modal-backdrop" id="modal-qr">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">QR Code — Active Email</h3>
+        <button class="modal-close-btn" onclick="closeModal('modal-qr')">✕</button>
+      </div>
+
+      <div class="modal-body text-center">
+        <p class="modal-desc">Scan with your smartphone camera to quickly copy or send an email to this address.</p>
+        <div class="qr-code-box" id="qr-code-container"></div>
+        <div class="qr-email-text" id="qr-email-text">user@sharklasers.com</div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="copyEmailAddress()">Copy Address</button>
+        <button class="btn btn-secondary" onclick="closeModal('modal-qr')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. Panic Shredder Confirmation Modal -->
+  <div class="modal-backdrop" id="modal-panic">
+    <div class="modal-card panic-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="panic-icon">💥</span>
+          <h3 class="modal-title text-danger">Emergency Panic Shredder</h3>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-panic')">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <p class="panic-warning-text">
+          Are you sure you want to completely shred your session?
+        </p>
+        <ul class="panic-list">
+          <li>Permanently destroys the active temporary mailbox</li>
+          <li>Purges all cached messages, OTPs, and sender history</li>
+          <li>Wipes all saved accounts from your browser vault</li>
+          <li>Generates a completely fresh, untraceable burner identity</li>
+        </ul>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-panic')">Cancel</button>
+        <button class="btn btn-danger" onclick="executePanicShred()">
+          💥 Yes, Shred Everything Now
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 9. APK Download Modal -->
+  <div class="modal-backdrop" id="modal-apk">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-header-icon">📱</span>
+          <h3 class="modal-title">Temp Mail Pro — Android App</h3>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modal-apk')">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="apk-hero-box">
+          <img src="./app_icon.webp" alt="App Icon" class="apk-icon-large">
+          <div>
+            <h4 class="apk-name">Temp Mail Pro v2.6.0</h4>
+            <span class="apk-tag">Production Release • Android 8.0+</span>
+          </div>
+        </div>
+
+        <ul class="apk-feature-list">
+          <li>⚡ <strong>Live Background Push Notifications</strong> for instant OTP arrival</li>
+          <li>🎨 <strong>Material Design 3 &amp; Dark/Light Mode</strong></li>
+          <li>📁 <strong>Offline Room Database Vault</strong> to store multiple identities</li>
+          <li>🤖 <strong>Integrated Telegram Bot</strong> with Chat ID auto-detection</li>
+          <li>🛡️ <strong>Zero Trackers, Zero Logs, 100% Free</strong></li>
+        </ul>
+
+        <div class="apk-download-actions">
+          <a href="https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO/releases/latest" target="_blank" rel="noopener" class="btn btn-primary full-width apk-big-btn">
+            ⬇️ Download Latest APK (v2.6.0)
+          </a>
+          <a href="https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO" target="_blank" rel="noopener" class="btn btn-outline full-width">
+            🐙 View on GitHub
+          </a>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-apk')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast-notification">Notification Message</div>
+
+  <!-- Scripts -->
+  <script src="./app.js"></script>
+</body>
+</html>

@@ -36,12 +36,18 @@ const TELEGRAM_CHANNEL = 'https://t.me/HANTER_XD_OFFICIAL';
 
 // Supported High-Reliability Working Domains (Matches Temp Mail Pro App)
 const DOMAINS_CONFIG = [
-  { domain: 'sharklasers.com', type: 'guerrilla', provider: 'Guerrilla (Recommended for Meta/FB)', icon: '⭐' },
-  { domain: 'guerrillamail.com', type: 'guerrilla', provider: 'Guerrilla (High Reputation)', icon: '🛡️' },
-  { domain: 'grr.la', type: 'guerrilla', provider: 'Guerrilla', icon: '🛡️' },
-  { domain: 'guerrillamailblock.com', type: 'guerrilla', provider: 'Guerrilla', icon: '🛡️' },
-  { domain: 'uberip.com', type: 'mailtm', provider: 'Mail.tm (Fast)', icon: '⚡' },
-  { domain: 'westcast-systems.com', type: 'mailgw', provider: 'Mail.gw', icon: '⚡' }
+  { domain: 'sharklasers.com', type: 'guerrilla', provider: 'Guerrilla (Recommended for Meta/FB)', icon: '⭐', badge: 'High Reputation', desc: 'Recommended for Facebook, Instagram, TikTok & WhatsApp verification' },
+  { domain: 'guerrillamail.com', type: 'guerrilla', provider: 'Guerrilla (Official)', icon: '🛡️', badge: 'Verified', desc: 'Original high-deliverability privacy domain' },
+  { domain: 'grr.la', type: 'guerrilla', provider: 'Guerrilla (Short)', icon: '🚀', badge: 'Ultra Short', desc: 'Shortest domain prefix for quick signups' },
+  { domain: 'guerrillamailblock.com', type: 'guerrilla', provider: 'Guerrilla (Spam-Guard)', icon: '🛡️', badge: 'Spam Guard', desc: 'Bypasses aggressive website domain filters' },
+  { domain: 'guerrillamail.net', type: 'guerrilla', provider: 'Guerrilla Net', icon: '🌐', badge: 'Active', desc: 'Standard high-speed disposable inbox' },
+  { domain: 'guerrillamail.biz', type: 'guerrilla', provider: 'Guerrilla Biz', icon: '💼', badge: 'Business', desc: 'Corporate & business platform verification' },
+  { domain: 'guerrillamail.org', type: 'guerrilla', provider: 'Guerrilla Org', icon: '🏛️', badge: 'Community', desc: 'Institutional and community signups' },
+  { domain: 'pokemail.net', type: 'guerrilla', provider: 'Guerrilla Poke', icon: '⚡', badge: 'Instant OTP', desc: 'Fast delivery for social accounts' },
+  { domain: 'spam4.me', type: 'guerrilla', provider: 'Guerrilla Stealth', icon: '🎯', badge: 'Stealth', desc: 'Maximum anti-spam detection avoidance' },
+  { domain: 'uberip.com', type: 'mailtm', provider: 'Mail.tm (Fast API)', icon: '⚡', badge: 'Instant OTP', desc: 'Modern JSON REST API with real-time delivery' },
+  { domain: 'emalupe.com', type: 'mailtm', provider: 'Mail.tm Pro', icon: '🔥', badge: 'High Speed', desc: 'Enterprise disposable mailbox' },
+  { domain: 'westcast-systems.com', type: 'mailgw', provider: 'Mail.gw (Stable)', icon: '⚡', badge: 'Enterprise', desc: 'High-availability Mail.gw server' }
 ];
 
 // In-Memory Storage for Active User Sessions (ChatId -> Mail Data)
@@ -1733,23 +1739,325 @@ async function handleReadMessage(chatId, msgId) {
 }
 
 // ==========================================
-// 9. EXPRESS WEB SERVER (KEEPS 24/7 ALIVE ON RENDER)
+// 9. EXPRESS WEB SERVER (KEEPS 24/7 ALIVE ON RENDER & POWERS OFFICIAL WEB APP)
 // ==========================================
 const app = express();
-app.use(express.json());
 
-// Root Health Route
-app.get('/', (req, res) => {
+// Enable JSON parsing and CORS headers for all web requests
+app.use(express.json());
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
+// Serve the official Temp Mail Pro Web Application
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Server & Gateway Health Status
+app.get('/api/status', (req, res) => {
   res.json({
     status: 'ONLINE',
-    service: 'Temp Mail Pro Telegram Bot',
+    service: 'Temp Mail Pro Web & Telegram Bot',
+    version: '2.6.0',
     botUsername: '@TEMPMAILPRO34_bot',
     developer: DEVELOPER_NAME,
+    supportEmail: SUPPORT_EMAIL,
+    whatsappContact: WHATSAPP_CONTACT,
+    telegramChannel: TELEGRAM_CHANNEL,
     uptime: `${Math.floor(process.uptime())} seconds`,
     activeSessions: userSessions.size,
-    supportedDomains: DOMAINS_CONFIG.map(d => `@${d.domain}`),
+    supportedDomains: DOMAINS_CONFIG,
     timestamp: new Date().toISOString()
   });
+});
+
+// Supported Domains List
+app.get('/api/domains', (req, res) => {
+  res.json({
+    ok: true,
+    domains: DOMAINS_CONFIG
+  });
+});
+
+// Generate Mailbox (Supports Random or Custom Address & Any Domain)
+app.post('/api/generate', async (req, res) => {
+  try {
+    const { domain = 'sharklasers.com', customUser } = req.body || {};
+    const conf = DOMAINS_CONFIG.find(d => d.domain === domain) || DOMAINS_CONFIG[0];
+
+    let mailbox = null;
+    if (conf.type === 'mailtm' || conf.type === 'mailgw') {
+      const isGw = conf.type === 'mailgw';
+      const baseUrl = isGw ? 'https://api.mail.gw' : 'https://api.mail.tm';
+      const username = (customUser && customUser.trim().length >= 3)
+        ? customUser.trim().toLowerCase().replace(/[^a-z0-9._-]/g, '')
+        : 'u' + generateRandomString(8);
+      const address = `${username}@${conf.domain}`;
+      const password = 'Pass_' + generateRandomString(10) + '!';
+
+      try {
+        await axios.post(`${baseUrl}/accounts`, { address, password }, { timeout: 10000 });
+        const tokenRes = await axios.post(`${baseUrl}/token`, { address, password }, { timeout: 10000 });
+        mailbox = {
+          type: conf.type,
+          baseUrl,
+          address,
+          username,
+          domain: conf.domain,
+          password,
+          token: tokenRes.data.token,
+          createdAt: Date.now()
+        };
+      } catch (err) {
+        console.error('[MailTm Custom Error]', err.response?.data || err.message);
+        mailbox = await createGuerrillaMailboxWithCustom('sharklasers.com', customUser);
+      }
+    } else {
+      mailbox = await createGuerrillaMailboxWithCustom(conf.domain, customUser);
+    }
+
+    if (!mailbox) {
+      mailbox = await createGuerrillaMailbox('sharklasers.com');
+    }
+
+    return res.json({
+      ok: true,
+      mailbox: {
+        address: mailbox.address,
+        username: mailbox.username,
+        domain: mailbox.domain,
+        type: mailbox.type,
+        token: mailbox.token || null,
+        sidToken: mailbox.sidToken || null,
+        baseUrl: mailbox.baseUrl || null,
+        createdAt: mailbox.createdAt || Date.now(),
+        expiresInSeconds: 600
+      }
+    });
+  } catch (err) {
+    console.error('[API Generate Error]', err.message);
+    return res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// Fetch Inbox Messages
+app.post('/api/inbox', async (req, res) => {
+  try {
+    const { type, token, sidToken, baseUrl } = req.body || {};
+    let messages = [];
+
+    if (type === 'mailtm' || type === 'mailgw') {
+      const session = {
+        type,
+        baseUrl: baseUrl || (type === 'mailgw' ? 'https://api.mail.gw' : 'https://api.mail.tm'),
+        token
+      };
+      messages = await getMailTmMessages(session);
+    } else {
+      const session = {
+        type: 'guerrilla',
+        sidToken
+      };
+      messages = await getGuerrillaMessages(session);
+    }
+
+    const enhanced = messages.map(m => {
+      const combined = `${m.subject || ''} ${m.intro || ''}`;
+      const otp = extractOtp(combined);
+      return {
+        ...m,
+        otpCode: otp,
+        snippet: cleanSnippet(m.intro || m.subject || '')
+      };
+    });
+
+    return res.json({ ok: true, messages: enhanced });
+  } catch (err) {
+    console.error('[API Inbox Error]', err.message);
+    return res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// Fetch Message Detail (Plain & HTML)
+app.post('/api/message-detail', async (req, res) => {
+  try {
+    const { id, type, token, sidToken, baseUrl } = req.body || {};
+    if (!id) return res.status(400).json({ ok: false, error: 'Missing message ID' });
+
+    let detail = null;
+    if (type === 'mailtm' || type === 'mailgw') {
+      const session = {
+        type,
+        baseUrl: baseUrl || (type === 'mailgw' ? 'https://api.mail.gw' : 'https://api.mail.tm'),
+        token
+      };
+      detail = await getMailTmMessageDetail(session, id);
+    } else {
+      const session = {
+        type: 'guerrilla',
+        sidToken
+      };
+      detail = await getGuerrillaMessageDetail(session, id);
+    }
+
+    if (!detail) {
+      return res.status(404).json({ ok: false, error: 'Message not found or expired' });
+    }
+
+    const fullContent = `${detail.subject || ''} ${detail.text || ''} ${stripHtml(detail.html || '')}`;
+    const otp = extractOtp(fullContent);
+
+    return res.json({
+      ok: true,
+      message: {
+        ...detail,
+        otpCode: otp
+      }
+    });
+  } catch (err) {
+    console.error('[API Message Detail Error]', err.message);
+    return res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// Delete Message
+app.post('/api/delete-message', async (req, res) => {
+  try {
+    const { id, type, token, sidToken, baseUrl } = req.body || {};
+    if (type === 'mailtm' || type === 'mailgw') {
+      const bUrl = baseUrl || (type === 'mailgw' ? 'https://api.mail.gw' : 'https://api.mail.tm');
+      await axios.delete(`${bUrl}/messages/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        timeout: 8000
+      }).catch(() => {});
+    } else if (type === 'guerrilla' && sidToken) {
+      await axios.get(`https://api.guerrillamail.com/ajax.php?f=del_email&email_ids[]=${id}&sid_token=${sidToken}`, { timeout: 8000 }).catch(() => {});
+    }
+    return res.json({ ok: true });
+  } catch (err) {
+    return res.json({ ok: true });
+  }
+});
+
+// Quick Simulation / Test Verification Email for live testing
+app.post('/api/test-email', async (req, res) => {
+  try {
+    const { service = 'Facebook', address = 'user@sharklasers.com' } = req.body || {};
+    const sampleOtps = ['849201', '512934', '730194', '429810', '638201', '918342'];
+    const otp = sampleOtps[Math.floor(Math.random() * sampleOtps.length)];
+    const dateStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    let subject = '';
+    let from = '';
+    let text = '';
+    let html = '';
+
+    if (service === 'Facebook') {
+      subject = `${otp} is your Facebook confirmation code`;
+      from = 'security@facebookmail.com';
+      text = `Hi,\n\nSomeone recently requested to register or login using this email address (${address}).\n\nYour security confirmation code is: ${otp}\n\nDo not share this code with anyone.\n\nThanks,\nMeta Security Team`;
+      html = `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f0f2f5; padding: 24px; color: #1c1e21;">
+          <div style="background: #ffffff; max-width: 520px; margin: 0 auto; border-radius: 12px; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+            <div style="display: flex; align-items: center; margin-bottom: 20px;">
+              <span style="font-size: 28px; margin-right: 10px;">🛡️</span>
+              <h2 style="color: #1877f2; margin: 0; font-size: 22px;">Facebook Security Code</h2>
+            </div>
+            <p style="font-size: 15px; line-height: 1.5; color: #4b4f56;">Use the following verification code to confirm your account identity:</p>
+            <div style="background: #e7f3ff; border: 2px dashed #1877f2; padding: 18px; font-size: 32px; font-weight: 800; letter-spacing: 6px; color: #1877f2; text-align: center; border-radius: 8px; margin: 24px 0;">
+              ${otp}
+            </div>
+            <p style="font-size: 13px; color: #8a8d91; margin: 0;">This code is valid for 10 minutes. If you did not request this, you can safely ignore this message.</p>
+          </div>
+        </div>`;
+    } else if (service === 'Telegram') {
+      subject = `Your Telegram login code: ${otp}`;
+      from = 'login@telegram.org';
+      text = `Login code: ${otp}\n\nDo not give this code to anyone, even if they say they are from Telegram!\n\nThis code can be used to log in to your Telegram account.`;
+      html = `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #0e1621; padding: 24px; color: #ffffff;">
+          <div style="background: #17212b; max-width: 500px; margin: 0 auto; border-radius: 12px; padding: 28px; border: 1px solid #242f3d;">
+            <div style="display: flex; align-items: center; margin-bottom: 20px;">
+              <span style="font-size: 28px; margin-right: 10px;">✈️</span>
+              <h2 style="color: #2b99ff; margin: 0; font-size: 22px;">Telegram Messenger</h2>
+            </div>
+            <p style="font-size: 15px; color: #9aa8b6;">Here is your single-use login code for Telegram:</p>
+            <div style="background: #0e1621; border: 1px solid #2b99ff; padding: 16px; font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #2b99ff; text-align: center; border-radius: 8px; margin: 20px 0;">
+              ${otp}
+            </div>
+            <p style="font-size: 13px; color: #6c7883;">Never give this code to anyone, even if they claim to be Telegram official support.</p>
+          </div>
+        </div>`;
+    } else {
+      subject = `Google Verification Code: ${otp}`;
+      from = 'no-reply@accounts.google.com';
+      text = `G-${otp} is your Google verification code.\n\nUse this code to verify your temporary identity.`;
+      html = `
+        <div style="font-family: Roboto, Arial, sans-serif; background-color: #f8f9fa; padding: 24px; color: #202124;">
+          <div style="background: #ffffff; max-width: 500px; margin: 0 auto; border-radius: 8px; padding: 28px; border: 1px solid #dadce0;">
+            <h2 style="color: #1a73e8; margin-top: 0;">Google Account Verification</h2>
+            <p style="font-size: 14px; color: #3c4043;">Use this code to verify your temporary session:</p>
+            <div style="background: #f1f3f4; padding: 18px; font-size: 30px; font-weight: bold; letter-spacing: 4px; color: #1a73e8; text-align: center; border-radius: 6px; margin: 20px 0;">
+              G-${otp}
+            </div>
+            <p style="font-size: 12px; color: #5f6368;">If you did not request this code, no further action is needed.</p>
+          </div>
+        </div>`;
+    }
+
+    return res.json({
+      ok: true,
+      message: {
+        id: 'sim_' + Date.now(),
+        from,
+        subject,
+        intro: text.substring(0, 110),
+        text,
+        html,
+        date: dateStr,
+        otpCode: otp
+      }
+    });
+  } catch (err) {
+    return res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// Helper for custom username in GuerrillaMail
+async function createGuerrillaMailboxWithCustom(domain = 'sharklasers.com', customUser = null) {
+  try {
+    const initRes = await axios.get('https://api.guerrillamail.com/ajax.php?f=get_email_address', { timeout: 10000 });
+    const sid = initRes.data.sid_token;
+    const user = (customUser && customUser.trim().length >= 3)
+      ? customUser.trim().toLowerCase().replace(/[^a-z0-9._-]/g, '')
+      : 'u' + generateRandomString(8);
+
+    await axios.get(`https://api.guerrillamail.com/ajax.php?f=set_email_user&email_user=${user}&domain=${domain}&sid_token=${sid}`, { timeout: 10000 });
+    const address = `${user}@${domain}`;
+
+    return {
+      type: 'guerrilla',
+      address,
+      username: user,
+      domain,
+      sidToken: sid,
+      knownMessageIds: new Set(),
+      createdAt: Date.now()
+    };
+  } catch (err) {
+    console.error('[Guerrilla Custom Error]', err.message);
+    return null;
+  }
+}
+
+// Download APK route (Redirects to latest release)
+app.get('/download/apk', (req, res) => {
+  res.redirect('https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO/releases/latest');
 });
 
 // Health check endpoint for UptimeRobot / cron-job.org

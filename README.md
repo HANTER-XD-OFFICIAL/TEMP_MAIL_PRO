@@ -10,10 +10,12 @@
   [![Jetpack Compose](https://img.shields.io/badge/UI-Jetpack%20Compose%20M3-4285F4.svg?style=for-the-badge&logo=jetpackcompose)](https://developer.android.com/jetpack/compose)
   [![Privacy Shield](https://img.shields.io/badge/Privacy-100%25%20Guaranteed-10B981.svg?style=for-the-badge&logo=shield)](https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO)
   [![Telegram Bot](https://img.shields.io/badge/Telegram%20Bot-%40TEMPMAILPRO34__bot-229ED9.svg?style=for-the-badge&logo=telegram)](https://t.me/TEMPMAILPRO34_bot)
+  [![GitHub Pages](https://img.shields.io/badge/Web%20App-GitHub%20Pages%20Live-22c55e.svg?style=for-the-badge&logo=githubpages&logoColor=white)](https://hanter-xd-official.github.io/TEMP_MAIL_PRO/)
   [![Download Android APK](https://img.shields.io/badge/Download-Android%20APK-2ea44f?style=for-the-badge&logo=android&logoColor=white)](https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO/releases/tag/v2.5.0TempMailPro)
   
   <br/>
 
+  ### 🌐 [**>>> Open Live Web App on GitHub Pages <<<**](https://hanter-xd-official.github.io/TEMP_MAIL_PRO/)
   ### 📥 [**>>> Download Official Temp Mail Pro APK (v2.6.0) <<<**](https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO/releases/tag/v2.6.0TempMailPro)
 </div>
 
@@ -148,6 +150,8 @@ Direct APK download is available on GitHub Releases:
 
 Connect directly with the official team for updates, support, and community discussions:
 
+- 🌐 **[Live Web App (GitHub Pages)](https://hanter-xd-official.github.io/TEMP_MAIL_PRO/)** (100% Free & Serverless)
+- 📖 **[GitHub Pages Setup Guide](docs/README.md)**
 - 📥 **[Download Latest APK v2.6.0](https://github.com/HANTER-XD-OFFICIAL/TEMP_MAIL_PRO/releases/tag/v2.6.0TempMailPro)**
 - 🤖 **[Official Telegram Bot](https://t.me/TEMPMAILPRO34_bot)** (@TEMPMAILPRO34_bot)
 - 🚀 **[24/7 Render Deployment Guide (বাংলা)](telegram-bot/DEPLOY_RENDER_GUIDE.md)**

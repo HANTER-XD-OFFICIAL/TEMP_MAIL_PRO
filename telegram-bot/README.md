@@ -1,17 +1,23 @@
-# Temp Mail Pro — 24/7 Telegram Bot & Web Service
+# Temp Mail Pro — 24/7 Official Web Application & Telegram Bot
 **Lead Developer:** MD RASEL (Hanter XD Official)  
 **Support Email:** [hanterxdofficial@gmail.com](mailto:hanterxdofficial@gmail.com)  
-**Bot Username:** `@TEMPMAILPRO34_bot`  
-**Direct Link:** [https://t.me/TEMPMAILPRO34_bot](https://t.me/TEMPMAILPRO34_bot)  
-**Token:** `[PROTECTED - Encrypted in Runtime Vault / Managed via Render ENV]`
+**Official Bot:** `@TEMPMAILPRO34_bot` ([https://t.me/TEMPMAILPRO34_bot](https://t.me/TEMPMAILPRO34_bot))  
+**Official Website:** Hosted directly at your server root (`/`)  
+**Security:** Token Vault Encrypted XOR Protection  
 
 ---
 
-## ⚡ Features
-- **100% Free & Unlimited**: Generate disposable email inboxes on the fly.
-- **Smart OTP Detection**: Automatically extracts and highlights 4–8 digit verification codes with a 1-tap copy button.
-- **24/7 Uptime on Render**: Equipped with Express `/health` endpoints and keep-alive ping support.
-- **Seamless Android App Integration**: Sync with the Temp Mail Pro v2.6.0 Android App using your Chat ID.
+## ⚡ Complete Feature Parity with Android App
+The official web version is located in `telegram-bot/public` and is automatically served at the root URL:
+- **Active Disposable Mailbox**: Live email address with 1-click copy, QR code scanner modal, and status indicators.
+- **10-Minute Countdown Timer & Extensions**: Real-time ticker with `+10m`, `+5m`, and `Reset` buttons.
+- **Full Action Toolbar**: Random email generator, Custom mailbox creator, Domain Hub (30+ domains), Refresh, Saved Accounts Vault, and Panic Shredder.
+- **Live Inbox & Smart OTP Hero**: Auto-refreshes every 8 seconds, detects 4-8 digit OTP codes (Facebook, Telegram, Google, WhatsApp, etc.), with 1-click copy cards.
+- **Gmail-Style Email Reader Modal**: HTML Rich View & Plain Text view, full headers, copy body, delete, and forward to Telegram.
+- **Multi-Language Engine**: 8 Languages supported with instant switching (English, বাংলা, Español, العربية, हिन्दी, Русский, Português, اردو).
+- **Dark/Light Mode & Audio Notifications**: Modern Material Design 3 and Web Audio API synthesized chimes.
+- **Developer Help Desk**: Direct messaging form delivering directly to MD RASEL's Telegram in real time.
+- **Android APK Download**: Instant link to download `TempMailPro_v2.6.0.apk`.
 
 ---
 
