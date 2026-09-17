@@ -1727,6 +1727,80 @@ input:checked + .switch-slider:before {
   white-space: nowrap;
 }
 
+/* Test OTP Selector Grid & Cards */
+.test-otp-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin: 14px 0;
+}
+
+@media (max-width: 480px) {
+  .test-otp-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+
+.test-otp-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-main);
+  cursor: pointer;
+  text-align: left;
+  transition: var(--transition);
+  width: 100%;
+}
+
+.test-otp-card:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+}
+
+.test-otp-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.test-otp-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.test-otp-info strong {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.test-otp-info span {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.test-otp-notice {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  line-height: 1.45;
+  margin-top: 10px;
+}
+
 /* ==========================================
    RESPONSIVE DESIGN & MOBILE OPTIMIZATIONS
    ========================================== */
@@ -1751,36 +1825,42 @@ input:checked + .switch-slider:before {
 @media (max-width: 600px) {
   /* Navigation Bar */
   .top-nav {
-    padding: 8px 12px;
+    padding: 6px 8px;
   }
 
   .nav-container {
-    gap: 8px;
+    gap: 4px;
+    width: 100%;
+    justify-content: space-between;
   }
 
   .brand-group {
-    gap: 8px;
+    gap: 6px;
+    flex-shrink: 1;
+    min-width: 0;
   }
 
   .brand-logo-wrap {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    flex-shrink: 0;
   }
 
   .brand-title {
-    font-size: 1.05rem;
+    font-size: 0.95rem;
     letter-spacing: -0.01em;
   }
 
   .version-badge {
-    font-size: 0.65rem;
-    padding: 1px 5px;
+    font-size: 0.6rem;
+    padding: 1px 4px;
   }
 
   .live-pill {
-    font-size: 0.6rem;
-    padding: 2px 6px;
+    font-size: 0.58rem;
+    padding: 1px 5px;
+    gap: 3px;
   }
 
   /* Hide long tagline in sticky nav so mobile header stays ultra-clean & compact */
@@ -1789,23 +1869,40 @@ input:checked + .switch-slider:before {
   }
 
   .nav-actions {
-    gap: 4px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    flex-shrink: 0;
   }
 
   .icon-button, .action-button {
-    width: 34px;
-    height: 34px;
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
     padding: 0;
     justify-content: center;
-    border-radius: var(--radius-sm);
-    font-size: 0.9rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+  }
+
+  .icon-button svg, .action-button svg {
+    width: 15px;
+    height: 15px;
   }
 
   .lang-btn {
     width: auto;
-    padding: 0 6px;
-    gap: 3px;
-    font-size: 0.74rem;
+    min-width: 0;
+    height: 30px;
+    padding: 0 5px;
+    gap: 2px;
+    font-size: 0.72rem;
+  }
+
+  .lang-btn .dropdown-arrow {
+    width: 10px;
+    height: 10px;
   }
 
   /* Page Padding & Spacing */

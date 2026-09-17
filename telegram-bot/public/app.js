@@ -1540,12 +1540,21 @@ function openApkModal() {
 }
 
 // Simulation / Test Verification Email (Works 100% on GitHub Pages & offline)
-async function triggerTestOtpEmail() {
-  const email = state.activeAccount ? state.activeAccount.address : 'user@sharklasers.com';
-  const services = ['Facebook', 'Google', 'Telegram', 'WhatsApp'];
-  const svc = services[Math.floor(Math.random() * services.length)];
+function triggerTestOtpEmail() {
+  // Open the social media service selector modal so user has total control
+  openModal('modal-test-otp');
+}
 
-  showToast(`⚡ Simulating ${svc} verification email...`);
+// Generates real-looking social media platform verification emails exclusively
+async function simulateServiceOtp(serviceName) {
+  closeModal('modal-test-otp');
+
+  const validServices = ['Facebook', 'Google', 'Telegram', 'WhatsApp', 'TikTok', 'Instagram', 'Twitter', 'Discord'];
+  const svc = validServices.includes(serviceName) ? serviceName : 'Facebook';
+  const email = state.activeAccount ? state.activeAccount.address : 'user@sharklasers.com';
+  const userPrefix = email.split('@')[0];
+
+  showToast(`⚡ Receiving ${svc} verification code...`);
 
   const backend = getBackendBaseUrl();
   if (backend !== null) {
@@ -1563,42 +1572,53 @@ async function triggerTestOtpEmail() {
           state.knownMessageIds.add(data.message.id);
           renderMessagesList();
           playNotificationChime();
-          showToast(`📬 ${svc} Verification Email Arrived!`);
+          showToast(`📬 ${svc} Verification Code Arrived!`);
           return;
         }
       }
     } catch (e) {}
   }
 
-  // Client-side instant generator
-  const testOtps = ['849201', '391054', '772910', '520841', '193820', '604812', '930182'];
-  const randomOtp = testOtps[Math.floor(Math.random() * testOtps.length)];
+  // Client-side realistic OTP generator strictly formatted for the chosen service
+  const otpGenerators = {
+    'Facebook': () => Math.floor(100000 + Math.random() * 900000).toString(),
+    'Google': () => Math.floor(100000 + Math.random() * 900000).toString(),
+    'Telegram': () => Math.floor(10000 + Math.random() * 90000).toString(),
+    'WhatsApp': () => `${Math.floor(100 + Math.random() * 900)}-${Math.floor(100 + Math.random() * 900)}`,
+    'TikTok': () => Math.floor(100000 + Math.random() * 900000).toString(),
+    'Instagram': () => Math.floor(100000 + Math.random() * 900000).toString(),
+    'Twitter': () => Math.floor(100000 + Math.random() * 900000).toString(),
+    'Discord': () => Math.floor(100000 + Math.random() * 900000).toString()
+  };
+
+  const genOtp = otpGenerators[svc] ? otpGenerators[svc]() : Math.floor(100000 + Math.random() * 900000).toString();
+  const rawCleanOtp = genOtp.replace('-', '');
   const simId = 'sim_' + Date.now();
   const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   const simTemplates = {
     'Facebook': {
       from: 'security@facebookmail.com',
-      subject: `${randomOtp} is your Facebook confirmation code`,
-      intro: `Hi ${email.split('@')[0]}, your Meta/Facebook security confirmation code is ${randomOtp}. Enter it to complete verification.`,
+      subject: `${genOtp} is your Facebook confirmation code`,
+      intro: `Hi ${userPrefix}, your Facebook confirmation code is ${genOtp}. Use this code to confirm your account.`,
       html: `<div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; background: #ffffff; color: #1c1e21; border-radius: 10px; border: 1px solid #dddfe2; overflow: hidden;">
         <div style="background: #1877f2; padding: 18px 24px;">
           <h2 style="color: #ffffff; margin: 0; font-size: 20px; font-weight: 700;">Facebook Security</h2>
         </div>
         <div style="padding: 24px;">
-          <p style="font-size: 15px; margin-top: 0; color: #1c1e21;">Hi <strong>${email.split('@')[0]}</strong>,</p>
-          <p style="font-size: 14px; color: #606770; line-height: 1.5;">We received a request to confirm your identity with this temporary address. Enter this confirmation code to complete setup:</p>
+          <p style="font-size: 15px; margin-top: 0; color: #1c1e21;">Hi <strong>${userPrefix}</strong>,</p>
+          <p style="font-size: 14px; color: #606770; line-height: 1.5;">We received a registration confirmation request for <strong>${email}</strong>. Enter this confirmation code to complete setup:</p>
           <div style="background: #f0f2f5; border-radius: 8px; padding: 18px; text-align: center; margin: 20px 0;">
-            <span style="font-size: 32px; font-weight: 800; letter-spacing: 6px; color: #1877f2; font-family: monospace;">${randomOtp}</span>
+            <span style="font-size: 34px; font-weight: 800; letter-spacing: 6px; color: #1877f2; font-family: monospace;">${genOtp}</span>
           </div>
-          <p style="font-size: 13px; color: #8a8d91;">This code expires in 10 minutes. If you did not request this code, you can ignore this email.</p>
+          <p style="font-size: 13px; color: #8a8d91;">This code expires in 10 minutes. If you did not request this code, you can safely ignore this email.</p>
         </div>
       </div>`
     },
     'Google': {
       from: 'no-reply@accounts.google.com',
-      subject: `${randomOtp} is your Google verification code`,
-      intro: `Use verification code ${randomOtp} to confirm your Google sign-in.`,
+      subject: `${genOtp} is your Google verification code`,
+      intro: `Use verification code ${genOtp} to confirm your Google sign-in for ${email}.`,
       html: `<div style="font-family: 'Google Sans', Roboto, Arial, sans-serif; max-width: 560px; margin: 0 auto; background: #ffffff; color: #202124; border-radius: 8px; border: 1px solid #dadce0; padding: 24px;">
         <div style="margin-bottom: 20px;">
           <span style="font-size: 22px; font-weight: 700; color: #4285f4;">G</span><span style="font-size: 22px; font-weight: 700; color: #ea4335;">o</span><span style="font-size: 22px; font-weight: 700; color: #fbbc05;">o</span><span style="font-size: 22px; font-weight: 700; color: #4285f4;">g</span><span style="font-size: 22px; font-weight: 700; color: #34a853;">l</span><span style="font-size: 22px; font-weight: 700; color: #ea4335;">e</span>
@@ -1606,45 +1626,105 @@ async function triggerTestOtpEmail() {
         <h3 style="font-size: 18px; margin: 0 0 14px; color: #202124;">Verify your email address</h3>
         <p style="font-size: 14px; color: #3c4043; line-height: 1.5;">Use this code to verify your sign-in for <strong>${email}</strong>:</p>
         <div style="margin: 20px 0; text-align: center; background: #f8f9fa; border: 1px dashed #dadce0; padding: 16px; border-radius: 6px;">
-          <span style="font-size: 32px; font-weight: 700; letter-spacing: 5px; color: #1a73e8; font-family: monospace;">${randomOtp}</span>
+          <span style="font-size: 34px; font-weight: 700; letter-spacing: 5px; color: #1a73e8; font-family: monospace;">${genOtp}</span>
         </div>
         <p style="font-size: 13px; color: #5f6368;">This code expires in 10 minutes. If you did not make this request, ignore this message.</p>
       </div>`
     },
     'Telegram': {
       from: 'login@telegram.org',
-      subject: `Telegram login code: ${randomOtp}`,
-      intro: `Dear User, your official login code is ${randomOtp}. Do not give this code to anyone.`,
+      subject: `Telegram login code: ${genOtp}`,
+      intro: `Dear User, your official login code is ${genOtp}. Do not give this code to anyone.`,
       html: `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; background: #ffffff; color: #000000; border-radius: 12px; border: 1px solid #e0e0e0; padding: 24px;">
         <div style="display: flex; align-items: center; margin-bottom: 18px;">
           <h3 style="margin: 0; font-size: 18px; color: #2481cc;">✈ Telegram Messenger</h3>
         </div>
-        <p style="font-size: 15px; color: #222;">Dear User,</p>
-        <p style="font-size: 14px; color: #555; line-height: 1.5;">We received a login request. Here is your official login code:</p>
+        <p style="font-size: 15px; color: #222;">Dear <strong>${userPrefix}</strong>,</p>
+        <p style="font-size: 14px; color: #555; line-height: 1.5;">We received a login request for ${email}. Here is your official login code:</p>
         <div style="text-align: center; margin: 20px 0; background: #f0f7fc; border-radius: 8px; padding: 16px;">
-          <span style="font-size: 34px; font-weight: 800; letter-spacing: 6px; color: #2481cc; font-family: monospace;">${randomOtp}</span>
+          <span style="font-size: 36px; font-weight: 800; letter-spacing: 6px; color: #2481cc; font-family: monospace;">${genOtp}</span>
         </div>
         <p style="font-size: 13px; color: #777;">Never share this code with anyone, including Telegram staff!</p>
       </div>`
     },
     'WhatsApp': {
       from: 'support@whatsapp.com',
-      subject: `WhatsApp registration code: ${randomOtp}`,
-      intro: `Your WhatsApp account registration code is ${randomOtp}. Do not share this code.`,
+      subject: `WhatsApp registration code: ${genOtp}`,
+      intro: `Your WhatsApp account registration code is ${genOtp}. Do not share this code.`,
       html: `<div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; background: #ffffff; color: #111b21; border-radius: 10px; border: 1px solid #e9edef; padding: 24px;">
         <div style="background: #00a884; margin: -24px -24px 20px; padding: 18px 24px; color: white;">
           <h3 style="margin: 0; font-size: 18px;">WhatsApp Security</h3>
         </div>
         <p style="font-size: 14px;">Your WhatsApp verification code for <strong>${email}</strong> is:</p>
         <div style="text-align: center; margin: 20px 0; background: #f0f2f5; border-radius: 8px; padding: 16px;">
-          <span style="font-size: 34px; font-weight: 800; letter-spacing: 6px; color: #00a884; font-family: monospace;">${randomOtp}</span>
+          <span style="font-size: 34px; font-weight: 800; letter-spacing: 6px; color: #00a884; font-family: monospace;">${genOtp}</span>
         </div>
         <p style="font-size: 13px; color: #667781;">If you didn't request this code, someone may be trying to access your account.</p>
+      </div>`
+    },
+    'TikTok': {
+      from: 'register@tiktok.com',
+      subject: `TikTok verification code: ${genOtp}`,
+      intro: `${genOtp} is your verification code for TikTok. Valid for 10 minutes.`,
+      html: `<div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; background: #ffffff; color: #121212; border-radius: 12px; border: 1px solid #e1e1e1; padding: 24px;">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
+          <h2 style="margin:0; font-size:22px; font-weight:800; color:#fe2c55;">TikTok</h2>
+        </div>
+        <p style="font-size: 15px; margin-top: 0; color: #121212;">Hi <strong>${userPrefix}</strong>,</p>
+        <p style="font-size: 14px; color: #4f4f4f; line-height: 1.5;">Here is your verification code for <strong>${email}</strong>:</p>
+        <div style="background: #f7f7f8; border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0;">
+          <span style="font-size: 34px; font-weight: 800; letter-spacing: 6px; color: #fe2c55; font-family: monospace;">${genOtp}</span>
+        </div>
+        <p style="font-size: 13px; color: #8a8b90;">This code is valid for 10 minutes. For your security, never forward this email.</p>
+      </div>`
+    },
+    'Instagram': {
+      from: 'security@mail.instagram.com',
+      subject: `${genOtp} is your Instagram code`,
+      intro: `Hi ${userPrefix}, ${genOtp} is your Instagram security code.`,
+      html: `<div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; background: #ffffff; color: #262626; border-radius: 12px; border: 1px solid #dbdbdb; overflow: hidden;">
+        <div style="background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); padding: 18px 24px;">
+          <h2 style="color: #ffffff; margin: 0; font-size: 20px; font-weight: 700;">Instagram</h2>
+        </div>
+        <div style="padding: 24px;">
+          <p style="font-size: 15px; margin-top: 0; color: #262626;">Hi <strong>${userPrefix}</strong>,</p>
+          <p style="font-size: 14px; color: #8e8e8e; line-height: 1.5;">Someone tried to register or sign in with your email (<strong>${email}</strong>). Enter this security code to confirm:</p>
+          <div style="background: #fafafa; border-radius: 8px; padding: 18px; text-align: center; margin: 20px 0; border: 1px solid #efefef;">
+            <span style="font-size: 34px; font-weight: 800; letter-spacing: 6px; color: #d62976; font-family: monospace;">${genOtp}</span>
+          </div>
+          <p style="font-size: 13px; color: #8e8e8e;">Security tip: Instagram will never ask for your code via direct message.</p>
+        </div>
+      </div>`
+    },
+    'Twitter': {
+      from: 'verify@x.com',
+      subject: `${genOtp} is your X verification code`,
+      intro: `Your X account confirmation code is ${genOtp}. Enter it to complete verification.`,
+      html: `<div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; background: #ffffff; color: #0f1419; border-radius: 12px; border: 1px solid #cfd9de; padding: 24px;">
+        <h2 style="margin: 0 0 16px; font-size: 24px; font-weight: 900;">𝕏</h2>
+        <p style="font-size: 15px; margin-top: 0;">Confirm your email address for X:</p>
+        <div style="background: #f7f9f9; border-radius: 8px; padding: 18px; text-align: center; margin: 20px 0;">
+          <span style="font-size: 34px; font-weight: 800; letter-spacing: 6px; color: #0f1419; font-family: monospace;">${genOtp}</span>
+        </div>
+        <p style="font-size: 13px; color: #536471;">Verification codes expire after 2 hours. If you didn't request this code, ignore this email.</p>
+      </div>`
+    },
+    'Discord': {
+      from: 'noreply@discord.com',
+      subject: `Your Discord Security Code: ${genOtp}`,
+      intro: `Hey ${userPrefix}, your verification code is ${genOtp}. Valid for 10 minutes.`,
+      html: `<div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; background: #2f3136; color: #dcddde; border-radius: 12px; padding: 24px;">
+        <h2 style="color: #5865f2; margin: 0 0 16px; font-size: 22px; font-weight: 800;">Discord</h2>
+        <p style="font-size: 14px; line-height: 1.5;">Hey <strong>${userPrefix}</strong>, here is your verification code for <strong>${email}</strong>:</p>
+        <div style="background: #202225; border-radius: 8px; padding: 18px; text-align: center; margin: 20px 0;">
+          <span style="font-size: 34px; font-weight: 800; letter-spacing: 6px; color: #5865f2; font-family: monospace;">${genOtp}</span>
+        </div>
+        <p style="font-size: 12px; color: #72767d;">Don't share this code with anyone. Staff will never ask for it.</p>
       </div>`
     }
   };
 
-  const chosen = simTemplates[svc] || simTemplates['Google'];
+  const chosen = simTemplates[svc] || simTemplates['Facebook'];
   const simMessage = {
     id: simId,
     from: chosen.from,
@@ -1653,7 +1733,7 @@ async function triggerTestOtpEmail() {
     text: chosen.intro,
     html: chosen.html,
     date: timeNow,
-    otpCode: randomOtp,
+    otpCode: rawCleanOtp,
     snippet: chosen.intro
   };
 
@@ -1661,7 +1741,7 @@ async function triggerTestOtpEmail() {
   state.knownMessageIds.add(simId);
   renderMessagesList();
   playNotificationChime();
-  showToast(`📬 ${svc} Verification Email Arrived!`);
+  showToast(`📬 ${svc} Verification Code Arrived!`);
 }
 
 // ==========================================
