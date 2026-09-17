@@ -44,7 +44,7 @@
           <div class="brand-title-wrap">
             <h1 class="brand-title">Temp Mail Pro</h1>
             <span class="version-badge">v2.6</span>
-            <span class="live-pill"><span class="live-dot"></span> LIVE</span>
+            <span class="live-pill"><span class="live-dot"></span> <span class="live-text">LIVE</span></span>
           </div>
         </div>
       </div>
@@ -201,8 +201,8 @@
           </div>
 
           <div class="quick-sim-wrap">
-            <button class="btn-test-otp" onclick="triggerTestOtpEmail()" title="Simulate Facebook/Google/Telegram verification code email">
-              ⚡ <span id="txt-test-email">Test OTP Email</span>
+            <button class="btn-check-otp" onclick="checkIncomingOtpNow()" title="Check for real OTP verification code from Facebook, Google, Telegram, etc.">
+              🔄 <span id="txt-check-otp">Check Incoming OTP</span>
             </button>
           </div>
         </div>
@@ -244,8 +244,8 @@
             <p class="empty-desc" id="txt-empty-desc">Send an email or sign up on Facebook, Telegram, WhatsApp, TikTok, or Google using your active address above. Your message &amp; verification code will appear here in real time!</p>
             
             <div class="empty-action-box">
-              <button class="btn btn-outline" onclick="triggerTestOtpEmail()">
-                ⚡ Send Sample Verification Code
+              <button class="btn btn-outline" onclick="checkIncomingOtpNow()">
+                🔄 Check Incoming OTP
               </button>
             </div>
           </div>
@@ -643,99 +643,6 @@
 
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="closeModal('modal-apk')">Close</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Test OTP Platform Selector Modal -->
-  <div class="modal-overlay" id="modal-test-otp">
-    <div class="modal-dialog">
-      <div class="modal-header">
-        <div class="modal-title-group">
-          <span class="modal-icon">⚡</span>
-          <h3 class="modal-title">Simulate Social Media OTP</h3>
-        </div>
-        <button class="modal-close-btn" onclick="closeModal('modal-test-otp')">&times;</button>
-      </div>
-
-      <div class="modal-body">
-        <p class="modal-intro-text">
-          Select which social media platform or service verification code you want to receive on your active mailbox:
-        </p>
-
-        <div class="test-otp-grid">
-          <button class="test-otp-card" onclick="simulateServiceOtp('Facebook')">
-            <span class="test-otp-icon">🔵</span>
-            <div class="test-otp-info">
-              <strong>Facebook</strong>
-              <span>Meta confirmation code</span>
-            </div>
-          </button>
-
-          <button class="test-otp-card" onclick="simulateServiceOtp('Google')">
-            <span class="test-otp-icon">🔴</span>
-            <div class="test-otp-info">
-              <strong>Google</strong>
-              <span>Google Account security code</span>
-            </div>
-          </button>
-
-          <button class="test-otp-card" onclick="simulateServiceOtp('Telegram')">
-            <span class="test-otp-icon">✈️</span>
-            <div class="test-otp-info">
-              <strong>Telegram</strong>
-              <span>Telegram login verification</span>
-            </div>
-          </button>
-
-          <button class="test-otp-card" onclick="simulateServiceOtp('WhatsApp')">
-            <span class="test-otp-icon">🟢</span>
-            <div class="test-otp-info">
-              <strong>WhatsApp</strong>
-              <span>WhatsApp registration code</span>
-            </div>
-          </button>
-
-          <button class="test-otp-card" onclick="simulateServiceOtp('TikTok')">
-            <span class="test-otp-icon">🎵</span>
-            <div class="test-otp-info">
-              <strong>TikTok</strong>
-              <span>TikTok 6-digit login OTP</span>
-            </div>
-          </button>
-
-          <button class="test-otp-card" onclick="simulateServiceOtp('Instagram')">
-            <span class="test-otp-icon">📸</span>
-            <div class="test-otp-info">
-              <strong>Instagram</strong>
-              <span>Instagram security code</span>
-            </div>
-          </button>
-
-          <button class="test-otp-card" onclick="simulateServiceOtp('Twitter')">
-            <span class="test-otp-icon">🐦</span>
-            <div class="test-otp-info">
-              <strong>X (Twitter)</strong>
-              <span>X verification code</span>
-            </div>
-          </button>
-
-          <button class="test-otp-card" onclick="simulateServiceOtp('Discord')">
-            <span class="test-otp-icon">👾</span>
-            <div class="test-otp-info">
-              <strong>Discord</strong>
-              <span>Discord account confirmation</span>
-            </div>
-          </button>
-        </div>
-
-        <div class="test-otp-notice">
-          ℹ️ <em>Only real, formatted social media verification codes for the selected app are generated. No random junk emails will ever be injected.</em>
-        </div>
-      </div>
-
-      <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeModal('modal-test-otp')">Cancel</button>
       </div>
     </div>
   </div>
