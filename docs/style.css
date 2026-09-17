@@ -702,10 +702,13 @@ body {
   box-shadow: 0 0 10px var(--secondary);
 }
 
-.btn-test-otp {
-  background: var(--accent-gold-light);
-  color: var(--accent-gold);
-  border: 1px solid rgba(245, 158, 11, 0.3);
+.btn-check-otp {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-surface);
+  color: var(--primary);
+  border: 1px solid var(--border-color);
   padding: 6px 12px;
   border-radius: var(--radius-full);
   font-size: 0.78rem;
@@ -714,9 +717,10 @@ body {
   transition: var(--transition);
 }
 
-.btn-test-otp:hover {
-  background: var(--accent-gold);
-  color: #000;
+.btn-check-otp:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--primary);
+  color: var(--primary-light);
   transform: translateY(-1px);
 }
 
@@ -1747,65 +1751,136 @@ input:checked + .switch-slider:before {
   }
 }
 
-/* Mobile Phones (<= 600px) - Normal Mobile Mode */
-@media (max-width: 600px) {
-  /* Navigation Bar */
+/* Mobile Phones (<= 640px) - Balanced Mobile Mode */
+@media (max-width: 640px) {
+  /* Navigation Bar - Guaranteed Full Visibility of all 6 action buttons */
   .top-nav {
-    padding: 8px 12px;
+    padding: 6px 8px;
   }
 
   .nav-container {
-    gap: 8px;
+    gap: 4px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
 
   .brand-group {
-    gap: 8px;
+    gap: 5px;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    min-width: 0;
   }
 
   .brand-logo-wrap {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    flex-shrink: 0;
+  }
+
+  .brand-logo-inner svg {
+    width: 15px;
+    height: 15px;
   }
 
   .brand-title {
-    font-size: 1.05rem;
+    font-size: 0.88rem;
+    font-weight: 700;
     letter-spacing: -0.01em;
+    white-space: nowrap;
   }
 
+  /* Hide version badge on mobile so all 6 action buttons fit cleanly */
   .version-badge {
-    font-size: 0.65rem;
-    padding: 1px 5px;
+    display: none;
   }
 
   .live-pill {
-    font-size: 0.6rem;
-    padding: 2px 6px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0;
+    background: transparent;
+    border: none;
+    margin-left: 2px;
   }
 
-  /* Hide long tagline in sticky nav so mobile header stays ultra-clean & compact */
+  .live-pill .live-text {
+    display: none;
+  }
+
+  .live-dot {
+    width: 6px;
+    height: 6px;
+  }
+
+  /* Hide long tagline in sticky nav */
   .developer-tagline {
     display: none;
   }
 
   .nav-actions {
-    gap: 4px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    flex-shrink: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .nav-actions::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav-btn-text {
+    display: none !important;
   }
 
   .icon-button, .action-button {
-    width: 34px;
-    height: 34px;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    max-width: 28px;
     padding: 0;
+    gap: 0 !important;
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
-    border-radius: var(--radius-sm);
-    font-size: 0.9rem;
+    border-radius: 7px;
+    font-size: 0.82rem;
+    flex-shrink: 0;
+    margin: 0;
+  }
+
+  .icon-button svg, .action-button svg {
+    width: 14px;
+    height: 14px;
   }
 
   .lang-btn {
-    width: auto;
-    padding: 0 6px;
-    gap: 3px;
-    font-size: 0.74rem;
+    width: auto !important;
+    max-width: none !important;
+    min-width: 30px;
+    height: 28px;
+    padding: 0 4px;
+    gap: 2px;
+    font-size: 0.72rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .lang-btn #current-lang-code {
+    display: none;
+  }
+
+  .lang-btn .dropdown-arrow {
+    width: 8px;
+    height: 8px;
   }
 
   /* Page Padding & Spacing */
@@ -2008,7 +2083,7 @@ input:checked + .switch-slider:before {
     font-size: 0.76rem;
   }
 
-  .btn-test-otp {
+  .btn-check-otp {
     padding: 4px 8px;
     font-size: 0.72rem;
   }
@@ -2076,6 +2151,39 @@ input:checked + .switch-slider:before {
 
 /* Extra Small Screens (<= 360px) */
 @media (max-width: 360px) {
+  .top-nav {
+    padding: 5px 6px;
+  }
+  .brand-group {
+    gap: 4px;
+  }
+  .brand-title {
+    font-size: 0.82rem;
+  }
+  .brand-logo-wrap {
+    width: 26px;
+    height: 26px;
+  }
+  .nav-actions {
+    gap: 2px;
+  }
+  .icon-button, .action-button {
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
+    max-width: 26px;
+    font-size: 0.75rem;
+  }
+  .icon-button svg, .action-button svg {
+    width: 13px;
+    height: 13px;
+  }
+  .lang-btn {
+    min-width: 28px;
+    height: 26px;
+    padding: 0 2px;
+  }
+
   #active-email-input {
     font-size: 0.76rem;
   }

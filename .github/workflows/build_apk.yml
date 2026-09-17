@@ -44,20 +44,36 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Android 36 SDK & Accept Licenses
+      - name: Setup Android SDK Environment & Licenses
         run: |
-          echo "Accepting Android SDK licenses and installing SDK 36..."
-          yes | sdkmanager --licenses 2>/dev/null || true
-          sdkmanager "platforms;android-36" "build-tools;36.0.0" "platform-tools" 2>/dev/null || true
+          echo "Configuring Android SDK and accepting licenses..."
+          export ANDROID_HOME="/usr/local/lib/android/sdk"
+          export ANDROID_SDK_ROOT="/usr/local/lib/android/sdk"
+          mkdir -p "$ANDROID_HOME/licenses"
+          
+          # Pre-accept all Android SDK licenses
+          echo -e "\n24333f8a63b6825ea9c5514f83c2829b004d1fee\nd56f5187479451eabf01fb78af6dfcb131a6481e\n24333f8a63b6825ea9c5514f83c2829b004d1fee" > "$ANDROID_HOME/licenses/android-sdk-license"
+          echo -e "\n84831b9409646a201e684091b64694745ad8b4ff" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
+          echo -e "\nd97544112579707c9d18073e0d2e904e28e17388" > "$ANDROID_HOME/licenses/android-googletv-license"
+          echo -e "\n85c49884572212958515e632f94e531440637036" > "$ANDROID_HOME/licenses/android-sdk-arm-dbt-license"
+          echo -e "\n33b6a2b64607f11b759f320ef9dff4ae5c47d97a" > "$ANDROID_HOME/licenses/google-gdk-license"
+          echo -e "\ne9acab5b5fbb560a72cfa4e60a3430eb848159b2" > "$ANDROID_HOME/licenses/intel-android-extra-license"
+          echo -e "\n601085b94cd77f6b24b8650e9349474e85b49789" > "$ANDROID_HOME/licenses/intel-android-sysimage-license"
 
-      - name: Setup Gradle 9.3.1
+          # Accept any remaining licenses via sdkmanager if available
+          if [ -d "$ANDROID_HOME/cmdline-tools/latest/bin" ]; then
+            yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses 2>/dev/null || true
+            "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --include_preview "platforms;android-36" 2>/dev/null || true
+          fi
+
+      - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.3.1'
           cache-disabled: false
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
 
       - name: Prepare Keystore & Environment Files
         run: |
@@ -84,14 +100,14 @@ jobs:
       - name: Build Debug APK
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.build_type == 'debug' || inputs.build_type == 'both' }}
         run: |
-          echo "Building Debug APK with Gradle 9.3.1..."
-          gradle :app:assembleDebug -x test -x lint --stacktrace --no-daemon
+          echo "Building Debug APK with Gradle wrapper..."
+          ./gradlew :app:assembleDebug -x test -x lint --stacktrace --no-daemon
 
       - name: Build Release APK
         if: ${{ (github.event_name == 'workflow_dispatch' && (inputs.build_type == 'release' || inputs.build_type == 'both')) || startsWith(github.ref, 'refs/tags/v') }}
         run: |
-          echo "Building Release APK..."
-          gradle :app:assembleRelease -x test -x lint --stacktrace --no-daemon || gradle :app:assembleDebug -x test -x lint --stacktrace --no-daemon
+          echo "Building Release APK with Gradle wrapper..."
+          ./gradlew :app:assembleRelease -x test -x lint --stacktrace --no-daemon || ./gradlew :app:assembleDebug -x test -x lint --stacktrace --no-daemon
 
       - name: Collect Generated APK Files
         run: |

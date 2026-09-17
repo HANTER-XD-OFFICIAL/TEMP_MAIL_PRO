@@ -77,7 +77,8 @@ const TRANSLATIONS = {
     inboxTitle: 'Live Mailbox Inbox',
     emptyTitle: 'Waiting for incoming emails...',
     emptyDesc: 'Send an email or sign up on Facebook, Telegram, WhatsApp, TikTok, or Google using your active address above. Your message & verification code will appear here in real time!',
-    testEmail: 'Test OTP Email',
+    testEmail: 'Check Incoming OTP',
+    checkOtp: 'Check Incoming OTP',
     domainHubTitle: 'Enterprise Domain Hub',
     domainHubDesc: 'Select any verified high-reputation domain. Powered by GuerrillaMail, Mail.tm, and Mail.gw enterprise mail nodes.',
     customTitle: 'Create Custom Mailbox',
@@ -106,7 +107,8 @@ const TRANSLATIONS = {
     inboxTitle: 'লাইভ ইনবক্স মেসেজ',
     emptyTitle: 'ইনকামিং ইমেলের অপেক্ষায়...',
     emptyDesc: 'ফেসবুক, টেলিগ্রাম, হোয়াটসঅ্যাপ বা গুগলে উপরের ঠিকানাটি ব্যবহার করুন। ওটিপি এবং ভেরিফিকেশন কোড রিয়েল-টাইমে এখানে চলে আসবে!',
-    testEmail: 'টেস্ট ওটিপি ইমেল',
+    testEmail: 'আগত ওটিপি চেক করুন',
+    checkOtp: 'আগত ওটিপি চেক করুন',
     domainHubTitle: 'এন্টারপ্রাইজ ডোমেন হাব',
     domainHubDesc: 'যে কোনো হাই-রেপুটেশন ডোমেন বেছে নিন। ফেসবুক ও সোশ্যাল মিডিয়ার জন্য সেরা গেরিলা ও মেইল.টিএম নেটওয়ার্ক।',
     customTitle: 'কাস্টম মেইলবক্স তৈরি',
@@ -135,7 +137,8 @@ const TRANSLATIONS = {
     inboxTitle: 'Bandeja de Entrada en Vivo',
     emptyTitle: 'Esperando correos entrantes...',
     emptyDesc: 'Usa esta dirección para registrarte en Facebook, Google, WhatsApp o Telegram. ¡Los códigos llegarán al instante!',
-    testEmail: 'Probar Correo OTP',
+    testEmail: 'Verificar OTP entrante',
+    checkOtp: 'Verificar OTP entrante',
     domainHubTitle: 'Centro de Dominios',
     domainHubDesc: 'Selecciona cualquier dominio verificado con alta entregabilidad.',
     customTitle: 'Crear Correo Personalizado',
@@ -164,7 +167,8 @@ const TRANSLATIONS = {
     inboxTitle: 'صندوق البريد المباشر',
     emptyTitle: 'في انتظار الرسائل الواردة...',
     emptyDesc: 'استخدم هذا العنوان للتسجيل في فيسبوك أو تيليجرام أو واتساب. سيصل رمز التحقق فوراً!',
-    testEmail: 'تجربة بريد OTP',
+    testEmail: 'فحص رمز OTP الوارد',
+    checkOtp: 'فحص رمز OTP الوارد',
     domainHubTitle: 'مركز النطاقات',
     domainHubDesc: 'اختر أي نطاق عالي الموثوقية.',
     customTitle: 'إنشاء بريد مخصص',
@@ -193,7 +197,8 @@ const TRANSLATIONS = {
     inboxTitle: 'लाइव इनबॉक्स संदेश',
     emptyTitle: 'आने वाले ईमेल की प्रतीक्षा है...',
     emptyDesc: 'फेसबुक, व्हाट्सएप, टेलीग्राम या गूगल पर साइन अप करने के लिए इस पते का उपयोग करें।',
-    testEmail: 'टेस्ट ओटीपी ईमेल',
+    testEmail: 'आने वाला OTP जांचें',
+    checkOtp: 'आने वाला OTP जांचें',
     domainHubTitle: 'एंटरप्राइज डोमेन हब',
     domainHubDesc: 'उच्च विश्वसनीयता वाले डोमेन में से चुनें।',
     customTitle: 'कस्टम मेलबॉक्स बनाएं',
@@ -222,7 +227,8 @@ const TRANSLATIONS = {
     inboxTitle: 'Входящие сообщения онлайн',
     emptyTitle: 'Ожидание входящих писем...',
     emptyDesc: 'Используйте адрес для регистрации в Telegram, WhatsApp, Facebook или Google.',
-    testEmail: 'Тестовый OTP',
+    testEmail: 'Проверить входящий OTP',
+    checkOtp: 'Проверить входящий OTP',
     domainHubTitle: 'Выбор домена',
     domainHubDesc: 'Надежные домены с мгновенной доставкой.',
     customTitle: 'Создать свой адрес',
@@ -251,7 +257,8 @@ const TRANSLATIONS = {
     inboxTitle: 'Caixa de Entrada em Tempo Real',
     emptyTitle: 'Aguardando e-mails...',
     emptyDesc: 'Use este endereço temporário para receber códigos de confirmação instantaneamente.',
-    testEmail: 'Testar E-mail OTP',
+    testEmail: 'Verificar OTP de Entrada',
+    checkOtp: 'Verificar OTP de Entrada',
     domainHubTitle: 'Hub de Domínios',
     domainHubDesc: 'Domínios seguros e de alta reputação.',
     customTitle: 'Criar E-mail Personalizado',
@@ -280,7 +287,8 @@ const TRANSLATIONS = {
     inboxTitle: 'لائیو ان باکس پیغامات',
     emptyTitle: 'نئے پیغامات کا انتظار ہے...',
     emptyDesc: 'فیس بک، ٹیلیگرام، واٹس ایپ یا گوگل پر سائن اپ کے لیے یہ پتہ استعمال کریں۔ کوڈ فوراً پہنچے گا!',
-    testEmail: 'ٹیسٹ او ٹی پی ای میل',
+    testEmail: 'موصولہ او ٹی پی چیک کریں',
+    checkOtp: 'موصولہ او ٹی پی چیک کریں',
     domainHubTitle: 'ڈومین سلیکشن ہب',
     domainHubDesc: 'ہائی ریپوٹیشن ڈومینز میں سے منتخب کریں۔',
     customTitle: 'کسٹم ای میل بنائیں',
@@ -388,6 +396,9 @@ function loadStoredSettings() {
     updateSoundIcon();
   }
 
+  // Ensure inbox contains exclusively real incoming messages
+  state.messages = (state.messages || []).filter(m => m && (!m.id || !m.id.startsWith('sim_')));
+
   // Saved Vault
   const savedVault = localStorage.getItem('tmp_saved_vault');
   if (savedVault) {
@@ -493,7 +504,8 @@ function setupLanguage(langCode) {
   setElemText('txt-inbox-title', t.inboxTitle);
   setElemText('txt-empty-title', t.emptyTitle);
   setElemText('txt-empty-desc', t.emptyDesc);
-  setElemText('txt-test-email', t.testEmail);
+  setElemText('txt-test-email', t.checkOtp || t.testEmail);
+  setElemText('txt-check-otp', t.checkOtp || t.testEmail);
   setElemText('txt-domain-hub-title', t.domainHubTitle);
   setElemText('txt-domain-hub-desc', t.domainHubDesc);
   setElemText('txt-custom-title', t.customTitle);
@@ -747,13 +759,8 @@ async function fetchInboxMessages(isAuto = false) {
       }
     }
 
-    // Preserve any simulated/test emails in the active session
-    const currentSims = state.messages.filter(m => m.id && m.id.startsWith('sim_'));
-    currentSims.forEach(sim => {
-      if (!newMessages.some(m => m.id === sim.id)) {
-        newMessages.unshift(sim);
-      }
-    });
+    // Filter to ensure only genuine incoming emails are accepted
+    newMessages = (newMessages || []).filter(m => m && (!m.id || !m.id.startsWith('sim_')));
 
     // Check for newly arrived messages
     let hasNewlyArrived = false;
@@ -813,8 +820,8 @@ function renderMessagesList() {
         <h3 class="empty-title">${TRANSLATIONS[state.currentLang].emptyTitle}</h3>
         <p class="empty-desc">${TRANSLATIONS[state.currentLang].emptyDesc}</p>
         <div class="empty-action-box">
-          <button class="btn btn-outline" onclick="triggerTestOtpEmail()">
-            ⚡ Send Sample Verification Code
+          <button class="btn btn-outline" onclick="checkIncomingOtpNow()">
+            🔄 ${TRANSLATIONS[state.currentLang].checkOtp || 'Check Incoming OTP'}
           </button>
         </div>
       </div>
@@ -1539,129 +1546,26 @@ function openApkModal() {
   openModal('modal-apk');
 }
 
-// Simulation / Test Verification Email (Works 100% on GitHub Pages & offline)
-async function triggerTestOtpEmail() {
-  const email = state.activeAccount ? state.activeAccount.address : 'user@sharklasers.com';
-  const services = ['Facebook', 'Google', 'Telegram', 'WhatsApp'];
-  const svc = services[Math.floor(Math.random() * services.length)];
+// Check for Incoming Social Media Verification Codes (Real live mail only)
+async function checkIncomingOtpNow() {
+  const btn = document.querySelector('.btn-check-otp');
+  if (btn) btn.style.opacity = '0.6';
 
-  showToast(`⚡ Simulating ${svc} verification email...`);
+  showToast('🔄 Checking server for incoming social media OTP...');
+  const countBefore = state.messages.length;
+  await fetchInboxMessages(false);
 
-  const backend = getBackendBaseUrl();
-  if (backend !== null) {
-    try {
-      const res = await fetch(`${backend}/api/test-email`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ service: svc, address: email })
-      });
+  if (btn) btn.style.opacity = '1';
 
-      if (res.ok) {
-        const data = await res.json();
-        if (data.ok && data.message) {
-          state.messages.unshift(data.message);
-          state.knownMessageIds.add(data.message.id);
-          renderMessagesList();
-          playNotificationChime();
-          showToast(`📬 ${svc} Verification Email Arrived!`);
-          return;
-        }
-      }
-    } catch (e) {}
+  const countAfter = state.messages.length;
+  if (countAfter > countBefore) {
+    playNotificationChime();
+    showToast('📬 Social media verification email received!');
+  } else if (countAfter === 0) {
+    showToast('⏳ No OTP email yet. Sign up on Facebook, Telegram, Google, etc., and your code will arrive here!');
+  } else {
+    showToast('✅ Mailbox checked — up to date.');
   }
-
-  // Client-side instant generator
-  const testOtps = ['849201', '391054', '772910', '520841', '193820', '604812', '930182'];
-  const randomOtp = testOtps[Math.floor(Math.random() * testOtps.length)];
-  const simId = 'sim_' + Date.now();
-  const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-  const simTemplates = {
-    'Facebook': {
-      from: 'security@facebookmail.com',
-      subject: `${randomOtp} is your Facebook confirmation code`,
-      intro: `Hi ${email.split('@')[0]}, your Meta/Facebook security confirmation code is ${randomOtp}. Enter it to complete verification.`,
-      html: `<div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; background: #ffffff; color: #1c1e21; border-radius: 10px; border: 1px solid #dddfe2; overflow: hidden;">
-        <div style="background: #1877f2; padding: 18px 24px;">
-          <h2 style="color: #ffffff; margin: 0; font-size: 20px; font-weight: 700;">Facebook Security</h2>
-        </div>
-        <div style="padding: 24px;">
-          <p style="font-size: 15px; margin-top: 0; color: #1c1e21;">Hi <strong>${email.split('@')[0]}</strong>,</p>
-          <p style="font-size: 14px; color: #606770; line-height: 1.5;">We received a request to confirm your identity with this temporary address. Enter this confirmation code to complete setup:</p>
-          <div style="background: #f0f2f5; border-radius: 8px; padding: 18px; text-align: center; margin: 20px 0;">
-            <span style="font-size: 32px; font-weight: 800; letter-spacing: 6px; color: #1877f2; font-family: monospace;">${randomOtp}</span>
-          </div>
-          <p style="font-size: 13px; color: #8a8d91;">This code expires in 10 minutes. If you did not request this code, you can ignore this email.</p>
-        </div>
-      </div>`
-    },
-    'Google': {
-      from: 'no-reply@accounts.google.com',
-      subject: `${randomOtp} is your Google verification code`,
-      intro: `Use verification code ${randomOtp} to confirm your Google sign-in.`,
-      html: `<div style="font-family: 'Google Sans', Roboto, Arial, sans-serif; max-width: 560px; margin: 0 auto; background: #ffffff; color: #202124; border-radius: 8px; border: 1px solid #dadce0; padding: 24px;">
-        <div style="margin-bottom: 20px;">
-          <span style="font-size: 22px; font-weight: 700; color: #4285f4;">G</span><span style="font-size: 22px; font-weight: 700; color: #ea4335;">o</span><span style="font-size: 22px; font-weight: 700; color: #fbbc05;">o</span><span style="font-size: 22px; font-weight: 700; color: #4285f4;">g</span><span style="font-size: 22px; font-weight: 700; color: #34a853;">l</span><span style="font-size: 22px; font-weight: 700; color: #ea4335;">e</span>
-        </div>
-        <h3 style="font-size: 18px; margin: 0 0 14px; color: #202124;">Verify your email address</h3>
-        <p style="font-size: 14px; color: #3c4043; line-height: 1.5;">Use this code to verify your sign-in for <strong>${email}</strong>:</p>
-        <div style="margin: 20px 0; text-align: center; background: #f8f9fa; border: 1px dashed #dadce0; padding: 16px; border-radius: 6px;">
-          <span style="font-size: 32px; font-weight: 700; letter-spacing: 5px; color: #1a73e8; font-family: monospace;">${randomOtp}</span>
-        </div>
-        <p style="font-size: 13px; color: #5f6368;">This code expires in 10 minutes. If you did not make this request, ignore this message.</p>
-      </div>`
-    },
-    'Telegram': {
-      from: 'login@telegram.org',
-      subject: `Telegram login code: ${randomOtp}`,
-      intro: `Dear User, your official login code is ${randomOtp}. Do not give this code to anyone.`,
-      html: `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; background: #ffffff; color: #000000; border-radius: 12px; border: 1px solid #e0e0e0; padding: 24px;">
-        <div style="display: flex; align-items: center; margin-bottom: 18px;">
-          <h3 style="margin: 0; font-size: 18px; color: #2481cc;">✈ Telegram Messenger</h3>
-        </div>
-        <p style="font-size: 15px; color: #222;">Dear User,</p>
-        <p style="font-size: 14px; color: #555; line-height: 1.5;">We received a login request. Here is your official login code:</p>
-        <div style="text-align: center; margin: 20px 0; background: #f0f7fc; border-radius: 8px; padding: 16px;">
-          <span style="font-size: 34px; font-weight: 800; letter-spacing: 6px; color: #2481cc; font-family: monospace;">${randomOtp}</span>
-        </div>
-        <p style="font-size: 13px; color: #777;">Never share this code with anyone, including Telegram staff!</p>
-      </div>`
-    },
-    'WhatsApp': {
-      from: 'support@whatsapp.com',
-      subject: `WhatsApp registration code: ${randomOtp}`,
-      intro: `Your WhatsApp account registration code is ${randomOtp}. Do not share this code.`,
-      html: `<div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; background: #ffffff; color: #111b21; border-radius: 10px; border: 1px solid #e9edef; padding: 24px;">
-        <div style="background: #00a884; margin: -24px -24px 20px; padding: 18px 24px; color: white;">
-          <h3 style="margin: 0; font-size: 18px;">WhatsApp Security</h3>
-        </div>
-        <p style="font-size: 14px;">Your WhatsApp verification code for <strong>${email}</strong> is:</p>
-        <div style="text-align: center; margin: 20px 0; background: #f0f2f5; border-radius: 8px; padding: 16px;">
-          <span style="font-size: 34px; font-weight: 800; letter-spacing: 6px; color: #00a884; font-family: monospace;">${randomOtp}</span>
-        </div>
-        <p style="font-size: 13px; color: #667781;">If you didn't request this code, someone may be trying to access your account.</p>
-      </div>`
-    }
-  };
-
-  const chosen = simTemplates[svc] || simTemplates['Google'];
-  const simMessage = {
-    id: simId,
-    from: chosen.from,
-    subject: chosen.subject,
-    intro: chosen.intro,
-    text: chosen.intro,
-    html: chosen.html,
-    date: timeNow,
-    otpCode: randomOtp,
-    snippet: chosen.intro
-  };
-
-  state.messages.unshift(simMessage);
-  state.knownMessageIds.add(simId);
-  renderMessagesList();
-  playNotificationChime();
-  showToast(`📬 ${svc} Verification Email Arrived!`);
 }
 
 // ==========================================
@@ -1670,18 +1574,36 @@ async function triggerTestOtpEmail() {
 function extractOtp(text) {
   if (!text) return null;
   const clean = text.replace(/<[^>]*>/g, ' ');
-  
-  // 1. Meta / Facebook: "Confirmation code 446457"
-  const metaMatch = clean.match(/(?:confirmation\s*code|security\s*code|verification\s*code|login\s*code)\s*[:=-]?\s*(\b\d{4,8}\b)/i);
+
+  // 1. Google Verification format: G-123456
+  const googleMatch = clean.match(/G-(\d{5,7})\b/i);
+  if (googleMatch && googleMatch[1]) return googleMatch[1];
+
+  // 2. WhatsApp hyphenated format: 123-456
+  const waMatch = clean.match(/\b(\d{3})-(\d{3})\b/);
+  if (waMatch && waMatch[1] && waMatch[2]) return `${waMatch[1]}${waMatch[2]}`;
+
+  // 3. Social Media Prefix pattern: "123456 is your Facebook/Instagram/TikTok/Google/Discord/Twitter/Telegram code"
+  const socialPrefixMatch = clean.match(/\b(\d{4,8})\b\s+is\s+your\s+(?:[\w\s-]{1,25})?(?:code|confirmation|verification|login)/i);
+  if (socialPrefixMatch && socialPrefixMatch[1]) return socialPrefixMatch[1];
+
+  // 4. Meta / Facebook / Telegram: "Confirmation code: 446457", "Telegram code: 12345"
+  const metaMatch = clean.match(/(?:confirmation\s*code|security\s*code|verification\s*code|login\s*code|telegram\s*code)\s*[:=-]?\s*(\b\d{4,8}\b)/i);
   if (metaMatch && metaMatch[1]) return metaMatch[1];
 
-  // 2. Standard pattern: "OTP is 123456", "code: 123456"
+  // 5. Standard pattern: "OTP is 123456", "code: 123456", "PIN: 1234"
   const otpMatch = clean.match(/(?:code|otp|pin|passcode)[\s\w:]{0,20}?(\b\d{4,8}\b)/i);
   if (otpMatch && otpMatch[1]) return otpMatch[1];
 
-  // 3. Standalone 6-digit
-  const standalone = clean.match(/\b\d{6}\b/);
-  return standalone ? standalone[0] : null;
+  // 6. Standalone 6-digit number (common worldwide social media standard)
+  const standalone6 = clean.match(/\b\d{6}\b/);
+  if (standalone6) return standalone6[0];
+
+  // 7. Standalone 5-digit number (Telegram code standard)
+  const standalone5 = clean.match(/\b\d{5}\b/);
+  if (standalone5) return standalone5[0];
+
+  return null;
 }
 
 function copyToClipboard(text) {

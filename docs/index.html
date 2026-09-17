@@ -44,7 +44,7 @@
           <div class="brand-title-wrap">
             <h1 class="brand-title">Temp Mail Pro</h1>
             <span class="version-badge">v2.6</span>
-            <span class="live-pill"><span class="live-dot"></span> LIVE</span>
+            <span class="live-pill"><span class="live-dot"></span> <span class="live-text">LIVE</span></span>
           </div>
         </div>
       </div>
@@ -201,8 +201,8 @@
           </div>
 
           <div class="quick-sim-wrap">
-            <button class="btn-test-otp" onclick="triggerTestOtpEmail()" title="Simulate Facebook/Google/Telegram verification code email">
-              ⚡ <span id="txt-test-email">Test OTP Email</span>
+            <button class="btn-check-otp" onclick="checkIncomingOtpNow()" title="Check for real OTP verification code from Facebook, Google, Telegram, etc.">
+              🔄 <span id="txt-check-otp">Check Incoming OTP</span>
             </button>
           </div>
         </div>
@@ -244,8 +244,8 @@
             <p class="empty-desc" id="txt-empty-desc">Send an email or sign up on Facebook, Telegram, WhatsApp, TikTok, or Google using your active address above. Your message &amp; verification code will appear here in real time!</p>
             
             <div class="empty-action-box">
-              <button class="btn btn-outline" onclick="triggerTestOtpEmail()">
-                ⚡ Send Sample Verification Code
+              <button class="btn btn-outline" onclick="checkIncomingOtpNow()">
+                🔄 Check Incoming OTP
               </button>
             </div>
           </div>

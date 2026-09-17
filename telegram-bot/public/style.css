@@ -1826,6 +1826,14 @@ input:checked + .switch-slider:before {
     align-items: center;
     gap: 3px;
     flex-shrink: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .nav-actions::-webkit-scrollbar {
+    display: none;
   }
 
   .nav-btn-text {
@@ -1838,6 +1846,7 @@ input:checked + .switch-slider:before {
     min-width: 28px;
     max-width: 28px;
     padding: 0;
+    gap: 0 !important;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1855,7 +1864,7 @@ input:checked + .switch-slider:before {
   .lang-btn {
     width: auto !important;
     max-width: none !important;
-    min-width: 32px;
+    min-width: 30px;
     height: 28px;
     padding: 0 4px;
     gap: 2px;
@@ -1870,8 +1879,8 @@ input:checked + .switch-slider:before {
   }
 
   .lang-btn .dropdown-arrow {
-    width: 9px;
-    height: 9px;
+    width: 8px;
+    height: 8px;
   }
 
   /* Page Padding & Spacing */
