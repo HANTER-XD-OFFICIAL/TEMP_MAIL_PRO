@@ -439,7 +439,12 @@ fun TelegramBotWelcomeDialog(
                                                         statusFeedback = "Chat ID detected & linked: $detected"
                                                         Toast.makeText(context, "Linked: $detected", Toast.LENGTH_SHORT).show()
                                                     } else {
-                                                        statusFeedback = res.exceptionOrNull()?.message
+                                                        val err = res.exceptionOrNull()?.message ?: "Could not detect Chat ID"
+                                                        statusFeedback = if (err.contains("No recent message") || err.contains("Start")) {
+                                                            err
+                                                        } else {
+                                                            "Could not detect Chat ID. Please open @TEMPMAILPRO34_bot in Telegram and tap Start first."
+                                                        }
                                                     }
                                                 }
                                             },
@@ -472,7 +477,8 @@ fun TelegramBotWelcomeDialog(
                                                         statusFeedback = "Test alert sent to Telegram successfully! ✅"
                                                         Toast.makeText(context, "Message sent to Telegram!", Toast.LENGTH_SHORT).show()
                                                     } else {
-                                                        statusFeedback = res.exceptionOrNull()?.message
+                                                        val err = res.exceptionOrNull()?.message ?: "Failed to send test alert"
+                                                        statusFeedback = "Failed to deliver message: $err"
                                                     }
                                                 }
                                             },

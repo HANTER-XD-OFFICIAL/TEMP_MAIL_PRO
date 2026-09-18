@@ -7,8 +7,8 @@ import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
 import retrofit2.http.POST
-import retrofit2.http.Path
 import retrofit2.http.Query
+import retrofit2.http.Url
 
 @JsonClass(generateAdapter = true)
 data class TelegramGetMeResponse(
@@ -61,23 +61,23 @@ data class TelegramChat(
 )
 
 interface TelegramBotApi {
-    @GET("bot{token}/getMe")
+    @GET
     suspend fun getMe(
-        @Path("token") token: String
+        @Url url: String
     ): Response<TelegramGetMeResponse>
 
     @FormUrlEncoded
-    @POST("bot{token}/sendMessage")
+    @POST
     suspend fun sendMessage(
-        @Path("token") token: String,
+        @Url url: String,
         @Field("chat_id") chatId: String,
         @Field("text") text: String,
         @Field("parse_mode") parseMode: String? = "HTML"
     ): Response<TelegramSendMessageResponse>
 
-    @GET("bot{token}/getUpdates")
+    @GET
     suspend fun getUpdates(
-        @Path("token") token: String,
+        @Url url: String,
         @Query("limit") limit: Int = 10
     ): Response<TelegramUpdatesResponse>
 }

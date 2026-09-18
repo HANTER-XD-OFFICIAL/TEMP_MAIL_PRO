@@ -18,7 +18,7 @@ function resolveSecureBotToken() {
   }
   // XOR key and encrypted payload
   const k = Buffer.from('TempMailProSecurityKey2026', 'utf8');
-  const enc = Buffer.from('bFNYSXtXW15hRFUSJCQRHz8nNgEDHVxCWFc8XVs+FAMQAgEVJSYiERwkHSxLfw==', 'base64');
+  const enc = Buffer.from('bFNYSXtXW15hRFUSJCs9LQ9BCRI8TkB8ZFA6J1xDFVhbGGYjOhRWFkEbPUw7PA==', 'base64');
   const buf = Buffer.alloc(enc.length);
   for (let i = 0; i < enc.length; i++) {
     buf[i] = enc[i] ^ k[i % k.length];

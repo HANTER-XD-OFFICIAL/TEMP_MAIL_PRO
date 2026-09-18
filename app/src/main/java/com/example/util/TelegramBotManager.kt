@@ -11,9 +11,9 @@ object TelegramBotManager {
     // Encrypted byte payload & key (Never exposes the plain text bot token in APK bytecode or reverse-engineering decompilers)
     private val TOKEN_KEY = byteArrayOf(84, 101, 109, 112, 77, 97, 105, 108, 80, 114, 111, 83, 101, 99, 117, 114, 105, 116, 121, 75, 101, 121, 50, 48, 50, 54)
     private val ENCRYPTED_TOKEN_PAYLOAD = byteArrayOf(
-        108, 83, 88, 73, 123, 87, 91, 94, 97, 68, 85, 18, 36, 36, 17, 31,
-        63, 39, 54, 1, 3, 29, 92, 66, 88, 87, 60, 93, 91, 62, 20, 3,
-        16, 2, 1, 21, 37, 38, 34, 17, 28, 36, 29, 44, 75, 127
+        108, 83, 88, 73, 123, 87, 91, 94, 97, 68, 85, 18, 36, 43, 61, 45,
+        15, 65, 9, 18, 60, 78, 64, 124, 100, 80, 58, 39, 92, 67, 21, 88,
+        91, 24, 102, 35, 58, 20, 86, 22, 65, 27, 61, 76, 59, 60
     )
 
     // Secure runtime resolver - decrypts token only on-demand in memory
@@ -23,6 +23,19 @@ object TelegramBotManager {
             result[i] = (ENCRYPTED_TOKEN_PAYLOAD[i].toInt() xor TOKEN_KEY[i % TOKEN_KEY.size].toInt()).toByte()
         }
         String(result, Charsets.UTF_8)
+    }
+
+    private fun botEndpoint(method: String): String {
+        return "https://api.telegram.org/bot$BOT_TOKEN/$method"
+    }
+
+    private fun sanitizeErrorMessage(rawError: String?): String {
+        if (rawError.isNullOrBlank()) return "Telegram connection error"
+        // Strip any accidental bot tokens or raw URLs from error display
+        return rawError
+            .replace(BOT_TOKEN, "[PROTECTED_TOKEN]")
+            .replace(Regex("bot[0-9]+:[A-Za-z0-9_-]+"), "bot[PROTECTED]")
+            .replace(Regex("Malformed URL.*"), "Network request error. Please try again.")
     }
 
     const val BOT_USERNAME = "TEMPMAILPRO34_bot"
@@ -62,7 +75,7 @@ object TelegramBotManager {
 
     suspend fun checkBotConnection(): Result<TelegramBotInfo> = withContext(Dispatchers.IO) {
         try {
-            val response = ApiClient.telegramBotService.getMe(BOT_TOKEN)
+            val response = ApiClient.telegramBotService.getMe(botEndpoint("getMe"))
             if (response.isSuccessful && response.body()?.ok == true) {
                 val info = response.body()?.result
                 if (info != null) {
@@ -72,16 +85,16 @@ object TelegramBotManager {
                 }
             } else {
                 val err = response.body()?.description ?: "Failed to connect to Telegram Bot (HTTP ${response.code()})"
-                Result.failure(Exception(err))
+                Result.failure(Exception(sanitizeErrorMessage(err)))
             }
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(Exception(sanitizeErrorMessage(e.message)))
         }
     }
 
     suspend fun autoDetectChatId(): Result<String> = withContext(Dispatchers.IO) {
         try {
-            val response = ApiClient.telegramBotService.getUpdates(BOT_TOKEN, limit = 10)
+            val response = ApiClient.telegramBotService.getUpdates(botEndpoint("getUpdates"), limit = 10)
             if (response.isSuccessful && response.body()?.ok == true) {
                 val updates = response.body()?.result ?: emptyList()
                 val lastChat = updates.lastOrNull { it.message?.chat != null }?.message?.chat
@@ -92,10 +105,10 @@ object TelegramBotManager {
                 }
             } else {
                 val err = response.body()?.description ?: "Could not fetch updates from Telegram"
-                Result.failure(Exception(err))
+                Result.failure(Exception(sanitizeErrorMessage(err)))
             }
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(Exception(sanitizeErrorMessage(e.message)))
         }
     }
 
@@ -112,7 +125,7 @@ object TelegramBotManager {
             """.trimIndent()
 
             val response = ApiClient.telegramBotService.sendMessage(
-                token = BOT_TOKEN,
+                url = botEndpoint("sendMessage"),
                 chatId = chatId.trim(),
                 text = message,
                 parseMode = "HTML"
@@ -122,10 +135,10 @@ object TelegramBotManager {
                 Result.success(true)
             } else {
                 val err = response.body()?.description ?: "Failed to deliver message to Telegram"
-                Result.failure(Exception(err))
+                Result.failure(Exception(sanitizeErrorMessage(err)))
             }
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(Exception(sanitizeErrorMessage(e.message)))
         }
     }
 
@@ -146,7 +159,7 @@ object TelegramBotManager {
             """.trimIndent()
 
             val response = ApiClient.telegramBotService.sendMessage(
-                token = BOT_TOKEN,
+                url = botEndpoint("sendMessage"),
                 chatId = chatId.trim(),
                 text = message,
                 parseMode = "HTML"
@@ -156,10 +169,10 @@ object TelegramBotManager {
                 Result.success(true)
             } else {
                 val err = response.body()?.description ?: "Failed to send email to Telegram"
-                Result.failure(Exception(err))
+                Result.failure(Exception(sanitizeErrorMessage(err)))
             }
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(Exception(sanitizeErrorMessage(e.message)))
         }
     }
 
@@ -202,7 +215,7 @@ object TelegramBotManager {
             }
 
             val response = ApiClient.telegramBotService.sendMessage(
-                token = BOT_TOKEN,
+                url = botEndpoint("sendMessage"),
                 chatId = chatId.trim(),
                 text = message,
                 parseMode = "HTML"
@@ -212,10 +225,10 @@ object TelegramBotManager {
                 Result.success(true)
             } else {
                 val err = response.body()?.description ?: "Failed to forward incoming email to Telegram"
-                Result.failure(Exception(err))
+                Result.failure(Exception(sanitizeErrorMessage(err)))
             }
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(Exception(sanitizeErrorMessage(e.message)))
         }
     }
 
@@ -240,7 +253,7 @@ object TelegramBotManager {
             """.trimIndent()
 
             val response = ApiClient.telegramBotService.sendMessage(
-                token = BOT_TOKEN,
+                url = botEndpoint("sendMessage"),
                 chatId = chatId.trim(),
                 text = message,
                 parseMode = "HTML"
@@ -250,10 +263,10 @@ object TelegramBotManager {
                 Result.success(true)
             } else {
                 val err = response.body()?.description ?: "Failed to forward OTP to Telegram"
-                Result.failure(Exception(err))
+                Result.failure(Exception(sanitizeErrorMessage(err)))
             }
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(Exception(sanitizeErrorMessage(e.message)))
         }
     }
 
@@ -279,7 +292,7 @@ object TelegramBotManager {
             """.trimIndent()
 
             val response = ApiClient.telegramBotService.sendMessage(
-                token = BOT_TOKEN,
+                url = botEndpoint("sendMessage"),
                 chatId = chatId.trim().ifBlank { DEFAULT_CHAT_ID },
                 text = formatted,
                 parseMode = "HTML"
@@ -289,10 +302,10 @@ object TelegramBotManager {
                 Result.success(true)
             } else {
                 val err = response.body()?.description ?: "Failed to send contact message to Telegram"
-                Result.failure(Exception(err))
+                Result.failure(Exception(sanitizeErrorMessage(err)))
             }
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(Exception(sanitizeErrorMessage(e.message)))
         }
     }
 }
