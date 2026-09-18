@@ -206,7 +206,10 @@ fun HomeScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Column {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(end = 4.dp)
+                            ) {
                                 Text(
                                     text = "Temp Mail",
                                     style = MaterialTheme.typography.titleMedium,
@@ -227,6 +230,8 @@ fun HomeScreen(
                                         fontWeight = FontWeight.Black,
                                         color = MaterialTheme.colorScheme.onPrimary,
                                         fontSize = 10.sp,
+                                        maxLines = 1,
+                                        softWrap = false,
                                         modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp)
                                     )
                                 }
@@ -281,21 +286,6 @@ fun HomeScreen(
                             imageVector = Icons.Default.Shield,
                             contentDescription = strings.privacyGuaranteeTitle,
                             tint = Color(0xFF34D399),
-                            modifier = Modifier.size(19.dp)
-                        )
-                    }
-
-                    // Telegram Bot Action Button (compact)
-                    IconButton(
-                        onClick = { showTelegramWelcomeDialog = true },
-                        modifier = Modifier
-                            .size(36.dp)
-                            .testTag("telegram_bot_top_btn")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Send,
-                            contentDescription = "Telegram Bot (@TEMPMAILPRO34_bot)",
-                            tint = Color(0xFF229ED9),
                             modifier = Modifier.size(19.dp)
                         )
                     }

@@ -324,7 +324,7 @@ fun TelegramBotWelcomeDialog(
                             Spacer(modifier = Modifier.height(10.dp))
 
                             Text(
-                                text = "Token authenticated and connected. You can receive active disposable inboxes and live OTP alerts directly in Telegram.",
+                                text = "Connected to Official Temp Mail Pro Bot. You can receive active disposable inboxes and live OTP alerts directly in Telegram.",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontSize = 11.5.sp,
